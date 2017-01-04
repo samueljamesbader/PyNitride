@@ -4,12 +4,16 @@ Created on Tue Jan  3 16:47:33 2017
 
 @author: sam
 """
+# Put no pytest code before this: it should be run *after* pytest.main
 import pytest
+if __name__=='__main__':
+    pytest.main(args=[__file__])
+    
 from poissolve.materials import Material, _materials
 
 def test_material_get():
     m=Material("GaN")
-    assert m['Eg']==_materials['GaN']['Eg'],\
+    assert m['eps']==_materials['GaN']['eps'],\
         "Can't Material[][...] a single item from Material"
     assert m['dopants','Si','type']==_materials['GaN']['dopants']['Si']['type'],\
         "Can't Material[...] a multi-level item from Material"
