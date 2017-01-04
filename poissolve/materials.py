@@ -6,6 +6,7 @@ Created on Tue Jan  3 16:20:08 2017
 """
 import numpy
 from poissolve.constants import m0, eps_0, eV
+from poissolve.util import MultilevelDict
 
 phib=1
 
@@ -35,28 +36,18 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
                 'Mg':{'type':'Acceptor','E':4*eV,'g':4},},
             }}
 
-class Material():
-    def __init__(self,matname):
-        self._params=_materials[matname]
-    
-    def __getitem__(self,param):
-        if isinstance(param,str): param=[param]
-        try:
-            d=self._params
-            for k in param:
-                d=d[k]
-            return d
-        except:
-            raise Exception("Multilevel key error: "+str(param))
-    
-    def get(self,param,default=None):
-        try:
-            return self.__getitem__(param)
-        except:
-            return default
-            
+def Material(matname):
+    return MultilevelDict(_materials[matname])
+
+# class Material():
+#     def __init__(self,matname):
+#         self._params=_materials[matname]
+#
+#     def __getattr__(self, attr):
+#         if attr in ["get","__getitem__"]:
+#             return getattr(self._params,attr)
 
 if __name__=='__main__':
     import pytest, poissolve
-    from tests import test_materials as tester
+    from poissolve.tests import test_materials as tester
     pytest.main([tester.__file__])
