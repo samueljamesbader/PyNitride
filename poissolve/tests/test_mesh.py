@@ -11,7 +11,7 @@ from poissolve.mesh import EpiStack, Mesh
 import pytest
 if __name__=='__main__':
     pytest.main(args=[__file__,'--plots'])    
-from runtests import plots
+from poissolve.tests.runtests import plots
 
 @plots
 def test_mesh():
