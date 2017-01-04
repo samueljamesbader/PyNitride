@@ -16,6 +16,7 @@ class Layer():
     def __init__(self, name, matname, thickness):
         self._name = name
         self._matname = matname
+        self._mat = Material(matname)
         self._thickness = thickness
 
     @property
@@ -24,21 +25,18 @@ class Layer():
 
     @property
     def material(self):
-        return Material(self._matname)
+        return self._mat
 
     @property
     def thickness(self):
         return self._thickness
 
     # if not found and default=... is passed, will return that instead of error
-    def get_property(self, key, **kwargs):
-        try:
-            return multilevel_get(self.material, key, **kwargs)
-        except:
-            raise Exception("Couldn't find property " + str(key) + " in Material " + self._matname)
+    def get(self, key, default=None):
+        return self._mat.get(key,default)
 
     def __getitem__(self, key):
-        return self.get_property(key)
+        return self._mat[key]
 
 
 def EpiStack(*args):
@@ -130,9 +128,13 @@ class Mesh():
         self._z = np.array(fixed_positions)
         self._dz = np.diff(self._z)
 
-        # Compile a list of interfaces
+        # Compile a list of interfaces for z
+        interface_indices=np.array(interface_indices)
         # Each element is a tuple of the form (index, left layer, right layer)
         self._interfaces = list(zip(interface_indices[:-1], stack[:-1], stack[1:]))
+        # Compile a list of interfaces for zp
+        # Each element is a tuple of the form (lindex,rindex, left layer, right layer)
+        self._interfacesp= list(zip(interface_indices[:-1]-1, interface_indices[:-1], stack[:-1], stack[1:]))
 
         # interpolate the z -> index mapping
         self._z2i_interp = interp1d(self._z, np.arange(len(self._z)))
@@ -200,7 +202,7 @@ class Mesh():
         mpl.tight_layout()
 
     def __getitem__(self, key):
-        return self._functions[key].array
+        return self._functions[key]
 
     def __setitem__(self, key, value):
         if key in self._functions:
@@ -211,9 +213,6 @@ class Mesh():
         for sm in self._submeshes:
             sm.add_function(key, func.restrict(sm))
         return func
-
-    def get_function(self, key):
-        return self._functions[key]
 
     def plot_function(self, key, *args, **kwargs):
         self._functions[key].plot(*args, **kwargs)
@@ -227,8 +226,11 @@ class Mesh():
         return self._zp
 
     @property
-    def interfaces(self):
+    def interfaces_point(self):
         return self._interfaces
+    @property
+    def interfaces_mid(self):
+        return self._interfacesp
 
     def submesh(self, zbounds):
         return SubMesh(self, *list(self.index(zbounds)))

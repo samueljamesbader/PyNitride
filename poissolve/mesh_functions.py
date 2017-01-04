@@ -5,9 +5,9 @@ Created on Tue Jan  3 17:41:30 2017
 @author: sam
 """
 import numpy as np
-import matplotlib as mpl
+import matplotlib.pyplot as mpl
 from scipy.interpolate import interp1d
-
+import numbers
 
 class Function():
     def __init__(self):
@@ -26,8 +26,23 @@ class Function():
         
     def plot(self,*args,**kwargs):
         mpl.plot(self._z,self._arr,*args,**kwargs)
-        
-    
+
+    #def __getattr__(self, attr):
+        #print('gettin')
+        #return getattr(self._arr,attr)
+
+    def __getitem__(self,key):
+        return self._arr[key]
+       #arr=self._arr[key]
+       #if isinstance(key,int):
+           #return arr
+       #else:
+           #return a
+           #return self.__class__(mesh=self._mesh,arr=arr)
+
+    def __setitem__(self,key,value):
+        self._arr[key]=value
+
 
 class PointFunction(Function):
     def __init__(self,mesh,arr=np.NaN):
@@ -54,8 +69,7 @@ class PointFunction(Function):
             (self._arr*self._mesh._dzp)[:-1] if not flipped else np.flipud(-self._arr*self._mesh._dzp)[:-1],
             out=(output.array if not flipped else np.flipud(output.array)))
         return output
-        
-        
+
 class MidFunction(Function):
     def __init__(self,mesh,arr=np.NaN):
         # doesn't check that mesh and arr are compatible
@@ -73,7 +87,7 @@ class MidFunction(Function):
     def to_point_function(self,interp='unweighted'):
         if interp=='unweighted':
             arr=np.empty(len(self._arr)+1)
-            arr[1:-1]=(self._arr[1:]+self._arr[:1])/2
+            arr[1:-1]=(self._arr[1:]+self._arr[:-1])/2
             arr[[0,-1]]=arr[[1,-2]]
         if interp=='z':
             arr=interp1d(self._z,self._arr,
@@ -101,7 +115,7 @@ class MidFunction(Function):
 def MaterialFunction(mesh,prop,pos='mid'):
     # could make this more efficient by directly interpolating if Point case?
 
-    ptcounts=np.diff([0]+[i for i,ll,lr in mesh.interfaces]+[len(mesh.z)-1])
+    ptcounts=np.diff([0]+[i for i,ll,lr in mesh.interfaces_point]+[len(mesh.z)-1])
     arr=[]
 
     propfunc=(lambda i: prop(mesh._layers[i].material))\
@@ -131,3 +145,9 @@ def RegionFunction(mesh,prop,pos='mid'):
     if pos=="point":
         return out.to_point_function()
     else: return out
+
+
+if __name__=="__main__":
+    from runpy import run_path
+    run_path('tests/test_mesh_functions.py',run_name='__main__')
+    from poissolve.tests.test_mesh_functions import *

@@ -19,6 +19,7 @@ def clear_plots():
         mpl.close('all')
         yield
         mpl.show()
+    else: yield
         
 @pytest.fixture(scope='module')  
 def nonuniformmesh():
