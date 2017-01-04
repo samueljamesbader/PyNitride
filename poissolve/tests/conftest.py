@@ -17,6 +17,8 @@ def clear_plots():
         print('getting executed')
         import matplotlib.pyplot as mpl
         mpl.close('all')
+        yield
+        mpl.show()
         
 @pytest.fixture(scope='module')  
 def nonuniformmesh():
