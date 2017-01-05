@@ -7,144 +7,129 @@ Created on Tue Jan  3 17:41:30 2017
 import numpy as np
 import matplotlib.pyplot as mpl
 from scipy.interpolate import interp1d
-import numbers
+import numpy as np
 
-class Function():
-    def __init__(self):
+
+class Function(np.ndarray):
+    def __new__(cls, *args, **kwargs):
         raise NotImplementedError
-    
-    @property
-    def array(self):
-        return self._arr
-    
-    @array.setter
-    def array(self,newarray):
-        self._arr[:]=newarray
-        
-    def restrict(self,submesh):
-        raise NotImplementedError
-        
-    def plot(self,*args,**kwargs):
-        mpl.plot(self._z,self._arr,*args,**kwargs)
 
-    #def __getattr__(self, attr):
-        #print('gettin')
-        #return getattr(self._arr,attr)
+    def __array_finalize__(self, obj):
+        if obj is None: return
 
-    def __getitem__(self,key):
-        return self._arr[key]
-       #arr=self._arr[key]
-       #if isinstance(key,int):
-           #return arr
-       #else:
-           #return a
-           #return self.__class__(mesh=self._mesh,arr=arr)
+        self.mesh = getattr(obj, 'mesh', "View casting from ndarray not supported.")
 
-    def __setitem__(self,key,value):
-        self._arr[key]=value
+    def restrict(self, submesh):
+        # doesn't check that submesh and mesh are compatible
+        return type(self)(submesh, self[submesh._slice])
 
 
 class PointFunction(Function):
-    def __init__(self,mesh,arr=np.NaN):
-        # doesn't check that mesh and arr are compatible
-        self._mesh=mesh
-        self._z=mesh.z
-        if hasattr(arr,'__iter__'):
-            self._arr=arr
+    def __new__(cls, mesh, value=np.NaN, dtype='float'):
+        if hasattr(value, '__iter__'):
+            obj = np.asarray(value).view(cls)
+            assert obj.shape == mesh.z.shape, \
+                "Given arr is not compatible with given mesh"
         else:
-            self._arr=np.array([arr]*len(self._z))
+            obj = np.full(mesh.z.shape, value, dtype=dtype).view(cls)
+        obj.mesh = mesh
+        return obj
 
-    def restrict(self,submesh):
-        # doesn't check that submesh and mesh are compatible
-        return PointFunction(submesh,self._arr[submesh._slice])
-    
+    # def __array_prepare__(self, out_arr, context=None):
+    #    assert out_arr.shape==self.mesh.z.shape,\
+    #        "Can't combine Functions of different mesh sizes"
+    #    out_arr.shape=self.mesh.z.shape
+    #    return out_arr
+
     def differentiate(self):
-        return MidFunction(self._mesh,arr=np.diff(self._arr)/self._mesh._dz)
-    
-    def integrate(self,flipped=False,output=None):
-        # doesn't check that output is MidFunction
-        if output is None:
-            output=MidFunction(self._mesh)
-        np.cumsum(
-            (self._arr*self._mesh._dzp)[:-1] if not flipped else np.flipud(-self._arr*self._mesh._dzp)[:-1],
-            out=(output.array if not flipped else np.flipud(output.array)))
-        return output
+        return MidFunction(self.mesh, np.diff(self) / self.mesh._dz)
+
+    def integrate(self, flipped=False):
+        return np.cumsum(
+            (self * self.mesh._dzp)[:-1]
+            if not flipped
+            else np.flipud(-self * self.mesh._dzp)[:-1]).view(MidFunction)
+
 
 class MidFunction(Function):
-    def __init__(self,mesh,arr=np.NaN):
-        # doesn't check that mesh and arr are compatible
-        self._mesh=mesh
-        self._z=mesh.zp #p
-        if hasattr(arr,'__iter__'):
-            self._arr=arr
+    def __new__(cls, mesh, value=np.NaN, dtype='float'):
+        if hasattr(value, '__iter__'):
+            obj = np.asarray(value).view(cls)
+            assert obj.shape == mesh.zp.shape, \
+                "Given arr is not compatible with given mesh"
         else:
-            self._arr=np.array([arr]*len(self._z))
-        
-    def restrict(self,submesh):
-        # doesn't check that submesh and mesh are compatible
-        return MidFunction(submesh,self._arr[submesh._slicep]) #p
-    
-    def to_point_function(self,interp='unweighted'):
-        if interp=='unweighted':
-            arr=np.empty(len(self._arr)+1)
-            arr[1:-1]=(self._arr[1:]+self._arr[:-1])/2
-            arr[[0,-1]]=arr[[1,-2]]
-        if interp=='z':
-            arr=interp1d(self._z,self._arr,
-                fill_value='extrapolate')(self._mesh.z)
-        return PointFunction(self._mesh,arr=arr)
-    
-    def differentiate(self,fill_value=np.NaN):
-        pf=PointFunction(self._mesh)
-        pf.array[1:-1]=np.diff(self._arr)/self._mesh._dzp[1:-1]
-        pf.array[[0,-1]]=fill_value
+            obj = np.full(mesh.zp.shape, value, dtype=dtype).view(cls)
+        obj.mesh = mesh
+        return obj
+
+    # def __array_prepare__(self, out_arr, context=None):
+    #    assert out_arr.shape==self.mesh.zp.shape,\
+    #        "Can't combine Functions of different mesh sizes"
+    #    out_arr.shape=self.mesh.zp.shape
+    #    return out_arr
+
+    def differentiate(self, fill_value=np.NaN):
+        pf = PointFunction(self.mesh)
+        pf[1:-1] = np.diff(self) / self.mesh._dzp[1:-1]
+        pf[[0, -1]] = fill_value
         return pf
-    
-    def integrate(self,flipped=False,output=None):
-        # doesn't check that output is PointFunction
-        if output is None:
-            output=PointFunction(self._mesh)
-        output.array[0]=0.0
+
+    def integrate(self, flipped=False):
+        # if output is None:
+        output = PointFunction(self.mesh, value=0.0)
         np.cumsum(
-            self._arr*self._mesh._dz if not flipped else np.flipud(-self._arr*self._mesh._dz),
-            out=(output.array[1:] if not flipped else np.flipud(output.array)[1:]))
+            self * self.mesh._dz if not flipped else np.flipud(-self * self.mesh._dz),
+            out=(output[1:] if not flipped else np.flipud(output[:-1])))
         return output
-    
-    #def integrate(self,)
 
-def MaterialFunction(mesh,prop,pos='mid'):
+    def to_point_function(self, interp='unweighted'):
+        if interp == 'unweighted':
+            arr = np.empty(len(self) + 1)
+            arr[1:-1] = (self[1:] + self[:-1]) / 2
+            arr[[0, -1]] = arr[[1, -2]]
+        if interp == 'z':
+            arr = interp1d(self._z, self.arr,
+                           fill_value='extrapolate')(self.mesh.z)
+        return PointFunction(self.mesh, arr)
+
+
+def MaterialFunction(mesh, prop, pos='mid'):
+    # could make this more efficient by directly interpolating if Point case?
+    # this function almost duplicates RegionFunction...
+
+    ptcounts = np.diff([0] + [i for i, ll, lr in mesh.interfaces_point] + [len(mesh.z) - 1])
+    arr = []
+
+    propfunc = (lambda i: prop(mesh._layers[i].material)) \
+        if callable(prop) \
+        else (lambda i: mesh._layers[i][prop])
+    for i, ptc in enumerate(ptcounts):
+        arr += [propfunc(i)] * ptc
+
+    out = MidFunction(mesh, arr)
+    if pos == "point":
+        return out.to_point_function()
+    else:
+        return out
+
+
+def RegionFunction(mesh, prop, pos='mid'):
     # could make this more efficient by directly interpolating if Point case?
 
-    ptcounts=np.diff([0]+[i for i,ll,lr in mesh.interfaces_point]+[len(mesh.z)-1])
-    arr=[]
+    ptcounts = np.diff([0] + [i for i, ll, lr in mesh.interfaces_point] + [len(mesh.z) - 1])
+    arr = []
 
-    propfunc=(lambda i: prop(mesh._layers[i].material))\
-        if callable(prop)\
+    propfunc = (lambda i: prop(mesh._layers[i].name)) \
+        if callable(prop) \
         else (lambda i: mesh._layers[i][prop])
-    for i,ptc in enumerate(ptcounts):
-        arr+=[propfunc(i)]*ptc
-        
-    out=MidFunction(mesh,arr=np.array(arr))
-    if pos=="point":
-        return out.to_point_function()
-    else: return out
-    
-def RegionFunction(mesh,prop,pos='mid'):
-    # could make this more efficient by directly interpolating if Point case?
+    for i, ptc in enumerate(ptcounts):
+        arr += [propfunc(i)] * ptc
 
-    ptcounts=np.diff([0]+[i for i,ll,lr in mesh.interfaces]+[len(mesh.z)-1])
-    arr=[]
-
-    propfunc=(lambda i: prop(mesh._layers[i].name))\
-        if callable(prop)\
-        else (lambda i: mesh._layers[i][prop])
-    for i,ptc in enumerate(ptcounts):
-        arr+=[propfunc(i)]*ptc
-        
-    out=MidFunction(mesh,arr=np.array(arr))
-    if pos=="point":
+    out = MidFunction(mesh, arr)
+    if pos == "point":
         return out.to_point_function()
-    else: return out
+    else:
+        return out
 
 
 if __name__=="__main__":

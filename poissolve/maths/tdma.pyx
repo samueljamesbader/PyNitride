@@ -25,7 +25,13 @@ cdef cnp.ndarray tdma_c(double[::1] a, double[::1] b, double[::1] c, double[::1]
         x[k]=(d[k]-c[k]*x[k+1])/b[k]
     return x_arr
 
+
+# remember  a[0]=0, c[N-1]=0
 def tdma(a,b,c,d,copy=True):
+    N=len(b)
+    assert len(a)==N
+    assert len(c)==N
+    assert len(d)==N
     if copy:
         a=a.copy()
         b=b.copy()
