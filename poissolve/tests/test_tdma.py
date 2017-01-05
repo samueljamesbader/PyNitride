@@ -6,9 +6,9 @@ from timeit import timeit
 
 def generate_tridiagonal_problem(N):
 
-    b=np.random.rand(N)
-    a=np.random.rand(N)*.5*b
-    c=np.random.rand(N)*.5*b
+    b=-np.random.rand(N)
+    a=-np.random.rand(N)*.5*b
+    c=-np.random.rand(N)*.5*b
     d=np.random.rand(N)
     a[0]=0
     c[N-1]=0

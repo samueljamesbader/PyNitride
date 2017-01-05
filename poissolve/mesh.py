@@ -104,13 +104,14 @@ class Mesh():
             variable_positions = []
 
             # Build until we pass right interface
-            while z < zr:
+            while True:
                 # The maximal allowed dz is the minimum of the the refinement criteria
                 dz = np.min(refinements[:, 1] * refinements[:, 2] ** np.abs(z - refinements[:, 0]))
 
                 # Extend the mesh
                 z += dz
                 variable_positions += [z]
+                if z > zr - 1e-10: break
 
             # Once we reach the right interface, shrink the mesh uniformly for a perfect fit
             pos = (np.array(variable_positions) - zl) * layer.thickness / (z - zl) + zl
