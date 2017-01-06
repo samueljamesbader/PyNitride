@@ -35,6 +35,9 @@ class PointFunction(Function):
         obj.mesh = mesh
         return obj
 
+    def plot(self,*args,**kwargs):
+        mpl.plot(self.mesh.z,self,*args,**kwargs)
+
     # def __array_prepare__(self, out_arr, context=None):
     #    assert out_arr.shape==self.mesh.z.shape,\
     #        "Can't combine Functions of different mesh sizes"
@@ -62,7 +65,9 @@ class MidFunction(Function):
         obj.mesh = mesh
         return obj
 
-    # def __array_prepare__(self, out_arr, context=None):
+    def plot(self,*args,**kwargs):
+        mpl.plot(self.mesh.zp,self,*args,**kwargs)
+        # def __array_prepare__(self, out_arr, context=None):
     #    assert out_arr.shape==self.mesh.zp.shape,\
     #        "Can't combine Functions of different mesh sizes"
     #    out_arr.shape=self.mesh.zp.shape
@@ -131,6 +136,11 @@ def RegionFunction(mesh, prop, pos='mid'):
     else:
         return out
 
+def DeltaFunction(mesh, z, height=1, i=None, pos='point'):
+    func={'point': PointFunction, 'mid': MidFunction}[pos](mesh,0.0)
+    i={'point': mesh.index, 'mid': mesh.indexp}[pos](z) if i is None else i
+    func[i]=height/{'point':mesh._dzp[i], 'mid':mesh._dz[i]}[pos]
+    return func
 
 if __name__=="__main__":
     from runpy import run_path

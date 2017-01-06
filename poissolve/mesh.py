@@ -10,7 +10,7 @@ import matplotlib.pyplot as mpl
 from scipy.integrate import cumtrapz
 from scipy.interpolate import interp1d
 from poissolve.materials import Material
-
+from poissolve.mesh_functions import Function
 
 class Layer():
     def __init__(self, name, matname, thickness):
@@ -137,9 +137,6 @@ class Mesh():
         # Each element is a tuple of the form (lindex,rindex, left layer, right layer)
         self._interfacesp= list(zip(interface_indices[:-1]-1, interface_indices[:-1], stack[:-1], stack[1:]))
 
-        # interpolate the z -> index mapping
-        self._z2i_interp = interp1d(self._z, np.arange(len(self._z)))
-
         # Keep the layer info
         self._layers = stack
 
@@ -148,6 +145,11 @@ class Mesh():
         self._dzp = np.array([0.] * len(self._z))
         self._dzp[1:-1] = np.diff(self._zp)
         self._dzp[[0, -1]] = self._dzp[[1, -2]]
+
+        # interpolate the z -> index mapping
+        self._z2i_interp = interp1d(self._z, np.arange(len(self._z)))
+        # interpolate the zp -> index mapping
+        self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
 
         # This is the whole world
         self._supermesh = None
@@ -158,6 +160,8 @@ class Mesh():
 
     def index(self, z):
         return np.rint(self._z2i_interp(z)).astype(int)
+    def indexp(self, zp):
+        return np.rint(self._zp2i_interp(zp)).astype(int)
 
     def plot_mesh(self):
         """ Plots a 1-D representation of the mesh for visual inspection.
@@ -202,18 +206,23 @@ class Mesh():
         mpl.title('Total mesh points: {:d}'.format(len(self._z)))
         mpl.tight_layout()
 
+    def __contains__(self,key):
+        return key in self._functions
+
+    def __iter__(self):
+        return self._functions.__iter__()
+
     def __getitem__(self, key):
         return self._functions[key]
 
     def __setitem__(self, key, value):
         if key in self._functions:
-            self._functions[key].array = value
-
-    def add_function(self, key, func):
-        self._functions[key] = func
-        for sm in self._submeshes:
-            sm.add_function(key, func.restrict(sm))
-        return func
+            self._functions[key][:] = value
+        else:
+            assert isinstance(value,Function), "Must be a poissolve.mesh_function.Function"
+            self._functions[key] = value
+            for sm in self._submeshes:
+                sm[key]=value.restrict(sm)
 
     def plot_function(self, key, *args, **kwargs):
         self._functions[key].plot(*args, **kwargs)

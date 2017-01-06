@@ -6,6 +6,7 @@ Created on Tue Jan  3 23:13:27 2017
 """
 
 import numpy as np
+import re
 from poissolve.constants import kT,hbar,q
 from poissolve.mesh_functions import PointFunction, MaterialFunction
 from poissolve.maths.fermi_dirac_integral import fd12, fd12p
@@ -14,8 +15,8 @@ from poissolve.materials import _materials
 class FermiDirac3D():
     def __init__(self,mesh,compute_dopants='GaN'):
         self._mesh=mesh
-        mesh.add_function('n',PointFunction(mesh))
-        mesh.add_function('p',PointFunction(mesh))
+        #mesh['n']=PointFunction(mesh)
+        #mesh['p']=PointFunction(mesh)
 
         # We'll have to confirm these formulae (factors of 2?) later... also one hole in GaN?
         self._Nc=MaterialFunction(mesh,pos='point',prop=lambda mat:
@@ -23,62 +24,60 @@ class FermiDirac3D():
         self._Nv=MaterialFunction(mesh,pos='point',prop=lambda mat:
             mat['ladder']['hole']['g']*(mat['ladder']['hole']['mdos']*kT/(2*np.pi*hbar**2))**(3/2))
 
-        self._nderiv=mesh.add_function('nderiv',PointFunction(mesh))
-        self._pderiv=mesh.add_function('pderiv',PointFunction(mesh))
-        self._Namderiv=PointFunction(mesh)
-        self._Ndpderiv=PointFunction(mesh)
-        self._rhoderiv=mesh.add_function('rhoderiv',PointFunction(mesh))
-        self._rho_pol=0
+        #self._nderiv=mesh.add_function('nderiv',PointFunction(mesh))
+        #self._pderiv=mesh.add_function('pderiv',PointFunction(mesh))
+        #self._Namderiv=PointFunction(mesh)
+        #self._Ndpderiv=PointFunction(mesh)
+        #self._rhoderiv=mesh.add_function('rhoderiv',PointFunction(mesh))
+
+
+        self._identifydopants()
 
     def _identifydopants(self):
 
         m=self._mesh
-        for mat in (l.mat for l in m._layers):
+        self._dopants={'Donor':{},'Acceptor':{}}
+        for k in m:
+            mo=re.match("(.*)ActiveConc",k)
+            if mo and mo.group(1) not in self._dopants:
+                d=mo.group(1)
+                types=set(l.material.get(['dopants',d,'type'],None) for l in m._layers)
+                assert len(types)<2, "Can't have one dopant be acceptor in one material and donor in another.  You'll have " \
+                                   "to use two separate dopant names.  Sorry. "
+                if len(types)==1:
+                    self._dopants[list(types)[0]][d]={'conc':m[k]}
+                else:
+                    print("No materials include {} as a dopant.".format(k))
+        for doptype in self._dopants.keys():
+            for d,v in self._dopants[doptype].items():
+                v['E']=MaterialFunction(m,lambda mat: mat.get(['dopants',d,'E'],np.NaN),pos='point')
+                v['g']=MaterialFunction(m,lambda mat: mat.get(['dopants',d,'g'],np.NaN),pos='point')
 
-
-        self._compute_dopants=compute_dopants
-        self._Na=mesh['MgActiveConc']
-        self._Nd=mesh['SiActiveConc']
-        self._Nam=mesh['MgIonizedConc']
-        self._Ndp=mesh['SiIonizedConc']
-        
+        m['Nd']=np.sum(d['conc'] for d in self._dopants['Donor'].values())
+        m['Na']=np.sum(d['conc'] for d in self._dopants['Acceptor'].values())
 
     def solve(self,activation=1):
         m=self._mesh
         EF=m['EF']
         Ec=m['Ec']
         Ev=m['Ev']
-        n=m['n']
-        nderiv=self._nderiv
-        pderiv=self._pderiv
-        p=m['p']
-        Ndp=self._Ndp
-        Nam=self._Nam
-        Namderiv=self._Namderiv
-        Ndpderiv=self._Ndpderiv
-        rhoderiv=self._rhoderiv
-        rho=m['rho']
 
-        n[:]=self._Nc*fd12((EF-Ec)/kT)
-        p[:]=self._Nv*fd12((Ev-EF)/kT)
+        m['Ndp']=np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
+            for d in self._dopants['Donor'].values())
+        m['Nam']=np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
+            for d in self._dopants['Acceptor'].values())
+        m['Ndpderiv']=np.sum( d['conc']*(d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/(1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2
+            for d in self._dopants['Donor'].values())
+        m['Namderiv']=np.sum( d['conc']*(-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
+            for d in self._dopants['Acceptor'].values())
 
-        if self._compute_dopants:
-            d=_materials[self._compute_dopants]['dopants']['Si']
-            Ndp[:]=self._Nd*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
-            Ndpderiv[:]=self._Nd*(
-                (d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/
-                (1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2)
-            d=_materials[self._compute_dopants]['dopants']['Mg']
-            Nam[:]=self._Na*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
-            Namderiv[:]=self._Na*(
-                (-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/
-                (1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2)
+        m['n']=self._Nc*fd12((EF-Ec)/kT)
+        m['p']=self._Nv*fd12((Ev-EF)/kT)
+        m['nderiv']=-(self._Nc/kT)*fd12p((EF-Ec)/kT)
+        m['pderiv']= (self._Nv/kT)*fd12p((Ev-EF)/kT)
 
-        nderiv[:]=-(self._Nc/kT)*fd12p((EF-Ec)/kT)
-        pderiv[:]= (self._Nv/kT)*fd12p((Ev-EF)/kT)
+        temp_rho=m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
 
-        temp_rho=(self._rho_pol+q*(p+Ndp)-q*(n+Nam))
+        m['rho']=activation*temp_rho
+        m['rhoderiv']= activation*q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
 
-        rho[:]=activation*temp_rho
-        rhoderiv[:]=\
-            activation*(q*(pderiv+Ndpderiv)-q*(nderiv+Namderiv))
