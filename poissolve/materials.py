@@ -20,6 +20,7 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
             'dopants': {
                 'Si':{'type':'Donor','E':.015*eV, 'g':2},
                 'Mg':{'type':'Acceptor','E':.230*eV,'g':4},},
+            'barrier':{'GenericMetal':1*eV}
             },
            'AlN':{'name': 'Aluminum Nitride', 'abbrev': 'AlN',
             'Eg': 6.14*eV, 'Ei':0, 'DEc': 1.835*eV,
@@ -32,12 +33,30 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
                   
             # No basis in reality...
             'dopants': {
-                'Si':{'type':'Donor','E':4*eV, 'g':2},
-                'Mg':{'type':'Acceptor','E':4*eV,'g':4},},
-            }}
+                'DeepDonor':{'type':'Donor','E':4*eV, 'g':2},
+                'DeepAcceptor':{'type':'Acceptor','E':4*eV,'g':4},},
+            },
 
-def Material(matname):
-    return MultilevelDict(_materials[matname])
+            'barrier':{'GenericMetal':3*eV} # hell if I know
+
+            }
+
+# http://stackoverflow.com/a/25176504/2081118
+class Material(MultilevelDict):
+    def __init__(self,matname):
+        super().__init__(_materials[matname])
+        self._matname=matname
+    def __eq__(self,other):
+        if isinstance(other,self.__class__):
+            return self._matname==other._matname
+        return NotImplemented
+    def __neq__(self,other):
+        if isinstance(other,self.__class__):
+            return self._matname!=other._matname
+        return NotImplemented
+    def __hash__(self):
+        return hash(self._matname)
+
 
 # class Material():
 #     def __init__(self,matname):

@@ -5,12 +5,13 @@ Created on Tue Jan  3 17:15:41 2017
 @author: sam
 """
 
-import numpy as np
 import matplotlib.pyplot as mpl
-from scipy.integrate import cumtrapz
+import numpy as np
 from scipy.interpolate import interp1d
+
 from poissolve.materials import Material
-from poissolve.mesh_functions import Function
+from poissolve.mesh.functions import Function
+
 
 class Layer():
     def __init__(self, name, matname, thickness):
@@ -39,9 +40,28 @@ class Layer():
         return self._mat[key]
 
 
-def EpiStack(*args):
-    return [Layer(l[0], l[1], l[2]) if len(l) == 3 else Layer(l[0], l[0], l[1]) for l in args]
+class EpiStack():
+    def __init__(self,*args,surface=None):
+        self._layers=[Layer(l[0], l[1], l[2]) if len(l) == 3 else Layer(l[0], l[0], l[1]) for l in args]
+        self._surface=surface
 
+    @property
+    def layers(self):
+        return self._layers
+
+    def __iter__(self):
+        return iter(self._layers)
+
+    def __getitem__(self, item):
+        return self._layers[item]
+
+    @property
+    def materials(self):
+        return set(l.material for l in self._layers)
+
+    @property
+    def surface(self):
+        return self._surface
 
 class Mesh():
     """ Generates and manages a 1-D mesh."""
@@ -283,7 +303,7 @@ class SubMesh(Mesh):
 if __name__ == '__main__':
     from runpy import run_path
 
-    run_path("./tests/test_mesh.py", run_name='__main__')
+    run_path("./tests/test_structure.py", run_name='__main__')
 
     print("HELLO")
     epistack = EpiStack(['GaN', 2.5], ['AlN', 5], ['GaN', 17], ['AlN', 30])

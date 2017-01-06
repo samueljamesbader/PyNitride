@@ -1,12 +1,18 @@
 import numpy as np
-from poissolve.constants import q
-from poissolve.mesh_functions import MidFunction, MaterialFunction, PointFunction
 from poissolve.maths.tdma import tdma
+import numbers
+from poissolve.constants import q
+from poissolve.mesh.functions import MidFunction, MaterialFunction, PointFunction
+
 
 class PoissonSolver():
     def __init__(self, mesh):
         self._mesh = mesh
 
+        if isinstance(mesh._layers.surface,numbers.Real):
+            self._phib=mesh._layers.surface
+        else:
+            self._phib=mesh._layers[0].material['barrier'][mesh._layers.surface]
 
         # ARE THESE NECESSARY
         mesh['D']= MidFunction(mesh)
@@ -56,8 +62,7 @@ class PoissonSolver():
 
     def _update_others(self):
         m=self._mesh
-        phib=3
-        m['Ec']=m['mqV']+m['EF'][0]+phib+m['DEc']
+        m['Ec']=m['mqV']+m['EF'][0]+self._phib+m['DEc']
         m['Ev']=m['Ec']-m['Eg']
 
     def isolve(self,visual=False):
@@ -65,7 +70,8 @@ class PoissonSolver():
         qrho=q*m['rho']
         qrho[0]=0
 
-
+        # left right and center are for +d^2/dx^2, ie center is negative
+        # isolve uses -d^2/dx^2, ie center (without rhoderiv) is positive
 
         diag = -self._center + q * self._mesh['rhoderiv']
         diag[0] -= q * m['rhoderiv'][0]
@@ -74,11 +80,15 @@ class PoissonSolver():
         a=-self._left
         b=diag
         c=-self._right
-        #d= (q*self._rhoprev - qrho) #bad
+
         d= (q*m['arho2'] - qrho)
         d[0]=0
-        d[-1]=-m['D'][-1]
-        #assert np.isclose(-D[-1],nonuniformmesh['rho'][-1])
+        d[-1]=-m['D'][-1]/m._dzp[-1]
+
+        # What I had after redoing Neumann at bottom
+        d[-1]=-m['rho'][-1]-m['D'][-1]/m._dzp[-1]
+
+
 
         import numpy as np
         if visual:

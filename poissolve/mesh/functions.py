@@ -144,5 +144,5 @@ def DeltaFunction(mesh, z, height=1, i=None, pos='point'):
 
 if __name__=="__main__":
     from runpy import run_path
-    run_path('tests/test_mesh_functions.py',run_name='__main__')
-    from poissolve.tests.test_mesh_functions import *
+    run_path('tests/test_functions.py',run_name='__main__')
+    from poissolve.tests.test_functions import *
