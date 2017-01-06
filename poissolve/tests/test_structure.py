@@ -4,12 +4,11 @@ Created on Tue Jan  3 17:16:38 2017
 
 @author: sam
 """
-from poissolve.mesh import EpiStack, Mesh, Layer
-from poissolve.constants import eps_0
-
-# Put nothing before this
-# because all other lines should be run *after* pytest.main
 import pytest
+
+from poissolve.constants import eps_0
+from poissolve.mesh.structure import EpiStack, Mesh, Layer
+
 if __name__=='__main__':
     #pytest.main(args=[__file__])
     pytest.main(args=[__file__,'--plots'])

@@ -1,9 +1,8 @@
-from poissolve.mesh_functions import MaterialFunction, PointFunction, MidFunction
+import pytest
+
+from poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
 from poissolve.solvers.poisson import PoissonSolver
 
-# Put nothing before this
-# because all other lines should be run *after* pytest.main
-import pytest
 if __name__=='__main__':
     #pytest.main(args=[__file__])
     pytest.main(args=[__file__,'--plots'])

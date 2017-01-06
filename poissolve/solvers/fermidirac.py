@@ -5,12 +5,14 @@ Created on Tue Jan  3 23:13:27 2017
 @author: sam
 """
 
-import numpy as np
 import re
+
+import numpy as np
+from poissolve.maths.fermidiracintegral import fd12, fd12p
+
 from poissolve.constants import kT,hbar,q
-from poissolve.mesh_functions import PointFunction, MaterialFunction
-from poissolve.maths.fermi_dirac_integral import fd12, fd12p
-from poissolve.materials import _materials
+from poissolve.mesh.functions import MaterialFunction, PointFunction
+
 
 class FermiDirac3D():
     def __init__(self,mesh,compute_dopants='GaN'):
@@ -41,7 +43,7 @@ class FermiDirac3D():
             mo=re.match("(.*)ActiveConc",k)
             if mo and mo.group(1) not in self._dopants:
                 d=mo.group(1)
-                types=set(l.material.get(['dopants',d,'type'],None) for l in m._layers)
+                types=set(t for t in (l.material.get(['dopants',d,'type'],None) for l in m._layers) if t is not None)
                 assert len(types)<2, "Can't have one dopant be acceptor in one material and donor in another.  You'll have " \
                                    "to use two separate dopant names.  Sorry. "
                 if len(types)==1:
@@ -62,14 +64,15 @@ class FermiDirac3D():
         Ec=m['Ec']
         Ev=m['Ev']
 
-        m['Ndp']=np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
-            for d in self._dopants['Donor'].values())
-        m['Nam']=np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
-            for d in self._dopants['Acceptor'].values())
-        m['Ndpderiv']=np.sum( d['conc']*(d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/(1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2
-            for d in self._dopants['Donor'].values())
-        m['Namderiv']=np.sum( d['conc']*(-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
-            for d in self._dopants['Acceptor'].values())
+        m['Ndp']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
+            for d in self._dopants['Donor'].values())))
+        m['Nam']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
+            for d in self._dopants['Acceptor'].values())))
+        m['Ndpderiv']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/(1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2
+            for d in self._dopants['Donor'].values())))
+        m['Namderiv']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
+            for d in self._dopants['Acceptor'].values())))
+
 
         m['n']=self._Nc*fd12((EF-Ec)/kT)
         m['p']=self._Nv*fd12((Ev-EF)/kT)

@@ -5,11 +5,11 @@ Created on Tue Jan  3 23:25:46 2017
 @author: sam
 """
 import numpy as np
-from poissolve.mesh import EpiStack, Mesh
-from poissolve.mesh_functions import MaterialFunction, MidFunction, PointFunction
-
-# Put no pytest code before this: it should be run *after* pytest.main
 import pytest
+
+from poissolve.mesh.functions import MaterialFunction, MidFunction, PointFunction
+from poissolve.mesh.structure import EpiStack, Mesh
+
 if __name__=='__main__':
     pytest.main(args=[__file__])
 

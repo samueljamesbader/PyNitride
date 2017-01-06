@@ -1,14 +1,13 @@
-import numpy as np
 import matplotlib.pyplot as mpl
-from poissolve.constants import cm,nm
-from poissolve.mesh_functions import MaterialFunction, PointFunction, MidFunction, RegionFunction
-from poissolve.solvers.poisson import PoissonSolver
-from poissolve.solvers.fermi_dirac import FermiDirac3D
-from poissolve.mesh import EpiStack, Mesh
-
-# Put nothing before this
-# because all other lines should be run *after* pytest.main
+import numpy as np
 import pytest
+
+from poissolve.constants import cm,nm
+from poissolve.mesh.functions import MaterialFunction, PointFunction, RegionFunction
+from poissolve.mesh.structure import EpiStack, Mesh
+from poissolve.solvers.fermidirac import FermiDirac3D
+from poissolve.solvers.poisson import PoissonSolver
+
 if __name__=='__main__':
     #pytest.main(args=[__file__])
     pytest.main(args=[__file__,'--plots'])

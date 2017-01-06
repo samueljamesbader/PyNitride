@@ -20,3 +20,4 @@ eps_0=const.epsilon_0/const.elementary_charge/1e9
 cm=1.0e7
 nm=1.0
 eV=1
+MV=1e6
