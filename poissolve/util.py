@@ -1,6 +1,10 @@
 
 class MultilevelDict():
     def __init__(self,dictionary):
+        print(type(dictionary))
+        if isinstance(dictionary,MultilevelDict):
+            print("really? rec M?")
+            raise Exception("I won't let this happen")
         self._dict=dictionary
 
     def __getitem__(self, key):
@@ -20,6 +24,9 @@ class MultilevelDict():
             return default
 
     def __getattr__(self, item):
+        if item.startswith('__') and item.endswith('__'):
+            raise AttributeError
+
         return getattr(self._dict,item)
 
 if __name__=='__main__':

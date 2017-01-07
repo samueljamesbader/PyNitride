@@ -60,10 +60,20 @@ if __name__=='__main__':
 
     mpl.close('all')
     if False: # pn
-        pn=gan_pn(xp=350*nm,xn=550*nm,Nd=1.0e18*cm**-3,Na=1.0e18*cm**-3,Ndspike=0e13*cm**-2,surface=2*eV)
-        pn.plot_mesh()
-        Coupled_FD_Poisson(pn).solve()
+        pn=gan_pn(xp=450*nm,xn=550*nm,Nd=1.0e18*cm**-3,Na=1.0e18*cm**-3,Ndspike=0e13*cm**-2,surface=2*eV)
+        print(pn.z.shape[0])
+        #pn.plot_mesh()
+        def stoppah():
+            return 0
+            global i
+            i+=1
+            if i>225:
+                plot_QFV(qwhemt)
+                mpl.xlim(0,50)
+                return 1
+        Coupled_FD_Poisson(pn).solve(rise=10)
         plot_QFV(pn)
+        pn.save("pn.msh")
 
     if True: # qwhemt
         qwhemt=gan_qwhemt(2.5*nm,5*nm,20*nm,500*nm,1e16*cm**-3,surface=1*eV)
@@ -77,7 +87,7 @@ if __name__=='__main__':
                 plot_QFV(qwhemt)
                 mpl.xlim(0,50)
                 return 1
-        Coupled_FD_Poisson(qwhemt).solve(low_act=5,rise=200,callback=stoppah)
+        Coupled_FD_Poisson(qwhemt).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
         plot_QFV(qwhemt)
 
     mpl.interactive(False)

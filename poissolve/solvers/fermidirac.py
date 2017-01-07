@@ -22,9 +22,15 @@ class FermiDirac3D():
 
         # We'll have to confirm these formulae (factors of 2?) later... also one hole in GaN?
         self._Nc=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            mat['ladder','electron','g']*(mat['ladder','electron','mdos']*kT/(2*np.pi*hbar**2))**(3/2))
+            [mat['ladder','electron',b,'g']*(mat['ladder','electron',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
+                for b in mat['ladder','electron']])
         self._Nv=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            mat['ladder']['hole']['g']*(mat['ladder']['hole']['mdos']*kT/(2*np.pi*hbar**2))**(3/2))
+            [mat['ladder','hole',b,'g']*(mat['ladder','hole',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
+                for b in mat['ladder','hole']])
+        self._cDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
+            [mat['ladder','electron',b,'DE'] for b in mat['ladder','electron']])
+        self._vDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
+            [mat['ladder','hole',b,'DE'] for b in mat['ladder','hole']])
 
         #self._nderiv=mesh.add_function('nderiv',PointFunction(mesh))
         #self._pderiv=mesh.add_function('pderiv',PointFunction(mesh))
@@ -74,10 +80,10 @@ class FermiDirac3D():
             for d in self._dopants['Acceptor'].values())))
 
 
-        m['n']=self._Nc*fd12((EF-Ec)/kT)
-        m['p']=self._Nv*fd12((Ev-EF)/kT)
-        m['nderiv']=-(self._Nc/kT)*fd12p((EF-Ec)/kT)
-        m['pderiv']= (self._Nv/kT)*fd12p((Ev-EF)/kT)
+        m['n']=np.sum(self._Nc*fd12((EF-Ec-self._cDE)/kT),axis=0)
+        m['p']=np.sum(self._Nv*fd12((Ev+self._vDE-EF)/kT),axis=0)
+        m['nderiv']=np.sum(-(self._Nc/kT)*fd12p((EF-Ec-self._cDE)/kT),axis=0)
+        m['pderiv']=np.sum((self._Nv/kT)*fd12p((Ev+self._vDE-EF)/kT),axis=0)
 
         temp_rho=m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
 
