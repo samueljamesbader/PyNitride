@@ -13,9 +13,12 @@ phib=1
 _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
             'Eg': 3.605*eV, 'Ei':0*eV, 'DEc': 0*eV,
             'ladder': {
-                'electron':{'g':2,'mzs':.2*m0,'mxys':.2*m0, 'mdos': .2*m0},
+                'electron':{'Gamma':{'g':2,'mzs':.2*m0,'mxys':.2*m0, 'mdos': .2*m0, 'DE':0}},
                 # I'll regret this, but there is one hole in GaN... for now
-                'hole':{'g':2, 'mdos': 1.5*m0 }},
+                'hole':{
+                    'All1':{'g':1, 'mdos': 1.5*m0, 'DE':0 },
+                    'All2':{'g':1, 'mdos': 1.5*m0, 'DE':0 },
+                }},
             'eps': 10.6*eps_0,
             'dopants': {
                 'Si':{'type':'Donor','E':.015*eV, 'g':2},
@@ -25,10 +28,13 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
            'AlN':{'name': 'Aluminum Nitride', 'abbrev': 'AlN',
             'Eg': 6.14*eV, 'Ei':0, 'DEc': 1.835*eV,
             'ladder': {
-                'electron':{'g':2,'mzs':.4*m0,'mxys':.4*m0, 'mdos': .4*m0},
+                'electron':{'Gamma':{'g':2,'mzs':.4*m0,'mxys':.4*m0, 'mdos': .4*m0, 'DE': 0}},
                 
                 # One hole in AlN as well...this is silly
-                'hole':{'g':2,'mdos': 7.26*m0},},
+                'hole':{
+                    'All1':{'g':1,'mdos': 7.26*m0, 'DE': 0},
+                    'All2':{'g':1,'mdos': 7.26*m0, 'DE': 0},
+             }},
             'eps': 8.6*eps_0,
                   
             # No basis in reality...

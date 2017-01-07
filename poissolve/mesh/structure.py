@@ -8,6 +8,7 @@ Created on Tue Jan  3 17:15:41 2017
 import matplotlib.pyplot as mpl
 import numpy as np
 from scipy.interpolate import interp1d
+import pickle
 
 from poissolve.materials import Material
 from poissolve.mesh.functions import Function
@@ -264,6 +265,17 @@ class Mesh():
 
     def submesh(self, zbounds):
         return SubMesh(self, *list(self.index(zbounds)))
+
+    def save(self,filename):
+        assert filename[-4:]==".msh", "Only .msh format currently supported."
+        with open(filename,"wb") as f:
+            pickle.dump(self,f,pickle.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def load(filename):
+        assert filename[-4:]==".msh", "Only .msh format currently supported."
+        with open(filename,"rb") as f:
+            return pickle.load(f)
 
 
 class SubMesh(Mesh):

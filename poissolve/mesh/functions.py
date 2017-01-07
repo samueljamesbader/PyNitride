@@ -28,8 +28,8 @@ class PointFunction(Function):
     def __new__(cls, mesh, value=np.NaN, dtype='float'):
         if hasattr(value, '__iter__'):
             obj = np.asarray(value).view(cls)
-            assert obj.shape == mesh.z.shape, \
-                "Given arr is not compatible with given mesh"
+            assert obj.shape[-1] == mesh.z.shape[-1], \
+                "Given arr of shape {} is not compatible with given mesh of size {}".format(obj.shape,mesh.z.shape[0])
         else:
             obj = np.full(mesh.z.shape, value, dtype=dtype).view(cls)
         obj.mesh = mesh
@@ -58,7 +58,7 @@ class MidFunction(Function):
     def __new__(cls, mesh, value=np.NaN, dtype='float'):
         if hasattr(value, '__iter__'):
             obj = np.asarray(value).view(cls)
-            assert obj.shape == mesh.zp.shape, \
+            assert obj.shape[-1] == mesh.zp.shape[-1], \
                 "Given arr is not compatible with given mesh"
         else:
             obj = np.full(mesh.zp.shape, value, dtype=dtype).view(cls)
@@ -89,9 +89,12 @@ class MidFunction(Function):
 
     def to_point_function(self, interp='unweighted'):
         if interp == 'unweighted':
-            arr = np.empty(len(self) + 1)
-            arr[1:-1] = (self[1:] + self[:-1]) / 2
+            newshape=list(self.shape)
+            newshape[-1]+=1
+            arr = np.empty(newshape).T
+            arr[1:-1] = (self.T[1:] + self.T[:-1]) / 2
             arr[[0, -1]] = arr[[1, -2]]
+            arr=arr.T
         if interp == 'z':
             arr = interp1d(self._z, self.arr,
                            fill_value='extrapolate')(self.mesh.z)
@@ -111,7 +114,7 @@ def MaterialFunction(mesh, prop, pos='mid'):
     for i, ptc in enumerate(ptcounts):
         arr += [propfunc(i)] * ptc
 
-    out = MidFunction(mesh, arr)
+    out = MidFunction(mesh, np.array(arr).T)
     if pos == "point":
         return out.to_point_function()
     else:

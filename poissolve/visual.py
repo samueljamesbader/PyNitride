@@ -11,7 +11,6 @@ def plot_QFV(mesh):
     mpl.plot(mesh.zp,mesh['E']/(MV/cm))
     mpl.ylabel("Field [$\\mathrm{MV}/\\mathrm{cm}$]")
     mpl.subplot(313,sharex=ax1)
-    print(mesh['Ec'])
     mpl.plot(mesh.z,mesh['Ec']/eV)
     mpl.plot(mesh.z,mesh['Ev']/eV)
     mpl.plot(mesh.z,mesh['EF']/eV)
