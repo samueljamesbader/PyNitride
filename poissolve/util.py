@@ -1,10 +1,6 @@
 
 class MultilevelDict():
     def __init__(self,dictionary):
-        print(type(dictionary))
-        if isinstance(dictionary,MultilevelDict):
-            print("really? rec M?")
-            raise Exception("I won't let this happen")
         self._dict=dictionary
 
     def __getitem__(self, key):

@@ -43,7 +43,10 @@ class Layer():
 
 class EpiStack():
     def __init__(self,*args,surface=None):
-        self._layers=[Layer(l[0], l[1], l[2]) if len(l) == 3 else Layer(l[0], l[0], l[1]) for l in args]
+        if isinstance(args[0],Layer):
+            self._layers=args
+        else:
+            self._layers=[Layer(l[0], l[1], l[2]) if len(l) == 3 else Layer(l[0], l[0], l[1]) for l in args]
         self._surface=surface
 
     @property
@@ -67,7 +70,7 @@ class EpiStack():
 class Mesh():
     """ Generates and manages a 1-D mesh."""
 
-    def __init__(self, stack, max_dz, refinements=[]):
+    def __init__(self, stack, max_dz, refinements=[], uniform=False):
         """ Constructs a non-uniform mesh with vertices aligned to the interfaces of a material stack.
         
         The algorithm is to step through the regions one-by-one and build the mesh point-by-point.  At a
@@ -96,55 +99,66 @@ class Mesh():
                 the form dz < dz0 * r^|z-z0|.
 
         """
+        if uniform:
+            from math import gcd,ceil
+            from functools import reduce
+            rint=lambda x: int(round(x))
+            tgcd=reduce(gcd,[rint(l.thickness/1e-10) for l in stack])*1e-10
+            totthick=sum([l.thickness for l in stack])
+            dz=tgcd/ceil(tgcd/max_dz)
+            N=rint(totthick/dz)+1
+            fixed_positions=np.linspace(0,totthick,num=N,endpoint=True)
+            interface_indices=np.rint(np.cumsum([l.thickness for l in stack])/dz)+1
 
-        # Implement the max_dz requirement by adding it to the refinements list
-        if refinements:
-            refinements = np.vstack([np.array(refinements), [0, max_dz, 1]])
         else:
-            refinements = np.array([[0, max_dz, 1]])
+            # Implement the max_dz requirement by adding it to the refinements list
+            if refinements:
+                refinements = np.vstack([np.array(refinements), [0, max_dz, 1]])
+            else:
+                refinements = np.array([[0, max_dz, 1]])
 
-        # List of z points which have been finalized (ie are behind the most recent interface)
-        fixed_positions = [0]
+            # List of z points which have been finalized (ie are behind the most recent interface)
+            fixed_positions = [0]
 
-        # List of indices for interfaces
-        interface_indices = []
+            # List of indices for interfaces
+            interface_indices = []
 
-        # z point of left interface of currently building region
-        zl = 0
+            # z point of left interface of currently building region
+            zl = 0
 
-        # For each region
-        for layer in stack:
+            # For each region
+            for layer in stack:
 
-            # z point of right interface of currently building region
-            zr = zl + layer.thickness
+                # z point of right interface of currently building region
+                zr = zl + layer.thickness
 
-            # start from the left interface
-            z = zl
+                # start from the left interface
+                z = zl
 
-            # List of z points are being built (ie after the most recently passed interface)
-            variable_positions = []
+                # List of z points are being built (ie after the most recently passed interface)
+                variable_positions = []
 
-            # Build until we pass right interface
-            while True:
-                # The maximal allowed dz is the minimum of the the refinement criteria
-                dz = np.min(refinements[:, 1] * refinements[:, 2] ** np.abs(z - refinements[:, 0]))
+                # Build until we pass right interface
+                while True:
+                    # The maximal allowed dz is the minimum of the the refinement criteria
+                    dz = np.min(refinements[:, 1] * refinements[:, 2] ** np.abs(z - refinements[:, 0]))
 
-                # Extend the mesh
-                z += dz
-                variable_positions += [z]
-                if z > zr - 1e-10: break
+                    # Extend the mesh
+                    z += dz
+                    variable_positions += [z]
+                    if z > zr - 1e-10: break
 
-            # Once we reach the right interface, shrink the mesh uniformly for a perfect fit
-            pos = (np.array(variable_positions) - zl) * layer.thickness / (z - zl) + zl
+                # Once we reach the right interface, shrink the mesh uniformly for a perfect fit
+                pos = (np.array(variable_positions) - zl) * layer.thickness / (z - zl) + zl
 
-            # Append the new z points to the list of fixed locations
-            fixed_positions += list(pos)
+                # Append the new z points to the list of fixed locations
+                fixed_positions += list(pos)
 
-            # Record the index of the interface
-            interface_indices += [len(fixed_positions) - 1]
+                # Record the index of the interface
+                interface_indices += [len(fixed_positions) - 1]
 
-            # The left index of the next interface is the right index of the current
-            zl = zr
+                # The left index of the next interface is the right index of the current
+                zl = zr
 
         # Convert the built z list to numpy array
         self._z = np.array(fixed_positions)
@@ -295,12 +309,15 @@ class SubMesh(Mesh):
 
     def __init__(self, mesh, start, stop):
         self._slice = slice(start, stop)
-        self._z = mesh._z[self._slice]
         self._slicep = slice(start, stop - 1)
+
+        self._z = mesh._z[self._slice]
         self._zp = mesh._zp[self._slicep]
+        self._dz = mesh._dz[self._slicep]
+        self._dzp = mesh._dzp[self._slice]
 
         self._interfaces = [(i - start, ll, lr) for i, ll, lr in mesh._interfaces if (i > start and i < stop - 1)]
-        self._layers = [ll for i, ll, lr in self._interfaces] + [self._interfaces[-1][2]]
+        self._layers = EpiStack(*[ll for i, ll, lr in self._interfaces] + [self._interfaces[-1][2]])
 
         self._functions = {
             k: f.restrict(self) for k, f in mesh._functions.items()

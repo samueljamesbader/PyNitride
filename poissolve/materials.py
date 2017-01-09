@@ -14,10 +14,11 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
             'Eg': 3.605*eV, 'Ei':0*eV, 'DEc': 0*eV,
             'ladder': {
                 'electron':{'Gamma':{'g':2,'mzs':.2*m0,'mxys':.2*m0, 'mdos': .2*m0, 'DE':0}},
-                # I'll regret this, but there is one hole in GaN... for now
                 'hole':{
-                    'All1':{'g':1, 'mdos': 1.5*m0, 'DE':0 },
-                    'All2':{'g':1, 'mdos': 1.5*m0, 'DE':0 },
+                    # These values just come from NSM archive, don't trust them
+                    'HH':{'g':2, 'mzs': 1.1*m0, 'mxys': 1.6*m0, 'mdos': 1.5*m0, 'DE':0 },
+                    'LH':{'g':2, 'mzs': 1.1*m0, 'mxys': .15*m0, 'mdos': 1.5*m0, 'DE':0 },
+                    'CH':{'g':2, 'mzs': .15*m0, 'mxys': 1.1*m0, 'mdos': 1.5*m0, 'DE':.02 },
                 }},
             'eps': 10.6*eps_0,
             'dopants': {
@@ -32,8 +33,10 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
                 
                 # One hole in AlN as well...this is silly
                 'hole':{
-                    'All1':{'g':1,'mdos': 7.26*m0, 'DE': 0},
-                    'All2':{'g':1,'mdos': 7.26*m0, 'DE': 0},
+                    # These values just come from NSM archive, don't trust them
+                    'HH':{'g':2, 'mzs': 3.5*m0, 'mxys': 10.4*m0, 'mdos': 7.26*m0, 'DE':0 },
+                    'LH':{'g':2, 'mzs': 3.5*m0, 'mxys': 0.24*m0, 'mdos': 0.58*m0, 'DE':0 },
+                    'CH':{'g':2, 'mzs': .25*m0, 'mxys': 3.81*m0, 'mdos': 1.54*m0, 'DE':.019*eV },
              }},
             'eps': 8.6*eps_0,
                   
@@ -41,11 +44,23 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
             'dopants': {
                 'DeepDonor':{'type':'Donor','E':4*eV, 'g':2},
                 'DeepAcceptor':{'type':'Acceptor','E':4*eV,'g':4},},
-            },
 
             'barrier':{'GenericMetal':3*eV} # hell if I know
-
+            },
+           'GaAs': {
+               'DEc':0,
+               'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .067*m0, 'mxys': .067*m0, 'DE': 0}}},
+               'eps': 1, #FAKE
+               'Eg': 1 #FAKE
+           },
+            'AlGaAs': { # to mach li kuhn paper
+                'DEc':.4*eV,
+                'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .1*m0, 'mxys': .1*m0, 'DE': 0}}},
+                'barrier':{'GenericMetal':.0*eV},
+                'eps': 1, #FAKE
+                'Eg': 1 #FAKE
             }
+        }
 
 # http://stackoverflow.com/a/25176504/2081118
 class Material(MultilevelDict):

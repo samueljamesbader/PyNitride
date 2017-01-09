@@ -34,7 +34,9 @@ def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal'):
         epistack=EpiStack(['barrier','AlN',xb],['well','GaN',xw],['subs','AlN',xs],surface=surface)
     else:
         epistack=EpiStack(['cap','GaN',xc],['barrier','AlN',xb],['well','GaN',xw],['subs','AlN',xs],surface=surface)
-    m=Mesh(epistack,max_dz=10,refinements=[[xc+xb,.05,1.2],[xc+xb+xw,.05,1.3]])
+    m=Mesh(epistack,max_dz=10,refinements=[[xc+xb,.02,1.2],[xc+xb+xw,.02,1.3]])
+    # PUT REFINEMENTS BACK
+    #m=Mesh(epistack,max_dz=.1)
 
     # No polarization charge
     m['rho_pol']=PointFunction(m,0.0)
@@ -89,6 +91,9 @@ if __name__=='__main__':
                 return 1
         Coupled_FD_Poisson(qwhemt).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
         plot_QFV(qwhemt)
+        print("e-sheet {:.2g}/cm^2".format(qwhemt['n'].integrate()[-1]/cm**-2))
+        print("h-sheet {:.2g}/cm^2".format(qwhemt['p'].integrate()[-1]/cm**-2))
+        mpl.xlim(0,50)
 
     mpl.interactive(False)
     mpl.show()
