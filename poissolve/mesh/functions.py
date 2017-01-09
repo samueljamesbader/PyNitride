@@ -45,13 +45,15 @@ class PointFunction(Function):
     #    return out_arr
 
     def differentiate(self):
-        return MidFunction(self.mesh, np.diff(self) / self.mesh._dz)
+        return MidFunction(self.mesh, np.diff(self, axis=-1) / self.mesh._dz)
 
+    # provide a non-cumsum, just sum, version for efficiency when that's all that's wanted
     def integrate(self, flipped=False):
         return np.cumsum(
-            (self * self.mesh._dzp)[:-1]
+            (self * self.mesh._dzp).T[:-1].T
             if not flipped
-            else np.flipud(-self * self.mesh._dzp)[:-1]).view(MidFunction)
+            else np.flipud(-self * self.mesh._dzp).T[:-1].T,
+            axis=-1).view(MidFunction)
 
 
 class MidFunction(Function):
@@ -75,7 +77,7 @@ class MidFunction(Function):
 
     def differentiate(self, fill_value=np.NaN):
         pf = PointFunction(self.mesh)
-        pf[1:-1] = np.diff(self) / self.mesh._dzp[1:-1]
+        pf[1:-1] = np.diff(self,axis=-1) / self.mesh._dzp[1:-1]
         pf[[0, -1]] = fill_value
         return pf
 
@@ -84,7 +86,7 @@ class MidFunction(Function):
         output = PointFunction(self.mesh, value=0.0)
         np.cumsum(
             self * self.mesh._dz if not flipped else np.flipud(-self * self.mesh._dz),
-            out=(output[1:] if not flipped else np.flipud(output[:-1])))
+            out=(output[1:] if not flipped else np.flipud(output[:-1])), axis=-1)
         return output
 
     def to_point_function(self, interp='unweighted'):
@@ -96,10 +98,17 @@ class MidFunction(Function):
             arr[[0, -1]] = arr[[1, -2]]
             arr=arr.T
         if interp == 'z':
-            arr = interp1d(self._z, self.arr,
+            arr = interp1d(self.mesh.zp, self,
                            fill_value='extrapolate')(self.mesh.z)
         return PointFunction(self.mesh, arr)
 
+def ConstantFunction(mesh, val, dtype='float', pos='point'):
+    from numpy.lib.stride_tricks import as_strided
+    x = np.array(val, order='C', dtype=dtype)
+    newshape = list(x.shape) + [mesh.z.shape[0] if pos=='point' else mesh.zp.shape[0]]
+    newstrides = list(x.strides) + [0]
+    arr=as_strided(np.array(x), shape=newshape, strides=newstrides)
+    return {'point': PointFunction, 'mid': MidFunction}[pos](mesh,value=arr)
 
 def MaterialFunction(mesh, prop, pos='mid'):
     # could make this more efficient by directly interpolating if Point case?
