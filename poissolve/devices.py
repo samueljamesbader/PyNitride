@@ -57,7 +57,7 @@ def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal'):
 
 if __name__=='__main__':
 
-    from poissolve.solvers.coupled import Coupled_FD_Poisson
+    from poissolve.solvers.coupled import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
     from poissolve.visual import plot_QFV
 
     mpl.close('all')
@@ -89,10 +89,11 @@ if __name__=='__main__':
                 plot_QFV(qwhemt)
                 mpl.xlim(0,50)
                 return 1
-        Coupled_FD_Poisson(qwhemt).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
+        #Coupled_FD_Poisson(qwhemt).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
+        Coupled_Schrodinger_Poisson(qwhemt,carriers=['electron','hole']).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
         plot_QFV(qwhemt)
-        print("e-sheet {:.2g}/cm^2".format(qwhemt['n'].integrate()[-1]/cm**-2))
-        print("h-sheet {:.2g}/cm^2".format(qwhemt['p'].integrate()[-1]/cm**-2))
+        print("e-sheet {:.3g}/cm^2".format(qwhemt['n'].integrate()[-1]/cm**-2))
+        print("h-sheet {:.3g}/cm^2".format(qwhemt['p'].integrate()[-1]/cm**-2))
         mpl.xlim(0,50)
 
     mpl.interactive(False)

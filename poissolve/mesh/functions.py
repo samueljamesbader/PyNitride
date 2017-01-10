@@ -26,12 +26,19 @@ class Function(np.ndarray):
 
 class PointFunction(Function):
     def __new__(cls, mesh, value=np.NaN, dtype='float'):
-        if hasattr(value, '__iter__'):
-            obj = np.asarray(value).view(cls)
-            assert obj.shape[-1] == mesh.z.shape[-1], \
-                "Given arr of shape {} is not compatible with given mesh of size {}".format(obj.shape,mesh.z.shape[0])
-        else:
-            obj = np.full(mesh.z.shape, value, dtype=dtype).view(cls)
+        value = np.asarray(value,dtype=dtype)
+        vshape=list(value.shape)
+        if len(value.shape) and value.shape[-1]==mesh.z.shape[0]:
+            obj=value.view(cls)
+            obj.mesh = mesh
+            return obj
+        elif len(value.shape)==1:
+            value=np.array([value]).T
+        try:
+            obj = np.full(vshape+list(mesh.z.shape), value, dtype=dtype).view(cls)
+        except:
+            # THIS MESSAGE MIGHT BE CONFUSING BECAUSE THE MESH IS ACTUALLY CALLED SIZE mesh.z
+            raise Exception("Given arr of shape {} is not compatible with given mesh of size {}".format(value.shape,mesh.z.shape[0]))
         obj.mesh = mesh
         return obj
 
@@ -58,12 +65,19 @@ class PointFunction(Function):
 
 class MidFunction(Function):
     def __new__(cls, mesh, value=np.NaN, dtype='float'):
-        if hasattr(value, '__iter__'):
-            obj = np.asarray(value).view(cls)
-            assert obj.shape[-1] == mesh.zp.shape[-1], \
-                "Given arr is not compatible with given mesh"
-        else:
-            obj = np.full(mesh.zp.shape, value, dtype=dtype).view(cls)
+        value = np.asarray(value,dtype=dtype)
+        vshape=list(value.shape)
+        if len(value.shape) and value.shape[-1]==mesh.zp.shape[0]:
+            obj=value.view(cls)
+            obj.mesh = mesh
+            return obj
+        elif len(value.shape)==1:
+            value=np.array([value]).T
+        try:
+            obj = np.full(vshape+list(mesh.zp.shape), value, dtype=dtype).view(cls)
+        except:
+            # THIS MESSAGE MIGHT BE CONFUSING BECAUSE THE MESH IS ACTUALLY CALLED SIZE mesh.z
+            raise Exception("Given arr of shape {} is not compatible with given mesh of size {}".format(value.shape,mesh.zp.shape[0]))
         obj.mesh = mesh
         return obj
 

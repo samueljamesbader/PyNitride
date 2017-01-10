@@ -15,7 +15,7 @@ from poissolve.mesh.functions import MaterialFunction, PointFunction
 
 
 class FermiDirac3D():
-    def __init__(self,mesh,compute_dopants='GaN'):
+    def __init__(self,mesh):
         self._mesh=mesh
         #mesh['n']=PointFunction(mesh)
         #mesh['p']=PointFunction(mesh)
@@ -27,9 +27,9 @@ class FermiDirac3D():
         self._Nv=MaterialFunction(mesh,pos='point',prop=lambda mat:
             [mat['ladder','hole',b,'g']*(mat['ladder','hole',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
                 for b in mat['ladder','hole']])
-        self._cDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
+        mesh['cDE']=self._cDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
             [mat['ladder','electron',b,'DE'] for b in mat['ladder','electron']])
-        self._vDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
+        mesh['vDE']=self._vDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
             [mat['ladder','hole',b,'DE'] for b in mat['ladder','hole']])
 
         #self._nderiv=mesh.add_function('nderiv',PointFunction(mesh))
@@ -64,11 +64,13 @@ class FermiDirac3D():
         m['Nd']=np.sum(d['conc'] for d in self._dopants['Donor'].values())
         m['Na']=np.sum(d['conc'] for d in self._dopants['Acceptor'].values())
 
-    def solve(self,activation=1):
+    def solve(self,activation=1,quantized_bands=[]):
         m=self._mesh
         EF=m['EF']
         Ec=m['Ec']
         Ev=m['Ev']
+        Ec_eff=m['Ec_eff'] if 'electron' in quantized_bands else m['Ec']+self._cDE
+        Ev_eff=m['Ev_eff'] if 'hole' in quantized_bands else m['Ev']-self._vDE
 
         m['Ndp']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
             for d in self._dopants['Donor'].values())))
@@ -79,11 +81,10 @@ class FermiDirac3D():
         m['Namderiv']=PointFunction(m,np.nan_to_num(np.sum( d['conc']*(-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
             for d in self._dopants['Acceptor'].values())))
 
-
-        m['n']=np.sum(self._Nc*fd12((EF-Ec-self._cDE)/kT),axis=0)
-        m['p']=np.sum(self._Nv*fd12((Ev+self._vDE-EF)/kT),axis=0)
-        m['nderiv']=np.sum(-(self._Nc/kT)*fd12p((EF-Ec-self._cDE)/kT),axis=0)
-        m['pderiv']=np.sum((self._Nv/kT)*fd12p((Ev+self._vDE-EF)/kT),axis=0)
+        m['n']=np.sum(self._Nc*fd12((EF-Ec_eff)/kT),axis=0) + (m['n_quantum'] if 'n_quantum' in m else 0)
+        m['p']=np.sum(self._Nv*fd12((Ev_eff-EF)/kT),axis=0) + (m['p_quantum'] if 'p_quantum' in m else 0)
+        m['nderiv']=np.sum(-(self._Nc/kT)*fd12p((EF-Ec_eff-self._cDE)/kT),axis=0) + (m['nderiv_quantum'] if 'nderiv_quantum' in m else 0)
+        m['pderiv']=np.sum((self._Nv/kT)*fd12p((Ev_eff+self._vDE-EF)/kT),axis=0) + (m['pderiv_quantum'] if 'pderiv_quantum' in m else 0)
 
         temp_rho=m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
 
