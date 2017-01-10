@@ -23,6 +23,7 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
     m=mesh
     z=mesh.z
     mpl.plot(z,m['Ec'],'.')
+    mpl.plot(z,m['Ec_eff'][0],'-')
 
     for b in bands:
         E=m['E_i'+'_'+b][:,0]
@@ -36,5 +37,6 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
 
     mpl.twinx()
     mpl.plot(z,m['n'],'.-k')
-    mpl.yticks([])
+    #mpl.yscale('log')
+    #mpl.yticks([])
 
