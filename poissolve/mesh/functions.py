@@ -25,22 +25,37 @@ class Function(np.ndarray):
 
 
 class PointFunction(Function):
-    def __new__(cls, mesh, value=np.NaN, dtype='float'):
+    def __new__(cls, mesh, value=np.NaN, dtype='float', empty=False):
+
+        # If the user just wants an empty array, the shape of an element is specified by empty
+        if empty:
+            vshape=list(empty)
+            obj = np.empty(vshape+list(mesh.z.shape), dtype=dtype).view(cls)
+            obj.mesh=mesh
+            return obj
+
+        # Otherwise, read thhe shape from the given value
         value = np.asarray(value,dtype=dtype)
         vshape=list(value.shape)
+
+        # If the shape matches up to the mesh already, go ahead and just view that value as the PointFunction
         if len(value.shape) and value.shape[-1]==mesh.z.shape[0]:
             obj=value.view(cls)
             obj.mesh = mesh
             return obj
+
+        # If the shape is one dimensional (but doesn't match the mesh, see above), reshape it to 2d
+        # with the length=1 along the last axis.
         elif len(value.shape)==1:
-            value=np.array([value]).T
+            value=np.reshape(value,(len(value),1))
+
+        # Try to form a full array by repeating this element len(mesh.z) times.
         try:
             obj = np.full(vshape+list(mesh.z.shape), value, dtype=dtype).view(cls)
+            obj.mesh = mesh
+            return obj
         except:
-            # THIS MESSAGE MIGHT BE CONFUSING BECAUSE THE MESH IS ACTUALLY CALLED SIZE mesh.z
-            raise Exception("Given arr of shape {} is not compatible with given mesh of size {}".format(value.shape,mesh.z.shape[0]))
-        obj.mesh = mesh
-        return obj
+            raise Exception("Given arr of shape {} is not compatible with given mid-mesh of size {}".format(value.shape,mesh.z.shape[0]))
 
     def plot(self,*args,**kwargs):
         mpl.plot(self.mesh.z,self,*args,**kwargs)
