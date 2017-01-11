@@ -5,9 +5,13 @@ import numpy as np
 def plot_QFV(mesh):
     mpl.figure()
     ax1=mpl.subplot(311)
-    mpl.plot(mesh.z,mesh['rho']/(q/cm**3))
-    mpl.plot(mesh.z,(mesh['rho']-mesh['rho_pol'])/(q/cm**3),'.--')
-    mpl.ylabel("Charge [$|e|/\\mathrm{cm}^3$]")
+    mpl.plot(mesh.z,(mesh['rho']-mesh['rho_pol'])/(q/cm**3))
+    mpl.ylabel("Free charge [$|e|/\\mathrm{cm}^3$]")
+    mpl.ylim([-np.max(mpl.ylim()),np.max(mpl.ylim())])
+    mpl.twinx()
+    mpl.plot(mesh.z,mesh['rho_pol']*mesh._dzp/(q/cm**2),'k')
+    mpl.ylim([-np.max(mpl.ylim()),np.max(mpl.ylim())])
+    mpl.ylabel("Polarization charge [$|e|/\\mathrm{cm}^2$]")
     mpl.subplot(312,sharex=ax1)
     mpl.plot(mesh.zp,mesh['E']/(MV/cm))
     mpl.ylabel("Field [$\\mathrm{MV}/\\mathrm{cm}$]")
@@ -26,11 +30,11 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
     mpl.plot(z,m['Ec_eff'][0],'-')
 
     for b in bands:
-        E=m['E_i'+'_'+b][:,0]
-        wf=np.min(np.diff(E))/np.max(np.abs(m['Psi_i'+'_'+b]))
+        E=m['Energies'+'_'+b][:,0]
+        wf=np.min(np.diff(E))/np.max(np.abs(m['Psi'+'_'+b]))
         for i,Ei in enumerate(E):
             l=mpl.plot(z,Ei+0*(z),'--')[0]
-            mpl.plot(z,m['Psi_i'+'_'+b][i,:]*wf+Ei,color=l.get_color())
+            mpl.plot(z,m['Psi'+'_'+b][i,:]*wf+Ei,color=l.get_color())
 
     mpl.xlabel('$z$ [nm]')
     mpl.ylabel('Energy [eV]')
