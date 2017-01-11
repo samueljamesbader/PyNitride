@@ -25,10 +25,28 @@ class SchrodingerSolver():
             m[{'electron':'Ec_eff','hole':'Ev_eff'}[carrier]]=PointFunction(m,empty=(len(bands),))
 
     @staticmethod
-    def kinetic_term(mesh,mz):
-        """ Generates the kinetic term for use in a Schrodinger solution.
+    def z_kinetic_term(mesh,mz):
+        r""" Generates the symmetrized *z* kinetic energy term for use in a Schrodinger solution.
 
-        $hbar**2$
+        This matrix is the discrete, symmetrized representation of
+        :math:`\frac{-\hbar^2}{2m_z}\frac{\partial^2\psi}{\partial z^2}`.
+        See :ref:`Solving the Schrodinger Equation <solve_schrodinger__1d>` for details on the discrete form.
+
+
+        :param mesh: the :py:class:`~poissolve.mesh.structure.Mesh` on which the Schrodinger problem is defined
+        :param mz: MidFunction of the effective mass along *z*
+        :return: the kinetic term as a sparse (CSC) matrix
+        """
+        diagonal=(hbar**2/(mz*mesh._dz)).to_point_function(interp='unweighted')/mesh._dzp
+        offdiagonal=-(hbar**2/(2*mz*mesh._dz *np.sqrt(mesh._dzp[:-1]*mesh._dzp[1:])))
+        T=diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
+        return T
+
+    @staticmethod
+    def lateral_kinetic_term(mesh,mz):
+        r""" Generates the kinetic term for use in a Schrodinger solution.
+
+        $$-\frac{\hbar^2}{2m}\frac{\partial^2\psi}{\partial z^2}$$
 
         :param mesh: the Mesh on which the Schrodinger problem is defined
         :param mz: MidFunction of the longitudinal effective mass
@@ -40,15 +58,12 @@ class SchrodingerSolver():
         return T
 
     @staticmethod
-    def solve_schrodinger_problem(mesh,kinetic_term,potential_term,num_eigenvalues=3,
-                                  psi_out=None, kperp=None, mxys=None):
+    def solve_schrodinger_problem(mesh,z_kinetic_term,potential,lateral_kinetic_term=0,
+                                  num_eigenvalues=3,psi_out=None):
         if not psi_out: psi_out=PointFunction(mesh,empty=(num_eigenvalues,))
 
-        H=kinetic_term+diags(potential_term)
-        if kperp is not None:
-            H+=diags(hbar**2*kperp**2/(2*mxys))
-        energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(potential_term))
-
+        H=z_kinetic_term+diags(potential)+lateral_kinetic_term
+        energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(potential))
         psi_out[:,:]=(1/np.sqrt(mesh._dzp))*eigenvectors.T
 
         return energies, psi_out

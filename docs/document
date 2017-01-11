@@ -1,0 +1,8 @@
+#!/bin/bash
+if [[ "$PWD" = *docs ]]; then
+    echo "Run this script from main Poissolve directory"
+    exit
+fi
+cd docs
+sphinx-apidoc -o . ../ ../examples -f -e
+make html
