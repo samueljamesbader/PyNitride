@@ -149,6 +149,8 @@ def MaterialFunction(mesh, prop, pos='mid'):
     propfunc = (lambda i: prop(mesh._layers[i].material)) \
         if callable(prop) \
         else (lambda i: mesh._layers[i][prop])
+
+    import numbers
     for i, ptc in enumerate(ptcounts):
         arr += [propfunc(i)] * ptc
 

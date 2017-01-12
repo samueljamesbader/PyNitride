@@ -1,5 +1,5 @@
 import matplotlib.pyplot as mpl
-from poissolve.constants import q,cm,MV,eV
+from poissolve.constants import q,cm,MV,eV, kT
 import numpy as np
 
 def plot_QFV(mesh):
@@ -26,8 +26,9 @@ def plot_QFV(mesh):
 def plot_wavefunctions(mesh,bands=['e_Gamma']):
     m=mesh
     z=mesh.z
-    mpl.plot(z,m['Ec'],'.')
+    mpl.plot(z,m['Ec'],'-')
     mpl.plot(z,m['Ec_eff'][0],'-')
+    mpl.plot(z,m['Ev'],'-')
 
     for b in bands:
         E=m['Energies'+'_'+b][:,0]
@@ -40,7 +41,8 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
     mpl.ylabel('Energy [eV]')
 
     mpl.twinx()
-    mpl.plot(z,m['n'],'.-k')
+    mpl.plot(z,m['p'],'.-k')
+    mpl.plot(z,m['pderiv']*kT,'.-r')
     #mpl.yscale('log')
     #mpl.yticks([])
 

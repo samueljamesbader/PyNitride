@@ -60,6 +60,7 @@ def test_li_kuhn_1994():
         for Ntarget in np.linspace(100,3000,33):
             m=Mesh(EpiStack(['AlGaAs',xs],['GaAs',L],['AlGaAs',xs],surface='GenericMetal'),max_dz=(2*xs+L)/Ntarget,
                    refinements=([[xs,(2*xs+L)/Ntarget/5,1.4],[xs+L,(2*xs+L)/Ntarget/5,1.4]] if meshtype=='refined' else None),uniform=(meshtype=='uniform'))
+            m['rho_pol']=ConstantFunction(m,0)
             #mpl.figure()
             #m.plot_mesh()
             N+=[len(m.z)]
@@ -86,7 +87,7 @@ def test_li_kuhn_1994():
             start=time.time()
             SchrodingerSolver(m,carriers=['electron']).solve()
             print("points {} time {}".format(m.z.shape[0],time.time()-start))
-            E0+=[m['E_i_e_Gamma'][0,0]]
+            E0+=[m['Energies_e_Gamma'][0,0]]
             num+=[np.max(m._dz)/np.min(m._dz)-1]
             print('hi')
             #from poissolve.visual import plot_wavefunctions
