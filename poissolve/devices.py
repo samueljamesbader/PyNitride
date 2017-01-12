@@ -85,11 +85,11 @@ if __name__=='__main__':
             return 0
             global i
             i+=1
-            if i>225:
+            if i>1:
                 plot_QFV(qwhemt)
                 mpl.xlim(0,50)
                 return 1
-        #Coupled_FD_Poisson(qwhemt).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
+        #Coupled_FD_Poisson(qwhemt).solve(rise=100,callback=stoppah)#low_act=5,rise=200,callback=stoppah)
         Coupled_Schrodinger_Poisson(qwhemt,carriers=['electron','hole']).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
         plot_QFV(qwhemt)
         print("e-sheet {:.3g}/cm^2".format(qwhemt['n'].integrate()[-1]/cm**-2))

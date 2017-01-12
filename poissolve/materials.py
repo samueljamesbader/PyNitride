@@ -49,13 +49,15 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
             },
            'GaAs': {
                'DEc':0,
-               'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .067*m0, 'mxys': .067*m0, 'DE': 0}}},
+               'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .067*m0, 'mxys': .067*m0, 'mdos': .067*m0, 'DE': 0}},
+                         'hole':{}},
                'eps': 1, #FAKE
                'Eg': 1 #FAKE
            },
             'AlGaAs': { # to mach li kuhn paper
                 'DEc':.4*eV,
-                'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .1*m0, 'mxys': .1*m0, 'DE': 0}}},
+                'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .1*m0, 'mxys': .1*m0, 'mdos': .1*m0, 'DE': 0}},
+                         'hole':{}},
                 'barrier':{'GenericMetal':.0*eV},
                 'eps': 1, #FAKE
                 'Eg': 1 #FAKE

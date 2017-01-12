@@ -165,7 +165,7 @@ class Mesh():
         self._dz = np.diff(self._z)
 
         # Compile a list of interfaces for z
-        interface_indices=np.array(interface_indices)
+        interface_indices=np.array(interface_indices,dtype=int)
         # Each element is a tuple of the form (index, left layer, right layer)
         self._interfaces = list(zip(interface_indices[:-1], stack[:-1], stack[1:]))
         # Compile a list of interfaces for zp
