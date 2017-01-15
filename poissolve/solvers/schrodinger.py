@@ -78,9 +78,10 @@ class SchrodingerSolver():
         return energies, psi_out
 
     @staticmethod
-    def carrier_density(psi,g,mxys,eta):
+    def carrier_density(psi,g,mxys,eta,summed=True):
         return (g/(2*np.pi)*kT/hbar**2)* \
               np.sum(mxys*(psi**2*(np.log(1+np.exp(eta)))).T,axis=1)
+
 
     # (kT)**-1 * d(carrier_density)/d(eta)
     @staticmethod

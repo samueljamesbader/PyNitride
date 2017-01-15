@@ -47,6 +47,27 @@ _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
 
             'barrier':{'GenericMetal':3*eV} # hell if I know
             },
+            'AlGaN':{'name': 'Aluminum Gallium Nitride', 'abbrev': 'AlGaN',
+                   'Eg': (.25*6.14+.75*3.605)*eV, 'Ei':0, 'DEc': .25*(1.835)*eV,
+                   'ladder': {
+                       'electron':{'Gamma':{'g':2,'mzs':.4*m0,'mxys':.4*m0, 'mdos': .4*m0, 'DE': 0}},
+
+                       # One hole in AlN as well...this is silly
+                       'hole':{
+                           # These values just come from NSM archive, don't trust them
+                           'HH':{'g':2, 'mzs': 3.5*m0, 'mxys': 10.4*m0, 'mdos': 7.26*m0, 'DE':0 },
+                           'LH':{'g':2, 'mzs': 3.5*m0, 'mxys': 0.24*m0, 'mdos': 0.58*m0, 'DE':0 },
+                           'CH':{'g':2, 'mzs': .25*m0, 'mxys': 3.81*m0, 'mdos': 1.54*m0, 'DE':.019*eV },
+                       }},
+                   'eps': 8.6*eps_0,
+
+                   # No basis in reality...
+                   'dopants': {
+                       'DeepDonor':{'type':'Donor','E':4*eV, 'g':2},
+                       'DeepAcceptor':{'type':'Acceptor','E':4*eV,'g':4},},
+
+                   'barrier':{'GenericMetal':1.5*eV} # hell if I know
+                   },
            'GaAs': {
                'DEc':0,
                'ladder':{'electron': {'Gamma': {'g': 2, 'mzs': .067*m0, 'mxys': .067*m0, 'mdos': .067*m0, 'DE': 0}},
