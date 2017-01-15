@@ -41,8 +41,8 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
     mpl.ylabel('Energy [eV]')
 
     mpl.twinx()
-    mpl.plot(z,m['p'],'.-k')
-    mpl.plot(z,m['pderiv']*kT,'.-r')
+    mpl.plot(z,m['n'],'.-k')
+    #mpl.plot(z,m['nderiv']*kT,'.-r')
     #mpl.yscale('log')
     #mpl.yticks([])
 
