@@ -27,16 +27,22 @@ def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
 
     return m
 
-def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal'):
+def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False):
+    AlN="AlN"
+    GaN="GaN"
+    if snidermode:
+        AlN="qAlN"
+        GaN="qGaN"
 
     # Build device
     if xc==0:
-        epistack=EpiStack(['barrier','AlN',xb],['well','GaN',xw],['subs','AlN',xs],surface=surface)
+        epistack=EpiStack(['barrier',AlN,xb],['well',GaN,xw],['subs',AlN,xs],surface=surface)
     else:
-        epistack=EpiStack(['cap','GaN',xc],['barrier','AlN',xb],['well','GaN',xw],['subs','AlN',xs],surface=surface)
+        epistack=EpiStack(['cap',GaN,xc],['barrier',AlN,xb],['well',GaN,xw],['subs',AlN,xs],surface=surface)
     m=Mesh(epistack,max_dz=10,refinements=[[xc+xb,.02,1.2],[xc+xb+xw,.02,1.3]])
-    # PUT REFINEMENTS BACK
-    #m=Mesh(epistack,max_dz=.1)
+
+    sm=m.submesh([xc,xc+xb+xw+xw/3])
+
 
     # No polarization charge
     m['rho_pol']=PointFunction(m,0.0)
@@ -46,20 +52,22 @@ def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal'):
     m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
 
 
-    # Hackish addition of polarization
-    P=MaterialFunction(m,
-            lambda mat: {
-                "GaN":5.6e-1,
-                "AlN":0.0,
-            }[mat['abbrev']])
+    if snidermode:
+        P=MaterialFunction(m,'P')
+    else:
+        # Hackish addition of polarization
+        P=MaterialFunction(m,
+                lambda mat: {
+                    "GaN":5.6e-1,
+                    "AlN":0.0,
+                }[mat['abbrev']])
     m['rho_pol']=P.differentiate(fill_value=0.0)
-    return m
+    return m,sm
 
 
 
 
 def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
-
     # Build device
     if xc==0:
         epistack=EpiStack(['barrier','AlGaN',xb],['subs','AlN',xs],surface=surface)
@@ -83,6 +91,31 @@ def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
                        }[mat['abbrev']])
     m['rho_pol']=P.differentiate(fill_value=0.0)
     return m
+def super_gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
+
+    # Build device
+    if xc==0:
+        epistack=EpiStack(['barrier','AlN',xb],['subs','AlN',xs],surface=surface)
+    else:
+        epistack=EpiStack(['cap','GaN',xc],['barrier','AlN',xb],['subs','GaN',xs],surface=surface)
+    m=Mesh(epistack,max_dz=10,refinements=[[xc,.02,1.2],[xc+xb,.02,1.2]])
+
+    # No polarization charge
+    m['rho_pol']=PointFunction(m,0.0)
+
+    # Substrate impurities
+    m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
+    m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
+
+
+    # Hackish addition of polarization
+    P=MaterialFunction(m,
+                       lambda mat: {
+                           "GaN":.25*5.6e-1,
+                           "AlN":0.0,
+                       }[mat['abbrev']])
+    m['rho_pol']=P.differentiate(fill_value=0.0)
+    return m
 
 
 
@@ -90,7 +123,7 @@ def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 if __name__=='__main__':
 
     from poissolve.solvers.coupled import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
-    from poissolve.visual import plot_QFV
+    from poissolve.visual import plot_QFV, plot_wavefunctions
 
     mpl.close('all')
     if False: # pn
@@ -110,7 +143,7 @@ if __name__=='__main__':
         pn.save("pn.msh")
 
     if True: # qwhemt
-        qwhemt=gan_qwhemt(2.5*nm,5*nm,20*nm,500*nm,1e16*cm**-3,surface=1*eV)
+        qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,500*nm,1e16*cm**-3,surface=1*eV)
         #qwhemt.plot_mesh()
         i=0
         def stoppah():
@@ -122,8 +155,15 @@ if __name__=='__main__':
                 mpl.xlim(0,50)
                 return 1
         #Coupled_FD_Poisson(qwhemt).solve(rise=100,callback=stoppah)#low_act=5,rise=200,callback=stoppah)
-        Coupled_Schrodinger_Poisson(qwhemt,carriers=['electron','hole']).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
+
+        #sm=qwhemt
+
+        import time
+        starttime=time.time()
+        Coupled_Schrodinger_Poisson(qwhemt,carriers=['electron','hole'],schrodinger=sm).solve(rise=100)#low_act=5,rise=200,callback=stoppah)
+        print("Took {:.2g}s".format(time.time()-starttime))
         plot_QFV(qwhemt)
+        plot_wavefunctions(sm)
         print("e-sheet {:.3g}/cm^2".format(qwhemt['n'].integrate()[-1]/cm**-2))
         print("h-sheet {:.3g}/cm^2".format(qwhemt['p'].integrate()[-1]/cm**-2))
         mpl.xlim(0,50)

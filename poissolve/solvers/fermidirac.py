@@ -87,6 +87,9 @@ class FermiDirac3D():
 
     @staticmethod
     def ionized_donor_density(mesh,EF,Ec,Ev,dopants,compute_derivs=True):
+
+        # Tiwari Compound Semiconductor Devices pg31-32
+
         Ndp=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
            for d in dopants['Donor'].values())))
         Nam=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
