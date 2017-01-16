@@ -19,9 +19,6 @@ class Function(np.ndarray):
 
         self.mesh = getattr(obj, 'mesh', "View casting from ndarray not supported.")
 
-    def restrict(self, submesh):
-        # doesn't check that submesh and mesh are compatible
-        return type(self)(submesh, self[submesh._slice])
 
 
 class PointFunction(Function):
@@ -77,6 +74,9 @@ class PointFunction(Function):
             else np.flipud(-self * self.mesh._dzp).T[:-1].T,
             axis=-1).view(MidFunction)
 
+    def restrict(self, submesh):
+        # doesn't check that submesh and mesh are compatible
+        return type(self)(submesh, self.T[submesh._slice].T)
 
 class MidFunction(Function):
     def __new__(cls, mesh, value=np.NaN, dtype='float'):
@@ -130,6 +130,10 @@ class MidFunction(Function):
             arr = interp1d(self.mesh.zp, self,
                            fill_value='extrapolate')(self.mesh.z)
         return PointFunction(self.mesh, arr)
+
+    def restrict(self, submesh):
+        # doesn't check that submesh and mesh are compatible
+        return type(self)(submesh, self.T[submesh._slicep].T)
 
 def ConstantFunction(mesh, val, dtype='float', pos='point'):
     from numpy.lib.stride_tricks import as_strided

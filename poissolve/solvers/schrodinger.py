@@ -6,12 +6,11 @@ from scipy.sparse.linalg import eigsh
 import numpy as np
 
 class SchrodingerSolver():
-    def __init__(self,mesh,carriers=['electron','hole'],fermidirac=None):
+    def __init__(self,mesh,carriers=['electron','hole']):
         r""" Solves the Schrodinger equation along *z* for the lowest eigenstates in a potential well.
 
         :param mesh: the :py:class:`~poissolve.mesh.structure.Mesh` on which the Schrodinger problem is defined
         :param carriers: list of carriers (elements may be 'electron' or 'hole') to quantize
-        :param fermidirac: A solver (eg FermiDirac3D) which can be called to include the contributions of (presumably continuous
             energy levels beyond those solved for.)
         """
         self._mesh=m=mesh

@@ -5,8 +5,10 @@ Created on Tue Jan  3 16:20:08 2017
 @author: sam
 """
 import numpy
-from poissolve.constants import m0, eps_0, eV
+from poissolve.constants import m0, eps_0, eV, cm
 from poissolve.util import MultilevelDict
+import re
+from os.path import expanduser
 
 phib=1
 
@@ -102,15 +104,64 @@ class Material(MultilevelDict):
         return hash(self._matname)
 
 
-# class Material():
-#     def __init__(self,matname):
-#         self._params=_materials[matname]
-#
-#     def __getattr__(self, attr):
-#         if attr in ["get","__getitem__"]:
-#             return getattr(self._params,attr)
+def read_1dp_mat(filename=expanduser("~/1DPoisson/1D Poisson Beta 8g Linux Distribution/Input_Files_Examples/materials.txt")):
+    with open(filename) as f:
+        for line in f:
+            #print(line)
+            mo=re.match(r"^(\w+)\s+binary\s+\w+",line.strip())
+            if mo:
+                matname=mo.groups(0)[0]
+                _materials[matname]={}
+                #print(matname)
+                mo=re.match(
+                    "\s+".join(["([\d\.eE\+\-]+)"]*11),next(f))
+                Eg, DEc, eps, me, g, mhh, mlh, Ed, Ea, Edd, Eaa=[float(x) for x in mo.groups()]
+                mo=re.match(
+                    "\s+".join(["([\d\.eE\+\-]+)"]*10),next(f))
+                _,_,_,_,_,_,_,_,P,_=[float(x) for x in mo.groups()]
+
+                import scipy.constants as const
+                _materials[matname]=dict(
+                    name=matname,abbrev=matname,Eg=Eg*eV,Ei=0, DEc=DEc*eV,
+                    ladder=dict(
+                        electron=dict(
+                            Gamma=dict(g=2*g,mzs=me*m0,mxys=me*m0,mdos=me*m0,DE=0)),
+                        hole=dict(
+                            HH=dict(g=2*g,mzs=mhh*m0,mxys=mhh*m0,mdos=mhh*m0,DE=0),
+                            LH=dict(g=2*g,mzs=mlh*m0,mxys=mlh*m0,mdos=mlh*m0,DE=0))),
+                    eps=eps*eps_0,dopants=dict(
+                        Donor=dict(type='Donor',E=Ed*eV, g=2),
+                        Acceptor=dict(type='Acceptor',E=Ea*eV, g=4),
+                        DeepDonor=dict(type='Donor',E=Edd*eV, g=2),
+                        DeepAcceptor=dict(type='Acceptor',E=Eaa*eV, g=4)),
+                    barrier=dict(), P=-P/const.elementary_charge/cm**2)
+
+
+
+# _materials={'GaN':{'name': 'Gallium Nitride', 'abbrev': 'GaN',
+#                    'Eg': 3.605*eV, 'Ei':0*eV, 'DEc': 0*eV,
+#                    'ladder': {
+#                        'electron':{'Gamma':{'g':2,'mzs':.2*m0,'mxys':.2*m0, 'mdos': .2*m0, 'DE':0}},
+#                        'hole':{
+#                            # These values just come from NSM archive, don't trust them
+#                            'HH':{'g':2, 'mzs': 1.1*m0, 'mxys': 1.6*m0, 'mdos': 1.5*m0, 'DE':0 },
+#                            'LH':{'g':2, 'mzs': 1.1*m0, 'mxys': .15*m0, 'mdos': 1.5*m0, 'DE':0 },
+#                            'CH':{'g':2, 'mzs': .15*m0, 'mxys': 1.1*m0, 'mdos': 1.5*m0, 'DE':.02 },
+#                        }},
+#                    'eps': 10.6*eps_0,
+#                    'dopants': {
+#                        'Si':{'type':'Donor','E':.015*eV, 'g':2},
+#                        'Mg':{'type':'Acceptor','E':.230*eV,'g':4},},
+#                    'barrier':{'GenericMetal':1*eV}
+#                    },
+
+
+
+
+
 
 if __name__=='__main__':
-    import pytest, poissolve
-    from poissolve.tests import test_materials as tester
-    pytest.main([tester.__file__])
+    read_1dp_mat()
+    #import pytest, poissolve
+    #from poissolve.tests import test_materials as tester
+    #pytest.main([tester.__file__])

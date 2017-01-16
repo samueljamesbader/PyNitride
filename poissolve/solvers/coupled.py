@@ -1,4 +1,5 @@
 import numpy as np
+from poissolve.mesh.structure import Mesh, SubMesh
 from poissolve.mesh.functions import PointFunction
 from poissolve.solvers.poisson import PoissonSolver
 from poissolve.solvers.schrodinger import SchrodingerSolver
@@ -42,7 +43,7 @@ class Coupled_FD_Poisson():
 
 class Coupled_Schrodinger_Poisson():
 
-    def __init__(self,mesh, carriers=['electron','hole']):
+    def __init__(self,mesh, carriers=['electron','hole'],schrodinger=None):
         m=mesh
         # Set some stuff
         m['EF']=PointFunction(m,0.0)
@@ -53,21 +54,37 @@ class Coupled_Schrodinger_Poisson():
         if 'arho2' not in m:
             m['arho2']=PointFunction(m,0.0) # is this necessary?
 
+
+
+        self._classical_charge_solvers=[FermiDirac3D(m)]
+
+        schrofull=(schrodinger is None)
+        if schrofull: schrodinger=m
+        self._quantum_charge_solvers=[SchrodingerSolver(schrodinger,carriers=carriers)]
+        if not schrofull:
+            if schrodinger._slice.start is not None and schrodinger._slice.start>0:
+                fd_sm=SubMesh(m,None,schrodinger._slice.start)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers+=[fd]
+            if schrodinger._slice.stop is not None and schrodinger._slice.stop<len(m.z):
+                fd_sm=SubMesh(m,schrodinger._slice.stop,None)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers+=[fd]
+
         # Prep solvers
         self._ps=PoissonSolver(m)
-        self._fd=FermiDirac3D(m)
-        self._ss=SchrodingerSolver(m,fermidirac=self._fd,carriers=carriers)
 
 
     def solve(self, low_act=4, rise=500, tol=1e-8, max_iter=100, callback=lambda *args: None):
         self._ps.solve()
         if callback(): return
         for activation in np.logspace(-low_act,-0.,rise):
-            self._fd.solve(activation=activation)
+            #self._fd.solve(activation=activation)
+            for s in self._classical_charge_solvers: s.solve(activation)
             err=self._ps.isolve(visual=False)
             if callback(): return
         for i in range(max_iter):
-            self._fd.solve(activation=1)
+            for s in self._classical_charge_solvers: s.solve(activation=1)
             err=self._ps.isolve(visual=False)
             if callback(): return
             if err<tol:
@@ -75,7 +92,7 @@ class Coupled_Schrodinger_Poisson():
                 break
         assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)
         for i in range(max_iter):
-            self._ss.solve(activation=1)
+            for s in self._quantum_charge_solvers: s.solve(activation=1)
             err=self._ps.isolve(visual=False)
             if callback(): return
             if err<tol:

@@ -108,7 +108,7 @@ class Mesh():
             dz=tgcd/ceil(tgcd/max_dz)
             N=rint(totthick/dz)+1
             fixed_positions=np.linspace(0,totthick,num=N,endpoint=True)
-            interface_indices=np.rint(np.cumsum([l.thickness for l in stack])/dz)+1
+            interface_indices=np.rint(np.cumsum([l.thickness for l in stack])/dz)
 
         else:
             # Implement the max_dz requirement by adding it to the refinements list
@@ -308,6 +308,10 @@ class SubMesh(Mesh):
     """
 
     def __init__(self, mesh, start, stop):
+
+        if start is None: start=0
+        if stop is None: stop=len(mesh.z)
+
         self._slice = slice(start, stop)
         self._slicep = slice(start, stop - 1)
 
@@ -317,7 +321,11 @@ class SubMesh(Mesh):
         self._dzp = mesh._dzp[self._slice]
 
         self._interfaces = [(i - start, ll, lr) for i, ll, lr in mesh._interfaces if (i > start and i < stop - 1)]
-        self._layers = EpiStack(*[ll for i, ll, lr in self._interfaces] + [self._interfaces[-1][2]])
+        # THIS IS A HORRIBLE HACK.  I'M SORRY, FUTURE SAM.
+        if len(self._interfaces):
+            self._layers = EpiStack(*[ll for i, ll, lr in self._interfaces] + [self._interfaces[-1][2]])
+        else:
+            self._layers=EpiStack(next(ll for i,ll,lr in (mesh._interfaces+[[start+1,mesh._layers[-1],None]]) if i > start))
 
         self._functions = {
             k: f.restrict(self) for k, f in mesh._functions.items()
