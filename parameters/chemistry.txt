@@ -1,0 +1,16 @@
+element
+    Gallium-71
+        mass: 70.9247 amu
+    Gallium-69
+        mass: 68.925 amu
+    Nitrogen-14
+        mass: 14.003 amu
+    Nitrogen-15
+        mass: 15.000 amu
+material
+    GaN
+        conditions: default
+            crystal
+                basis atoms
+                    Gallium-69: 2
+                    Nitrogen-14: 2

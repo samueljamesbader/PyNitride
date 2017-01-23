@@ -45,11 +45,14 @@ class MultilevelDict():
 
 
 class ParamDB(MultilevelDict):
-    def __init__(self, system='mks', make_global=False):
+    def __init__(self, system='mks', make_global=False, load_files=['VM2003.txt']):
         if not hasattr(ParamDB,"_ureg"):
             ParamDB._ureg=pint.UnitRegistry(system=system)
+        assert ParamDB._ureg.default_system==system, "Unit systems error"
+
         self._dict={}
         if make_global: ParamDB._global=self
+        for f in load_files: self.read_file(f)
 
     @staticmethod
     def get_global(*args,**kwargs):
@@ -77,13 +80,19 @@ class ParamDB(MultilevelDict):
                     indents.pop()
                 indents.append([indent,indents[-1][1]+items_on_line])
 
-    def value_parser(self,val, err_on_fail=False):
+    @staticmethod
+    def value_parser(val, err_on_fail=False):
         try: return float(val)
         except: pass
         try: return ParamDB._ureg(val).to_base_units().magnitude
         except: pass
         if err_on_fail: raise Exception("Could not parse "+val)
         return val
+
+def to_unit(val,unit):
+    return val/ParamDB.get_global().value_parser(unit,err_on_fail=True)
+
+
 
 class Material():
     def __init__(self, matname, pdb=None,conditions=['relaxed','default']):
@@ -103,9 +112,10 @@ class Material():
         except:
             return default
 
+if __name__=="__main__":
 
-pdb=ParamDB(make_global=True)
-pdb.read_file('VM2003.txt')
-gan=Material("GaN")
-gan['lattice','a']
-print(pdb._dict)
+    pdb=ParamDB(make_global=True)
+    pdb.read_file('VM2003.txt')
+    gan=Material("GaN")
+    gan['lattice','a']
+    print(pdb._dict)
