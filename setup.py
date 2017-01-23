@@ -15,5 +15,5 @@ setup(
     #ext_modules = cythonize(["poissolve/maths/fermidiracintegral.pyx","poissolve/maths/tdma.pyx"], **ext_options),
     ext_modules = cythonize(["poissolve/maths/cfermidiracintegral.pyx","poissolve/maths/tdma.pyx"], **ext_options),
     #ext_modules = cythonize(["poissolve/maths/tdma.pyx"], **ext_options),
-    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython']
+    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython', 'pint']
 )
