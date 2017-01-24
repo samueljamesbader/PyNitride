@@ -7,6 +7,7 @@ element
         mass: 14.003 amu
     Nitrogen-15
         mass: 15.000 amu
+
 material
     GaN
         conditions: default
@@ -14,3 +15,4 @@ material
                 basis atoms
                     Gallium-69: 2
                     Nitrogen-14: 2
+
