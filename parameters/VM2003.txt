@@ -12,6 +12,11 @@ material: GaN
         lattice
             a: 3.189 angstrom
             c: 5.185 angstrom
+        bands
+            conduction
+                Gamma
+                    mzs: .2 m_e
+                    mxys: .2 m_e
 
 material: AlN
     conditions: default

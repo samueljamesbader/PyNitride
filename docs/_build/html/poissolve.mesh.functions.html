@@ -1,0 +1,209 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>poissolve.mesh.functions module &mdash; Poissolve 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Poissolve 0.2 documentation" href="index.html" />
+    <link rel="up" title="poissolve.mesh package" href="poissolve.mesh.html" />
+    <link rel="next" title="poissolve.mesh.structure module" href="poissolve.mesh.structure.html" />
+    <link rel="prev" title="poissolve.mesh package" href="poissolve.mesh.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.mesh.structure.html" title="poissolve.mesh.structure module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="poissolve.mesh.html" title="poissolve.mesh package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Poissolve</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="poissolve.html" >poissolve package</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="poissolve.mesh.html" accesskey="U">poissolve.mesh package</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="poissolve.mesh.html"
+                        title="previous chapter">poissolve.mesh package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poissolve.mesh.structure.html"
+                        title="next chapter">poissolve.mesh.structure module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/poissolve.mesh.functions.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-poissolve.mesh.functions">
+<span id="poissolve-mesh-functions-module"></span><h1>poissolve.mesh.functions module<a class="headerlink" href="#module-poissolve.mesh.functions" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Jan  3 17:41:30 2017</p>
+<p>&#64;author: sam</p>
+<dl class="function">
+<dt id="poissolve.mesh.functions.ConstantFunction">
+<code class="descclassname">poissolve.mesh.functions.</code><code class="descname">ConstantFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>val</em>, <em>dtype='float'</em>, <em>pos='point'</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.ConstantFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="poissolve.mesh.functions.DeltaFunction">
+<code class="descclassname">poissolve.mesh.functions.</code><code class="descname">DeltaFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>z</em>, <em>height=1</em>, <em>i=None</em>, <em>pos='point'</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.DeltaFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="poissolve.mesh.functions.Function">
+<em class="property">class </em><code class="descclassname">poissolve.mesh.functions.</code><code class="descname">Function</code><a class="headerlink" href="#poissolve.mesh.functions.Function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></p>
+<dl class="method">
+<dt id="poissolve.mesh.functions.Function.restrict">
+<code class="descname">restrict</code><span class="sig-paren">(</span><em>submesh</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.Function.restrict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="poissolve.mesh.functions.MaterialFunction">
+<code class="descclassname">poissolve.mesh.functions.</code><code class="descname">MaterialFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>prop</em>, <em>pos='mid'</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.MaterialFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="poissolve.mesh.functions.MidFunction">
+<em class="property">class </em><code class="descclassname">poissolve.mesh.functions.</code><code class="descname">MidFunction</code><a class="headerlink" href="#poissolve.mesh.functions.MidFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#poissolve.mesh.functions.Function" title="poissolve.mesh.functions.Function"><code class="xref py py-class docutils literal"><span class="pre">poissolve.mesh.functions.Function</span></code></a></p>
+<dl class="method">
+<dt id="poissolve.mesh.functions.MidFunction.differentiate">
+<code class="descname">differentiate</code><span class="sig-paren">(</span><em>fill_value=nan</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.MidFunction.differentiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="poissolve.mesh.functions.MidFunction.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>flipped=False</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.MidFunction.integrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="poissolve.mesh.functions.MidFunction.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.MidFunction.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="poissolve.mesh.functions.MidFunction.to_point_function">
+<code class="descname">to_point_function</code><span class="sig-paren">(</span><em>interp='unweighted'</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.MidFunction.to_point_function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="poissolve.mesh.functions.PointFunction">
+<em class="property">class </em><code class="descclassname">poissolve.mesh.functions.</code><code class="descname">PointFunction</code><a class="headerlink" href="#poissolve.mesh.functions.PointFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#poissolve.mesh.functions.Function" title="poissolve.mesh.functions.Function"><code class="xref py py-class docutils literal"><span class="pre">poissolve.mesh.functions.Function</span></code></a></p>
+<dl class="method">
+<dt id="poissolve.mesh.functions.PointFunction.differentiate">
+<code class="descname">differentiate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.PointFunction.differentiate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="poissolve.mesh.functions.PointFunction.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>flipped=False</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.PointFunction.integrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="poissolve.mesh.functions.PointFunction.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.PointFunction.plot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="poissolve.mesh.functions.RegionFunction">
+<code class="descclassname">poissolve.mesh.functions.</code><code class="descname">RegionFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>prop</em>, <em>pos='mid'</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.mesh.functions.RegionFunction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.mesh.structure.html" title="poissolve.mesh.structure module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="poissolve.mesh.html" title="poissolve.mesh package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Poissolve</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="poissolve.html" >poissolve package</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="poissolve.mesh.html" >poissolve.mesh package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, Samuel James Bader.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

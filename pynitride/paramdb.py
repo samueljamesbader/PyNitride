@@ -2,6 +2,7 @@ from pynitride import ROOT_DIR
 import os.path
 import pint
 import re
+import scipy.constants as const
 
 class MultilevelDict():
     def __init__(self,dictionary):
@@ -48,6 +49,7 @@ class ParamDB(MultilevelDict):
     def __init__(self, system='mks', make_global=False, load_files=['VM2003.txt']):
         if not hasattr(ParamDB,"_ureg"):
             ParamDB._ureg=pint.UnitRegistry(system=system)
+            #ParamDB._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","constants.txt"))
         assert ParamDB._ureg.default_system==system, "Unit systems error"
 
         self._dict={}
@@ -75,23 +77,25 @@ class ParamDB(MultilevelDict):
 
                 # a line at same or lesser indent is the signal to add the previously stored list to dict
                 if indent <= indents[-1][0]:
-                    self[indents[-1][1][:-1]]=self.value_parser(indents[-1][1][-1])
+                    self[indents[-1][1][:-1]]=value_parser(indents[-1][1][-1])
                 while indent <= indents[-1][0]:
                     indents.pop()
                 indents.append([indent,indents[-1][1]+items_on_line])
 
-    @staticmethod
-    def value_parser(val, err_on_fail=False):
-        try: return float(val)
-        except: pass
-        try: return ParamDB._ureg(val).to_base_units().magnitude
-        except: pass
-        if err_on_fail: raise Exception("Could not parse "+val)
-        return val
+def value_parser(val, err_on_fail=False):
+    ParamDB.get_global()
+    try: return float(val)
+    except: pass
+    try: return ParamDB._ureg(val).to_base_units().magnitude
+    except: pass
+    if err_on_fail: raise Exception("Could not parse "+val)
+    return val
 
 def to_unit(val,unit):
-    return val/ParamDB.get_global().value_parser(unit,err_on_fail=True)
+    return val/value_parser(unit,err_on_fail=True)
 
+hbar=to_unit(const.hbar,"J s")
+m_e=to_unit(const.electron_mass,"J s")
 
 
 class Material():

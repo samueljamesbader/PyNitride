@@ -1,0 +1,7 @@
+poissolve.tests.conftest module
+===============================
+
+.. automodule:: poissolve.tests.conftest
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,7 @@
+poissolve.tests.test_schrodinger module
+=======================================
+
+.. automodule:: poissolve.tests.test_schrodinger
+    :members:
+    :undoc-members:
+    :show-inheritance:

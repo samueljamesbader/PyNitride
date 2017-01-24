@@ -1,0 +1,132 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Solving the Schrodinger Equation &mdash; Poissolve 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Poissolve 0.2 documentation" href="index.html" />
+    <link rel="prev" title="poissolve.visual module" href="poissolve.visual.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.visual.html" title="poissolve.visual module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Solving the Schrodinger Equation</a><ul>
+<li><a class="reference internal" href="#basic-1-d-problem-on-a-non-uniform-mesh">Basic 1-D problem on a non-uniform mesh</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="poissolve.visual.html"
+                        title="previous chapter">poissolve.visual module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/solve_schrodinger.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="solving-the-schrodinger-equation">
+<span id="solve-schrodinger"></span><h1>Solving the Schrodinger Equation<a class="headerlink" href="#solving-the-schrodinger-equation" title="Permalink to this headline">¶</a></h1>
+<p>This document describes the math of the <a class="reference internal" href="poissolve.solvers.schrodinger.html#poissolve.solvers.schrodinger.SchrodingerSolver" title="poissolve.solvers.schrodinger.SchrodingerSolver"><code class="xref py py-class docutils literal"><span class="pre">SchrodingerSolver</span></code></a>.</p>
+<div class="section" id="basic-1-d-problem-on-a-non-uniform-mesh">
+<span id="solve-schrodinger-1d"></span><h2>Basic 1-D problem on a non-uniform mesh<a class="headerlink" href="#basic-1-d-problem-on-a-non-uniform-mesh" title="Permalink to this headline">¶</a></h2>
+<p>Read <a class="reference external" href="http://dx.doi.org/10.1063/1.346245">Tan_1990</a></p>
+<p>The kinetic term is tri-diagonal and symmetric.  For each row <span class="math">\(\sigma\)</span>, the center term is</p>
+<div class="math">
+\[T_{\sigma,\sigma}=\frac{\hbar^2}{2dz_{\sigma}}\left(\frac{1}{m_{z,\sigma-.5}dz_{\sigma-.5}}+\frac{1}{m_{z,\sigma+.5}dz_{\sigma+.5}}\right)\]</div>
+<p>And the left and right off-diagonal terms are respectively</p>
+<div class="math">
+\[T_{\sigma, \sigma-1}=\frac{\hbar^2}{2m_{z,\sigma-.5} dz_{\sigma-.5} \sqrt{dz_{\sigma-1}dz_{\sigma}}},\quad
+T_{\sigma, \sigma+1}=\frac{\hbar^2}{2m_{z,\sigma+.5} dz_{\sigma+.5} \sqrt{dz_{\sigma+1}dz_{\sigma}}}\]</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.visual.html" title="poissolve.visual module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, Samuel James Bader.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

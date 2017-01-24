@@ -1,0 +1,7 @@
+poissolve.analytical module
+===========================
+
+.. automodule:: poissolve.analytical
+    :members:
+    :undoc-members:
+    :show-inheritance:

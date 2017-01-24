@@ -1,0 +1,203 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>poissolve.solvers.schrodinger module &mdash; Poissolve 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Poissolve 0.2 documentation" href="index.html" />
+    <link rel="up" title="poissolve.solvers package" href="poissolve.solvers.html" />
+    <link rel="next" title="poissolve.constants module" href="poissolve.constants.html" />
+    <link rel="prev" title="poissolve.solvers.poisson module" href="poissolve.solvers.poisson.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.constants.html" title="poissolve.constants module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="poissolve.solvers.poisson.html" title="poissolve.solvers.poisson module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Poissolve</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="poissolve.html" >poissolve package</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="poissolve.solvers.html" accesskey="U">poissolve.solvers package</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="poissolve.solvers.poisson.html"
+                        title="previous chapter">poissolve.solvers.poisson module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="poissolve.constants.html"
+                        title="next chapter">poissolve.constants module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/poissolve.solvers.schrodinger.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-poissolve.solvers.schrodinger">
+<span id="poissolve-solvers-schrodinger-module"></span><h1>poissolve.solvers.schrodinger module<a class="headerlink" href="#module-poissolve.solvers.schrodinger" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver">
+<em class="property">class </em><code class="descclassname">poissolve.solvers.schrodinger.</code><code class="descname">SchrodingerSolver</code><span class="sig-paren">(</span><em>mesh, carriers=['electron', 'hole'], fermidirac=None</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="staticmethod">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.carrier_density">
+<em class="property">static </em><code class="descname">carrier_density</code><span class="sig-paren">(</span><em>psi</em>, <em>g</em>, <em>mxys</em>, <em>eta</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.carrier_density" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.carrier_density_deriv">
+<em class="property">static </em><code class="descname">carrier_density_deriv</code><span class="sig-paren">(</span><em>psi</em>, <em>g</em>, <em>mxys</em>, <em>eta</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.carrier_density_deriv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.lateral_kinetic_term">
+<em class="property">static </em><code class="descname">lateral_kinetic_term</code><span class="sig-paren">(</span><em>mesh</em>, <em>kperp</em>, <em>mxy</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.lateral_kinetic_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the lateral kinetic term for use in a Schrodinger solution.</p>
+<p>This diagonal matrix is the discrete version  of <span class="math">\(\frac{\hbar^2k_\perp^2}{2m}\)</span>.
+See <a class="reference internal" href="solve_schrodinger.html#solve-schrodinger"><span class="std std-ref">Solving the Schrodinger Equation</span></a> for details on the discrete form.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mesh</strong> &#8211; the Mesh on which the Schrodinger problem is defined</li>
+<li><strong>kperp</strong> &#8211; norm of the lateral wavevector</li>
+<li><strong>mxy</strong> &#8211; MidFunction of the lateral effective mass</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the lateral kinetic term as a sparse (CSC) matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>activation=1</em>, <em>eff_mass_average=True</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.solve_schrodinger_problem">
+<em class="property">static </em><code class="descname">solve_schrodinger_problem</code><span class="sig-paren">(</span><em>mesh</em>, <em>z_kinetic_term</em>, <em>potential</em>, <em>lateral_kinetic_term=0</em>, <em>num_eigenvalues=3</em>, <em>psi_out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.solve_schrodinger_problem" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="poissolve.solvers.schrodinger.SchrodingerSolver.z_kinetic_term">
+<em class="property">static </em><code class="descname">z_kinetic_term</code><span class="sig-paren">(</span><em>mesh</em>, <em>mz</em><span class="sig-paren">)</span><a class="headerlink" href="#poissolve.solvers.schrodinger.SchrodingerSolver.z_kinetic_term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates the symmetrized <em>z</em> kinetic energy term for use in a Schrodinger solution.</p>
+<p>This tridiagonal matrix is the discrete, symmetrized representation of
+<span class="math">\(\frac{-\hbar^2}{2m_z}\frac{\partial^2\psi}{\partial z^2}\)</span>.
+See <a class="reference internal" href="solve_schrodinger.html#solve-schrodinger-1d"><span class="std std-ref">Solving the Schrodinger Equation</span></a> for details on the discrete form.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mesh</strong> &#8211; the <a class="reference internal" href="poissolve.mesh.structure.html#poissolve.mesh.structure.Mesh" title="poissolve.mesh.structure.Mesh"><code class="xref py py-class docutils literal"><span class="pre">Mesh</span></code></a> on which the Schrodinger problem is defined</li>
+<li><strong>mz</strong> &#8211; MidFunction of the effective mass along <em>z</em></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the <em>z</em> kinetic term as a sparse (CSC) matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="poissolve.constants.html" title="poissolve.constants module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="poissolve.solvers.poisson.html" title="poissolve.solvers.poisson module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Poissolve 0.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Poissolve</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="poissolve.html" >poissolve package</a> &raquo;</li>
+          <li class="nav-item nav-item-3"><a href="poissolve.solvers.html" >poissolve.solvers package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2017, Samuel James Bader.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

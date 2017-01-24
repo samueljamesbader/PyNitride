@@ -1,0 +1,7 @@
+poissolve.tests.test_poisson module
+===================================
+
+.. automodule:: poissolve.tests.test_poisson
+    :members:
+    :undoc-members:
+    :show-inheritance:
