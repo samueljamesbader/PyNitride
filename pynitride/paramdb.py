@@ -46,11 +46,12 @@ class MultilevelDict():
 
 
 class ParamDB(MultilevelDict):
-    def __init__(self, system='mks', make_global=False, load_files=['VM2003.txt']):
+    def __init__(self, make_global=False, load_files=['VM2003.txt']):
         if not hasattr(ParamDB,"_ureg"):
-            ParamDB._ureg=pint.UnitRegistry(system=system)
+            ParamDB._ureg=pint.UnitRegistry(system='neu')
+            ParamDB._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","_system.txt"))
             #ParamDB._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","constants.txt"))
-        assert ParamDB._ureg.default_system==system, "Unit systems error"
+        #assert ParamDB._ureg.default_system==system, "Unit systems error"
 
         self._dict={}
         if make_global: ParamDB._global=self
