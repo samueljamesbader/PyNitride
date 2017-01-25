@@ -5,7 +5,7 @@ Created on Tue Jan  3 16:20:08 2017
 @author: sam
 """
 import numpy
-from pynitride.poissolve.constants import m0, eps_0, eV, cm
+from pynitride.paramdb import m0, eps_0, eV, cm
 from pynitride.paramdb import MultilevelDict
 import re
 from os.path import expanduser

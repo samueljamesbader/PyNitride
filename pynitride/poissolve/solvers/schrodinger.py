@@ -1,5 +1,5 @@
 import numpy as np
-from pynitride.poissolve.constants import q, hbar, kT, eV
+from pynitride.paramdb import q, hbar, kT, eV
 from pynitride.poissolve.mesh.functions import ConstantFunction, MaterialFunction, PointFunction
 from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 from scipy.sparse import diags
@@ -150,7 +150,7 @@ class SchrodingerSolver():
         m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
 
 if __name__=='__main__':
-    from pynitride.poissolve.constants import MV, cm
+    from pynitride.paramdb import MV, cm
     from pynitride.poissolve.devices import gan_qwhemt
     from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction
     import matplotlib.pyplot as mpl
@@ -163,8 +163,8 @@ if __name__=='__main__':
     m,sm=gan_qwhemt(xc,xb,xw,xs,1e16*cm**-3,surface='GenericMetal')
     z=m.z
     m['kT']=ConstantFunction(m,0)
-    m['DEc']=MaterialFunction(m,'DEc').to_point_function(interp='z')
-    m['Eg']=MaterialFunction(m,'Eg').to_point_function(interp='z')
+    m['DEc']=MaterialFunction(m,['bands','DEc']).to_point_function(interp='z')
+    m['Eg']=MaterialFunction(m,['bands','Eg']).to_point_function(interp='z')
     m['mqV']=PointFunction(m,np.choose(1*(z>xc)+1*(z>xc+xb)+1*(z>xc+xb+xw),
                                        [F*(z-xc),
                                         0*z,
