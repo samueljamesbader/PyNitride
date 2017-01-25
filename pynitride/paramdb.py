@@ -88,6 +88,9 @@ class ParamDB(MultilevelDict):
     @staticmethod
     def parse(val, err_on_fail=False):
         pdb=ParamDB()
+
+        if val=="[]": return []
+
         try: return float(val)
         except: pass
         try: return pdb._ureg(val).to_base_units().magnitude

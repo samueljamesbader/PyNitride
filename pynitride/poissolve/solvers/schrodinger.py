@@ -21,13 +21,13 @@ class SchrodingerSolver():
 
         self._props={c:{} for c in carriers}
         for carrier,v in self._props.items():
-            bands=mesh._layers[0].material['ladder',carrier].keys()
+            bands=mesh._layers[0].material['bands',carrier].keys()
             for i,b in enumerate(bands):
                 v[b]={}
-                v[b]['T']=self.z_kinetic_term(m,MaterialFunction(m,['ladder',carrier,b,'mzs']))
-                v[b]['mxys']=MaterialFunction(m,['ladder',carrier,b,'mxys'],pos='point')
-                v[b]['g']=mesh._layers[0].material['ladder',carrier][b]['g'] # can't vary spatially
-                v[b]['DE']=MaterialFunction(m,['ladder',carrier,b,'DE'],pos='point')
+                v[b]['T']=self.z_kinetic_term(m,MaterialFunction(m,['bands',carrier,b,'mzs']))
+                v[b]['mxys']=MaterialFunction(m,['bands',carrier,b,'mxys'],pos='point')
+                v[b]['g']=mesh._layers[0].material['bands',carrier][b]['g'] # can't vary spatially
+                v[b]['DE']=MaterialFunction(m,['bands',carrier,b,'DE'],pos='point')
             m[{'electron':'Ec_eff','hole':'Ev_eff'}[carrier]]=PointFunction(m,empty=(len(bands),))
 
         for k in ['n','p','nderiv','pderiv']: m[k]=PointFunction(m,empty=())

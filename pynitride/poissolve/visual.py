@@ -1,5 +1,5 @@
 import matplotlib.pyplot as mpl
-from pynitride.poissolve.constants import q,cm,MV,eV, kT
+from pynitride.paramdb import q,cm,MV,eV, kT
 import numpy as np
 
 def plot_QFV(mesh):

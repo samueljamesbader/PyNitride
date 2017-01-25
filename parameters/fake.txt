@@ -7,13 +7,13 @@ material: GaN
             DEc: 0 eV
             barrier
                 GenericMetal: 1 eV
-            conduction
+            electron
                 Gamma:
                     g: 2
                     mzs: .2 m_e
                     mdos: .2 m_e
                     DE: 0 eV
-             valence
+            hole
                 HH:
                     g: 2
                     mzs: 1.1 m_e
@@ -53,14 +53,14 @@ material: AlN
                 GenericMetal: 3 eV
             Ei: 0 eV
             DEc: 1.835 eV
-            conduction
+            electron
                 Gamma
                     g: 2
                     mzs: .4 m_e
                     mxys: .4 m_e
                     mdos: .4 m_e
                     DE: 0 eV
-            valence
+            hole
                 HH:
                     g: 2
                     mzs: 3.5 m_e
@@ -98,14 +98,14 @@ material: GaAs
         bands:
            Eg : 1 #FAKE
            DEc: 0 eV
-           conduction
+           electron
                 Gamma
                     g: 2
                     mzs: .067 m_e
                     mxys: .067 m_e
                     mdos: .067 m_e
                     DE: 0
-           valence .
+           hole []
         dielectric
             eps: 1 epsilon_0 # SO FAKE
 material: AlGaAs # to match li kuhn paper
@@ -115,14 +115,14 @@ material: AlGaAs # to match li kuhn paper
             DEc: .4 eV
             barrier
                 GenericMetal 0 eV
-            conduction
+            electron
                 Gamma
                     g: 2
                     mzs: .1 m_e
                     mxys: .1 m_e
                     mdos: .1 m_e
                     DE: 0
-            valence .
+            hole []
         dielectric
             eps: 1 epsilon_0 # SO FAKE
 

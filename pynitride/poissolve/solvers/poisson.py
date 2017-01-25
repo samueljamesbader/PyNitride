@@ -1,7 +1,7 @@
 import numpy as np
 from pynitride.poissolve.maths.tdma import tdma
 import numbers
-from pynitride.poissolve.constants import q
+from pynitride.paramdb import q
 from pynitride.poissolve.mesh.functions import MidFunction, MaterialFunction, PointFunction
 
 
@@ -17,11 +17,11 @@ class PoissonSolver():
         # ARE THESE NECESSARY
         mesh['D']= MidFunction(mesh)
         mesh['E']= MidFunction(mesh)
-        eps=mesh['eps']= MaterialFunction(mesh, 'eps')
+        eps=mesh['eps']= MaterialFunction(mesh, ['dielectric','eps'])
         mesh['mqV']= PointFunction(mesh, 0.0)
-        mesh['DEc']= MaterialFunction(mesh, "DEc", pos='point')
+        mesh['DEc']= MaterialFunction(mesh, ['bands','DEc'], pos='point')
         mesh['Ec']= PointFunction(mesh)
-        mesh['Eg']= MaterialFunction(mesh, "Eg", pos='point')
+        mesh['Eg']= MaterialFunction(mesh, ['bands',"Eg"], pos='point')
         mesh['Ev']= PointFunction(mesh)
 
         mesh['arho2']= PointFunction(mesh)
@@ -57,7 +57,7 @@ class PoissonSolver():
         self._update_others()
         mqV=m['mqV']
         m['E']=mqV.differentiate()
-        m['D']=MidFunction(m,MaterialFunction(m,'eps')*m['E'])
+        m['D']=MidFunction(m,MaterialFunction(m,['dielectric','eps'])*m['E'])
         m['arho2']=m['D'].differentiate()
 
     def _update_others(self):
@@ -112,7 +112,7 @@ class PoissonSolver():
 
         mqV=m['mqV']
         m['E']=mqV.differentiate()
-        m['D']=MidFunction(m,MaterialFunction(m,'eps')*m['E'])
+        m['D']=MidFunction(m,MaterialFunction(m,['dielectric','eps'])*m['E'])
         m['arho2']=m['D'].differentiate()
 
 

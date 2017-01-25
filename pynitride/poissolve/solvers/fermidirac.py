@@ -52,19 +52,19 @@ class FermiDirac3D():
 
         # We'll have to confirm these formulae (factors of 2?) later...
         Nc=MaterialFunction(mesh,pos='point',prop=lambda mat:
-        [mat['bands','conduction',b,'g']*(mat['bands','conduction',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
-         for b in mat['bands','conduction']])
+        [mat['bands','electron',b,'g']*(mat['bands','electron',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
+         for b in mat['bands','electron']])
         Nv=MaterialFunction(mesh,pos='point',prop=lambda mat:
-        [mat['bands','valence',b,'g']*(mat['bands','valence',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
-         for b in mat['bands','valence']])
+        [mat['bands','hole',b,'g']*(mat['bands','hole',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
+         for b in mat['bands','hole']])
         return Nc,Nv
 
     @staticmethod
     def band_edge_shifts(mesh):
         cDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            [mat['bands','conduction',b,'DE'] for b in mat['bands','conduction']])
+            [mat['bands','electron',b,'DE'] for b in mat['bands','electron']])
         vDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            [mat['bands','valence',b,'DE'] for b in mat['bands','valence']])
+            [mat['bands','hole',b,'DE'] for b in mat['bands','hole']])
         return cDE,vDE
 
 
