@@ -1,0 +1,9 @@
+e_per_fs  = e / fs
+eV_fs2_per_nm2 = eV fs**2 / nm**2
+
+@system neu using international
+    nanometer
+    eV_fs2_per_nm2
+    femtosecond
+    e_per_fs
+@end

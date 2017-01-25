@@ -10,8 +10,8 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pickle
 
-from poissolve.materials import Material
-from poissolve.mesh.functions import Function
+from pynitride.poissolve.materials import Material
+from pynitride.poissolve.mesh.functions import Function
 
 
 class Layer():

@@ -1,9 +1,9 @@
 import numpy as np
 from pynitride.poissolve.mesh.structure import Mesh, SubMesh
-from poissolve.mesh.functions import PointFunction
-from poissolve.solvers.poisson import PoissonSolver
-from poissolve.solvers.schrodinger import SchrodingerSolver
-from poissolve.solvers.fermidirac import FermiDirac3D
+from pynitride.poissolve.mesh.functions import PointFunction
+from pynitride.poissolve.solvers.poisson import PoissonSolver
+from pynitride.poissolve.solvers.schrodinger import SchrodingerSolver
+from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 
 class Coupled_FD_Poisson():
 
