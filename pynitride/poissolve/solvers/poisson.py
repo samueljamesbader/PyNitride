@@ -12,7 +12,7 @@ class PoissonSolver():
         if isinstance(mesh._layers.surface,numbers.Real):
             self._phib=mesh._layers.surface
         else:
-            self._phib=mesh._layers[0].material['barrier'][mesh._layers.surface]
+            self._phib=mesh._layers[0].material['bands','barrier',mesh._layers.surface]
 
         # ARE THESE NECESSARY
         mesh['D']= MidFunction(mesh)

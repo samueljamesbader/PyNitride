@@ -1,3 +1,5 @@
+PyNitride v1
+
 meta
     default parameter files
         VM2003 : yes
