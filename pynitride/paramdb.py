@@ -44,28 +44,31 @@ class MultilevelDict():
 
         return getattr(self._dict,item)
 
-
 class ParamDB(MultilevelDict):
-    def __init__(self, system='mks', make_global=False, load_files=['VM2003.txt']):
-        if not hasattr(ParamDB,"_ureg"):
-            ParamDB._ureg=pint.UnitRegistry(system=system)
-            #ParamDB._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","constants.txt"))
-        assert ParamDB._ureg.default_system==system, "Unit systems error"
 
+    # Enforce singleton pattern
+    def __new__(cls):
+        if not hasattr(ParamDB,'_self'):
+            self=ParamDB._self=super().__new__(cls)
+            super(ParamDB,self).__init__({})
+            self._ureg=pint.UnitRegistry(system='neu')
+            self._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","_system.txt"))
+
+            self.read_file("_meta")
+            print(self._dict)
+            for filename,yn in self["meta","default parameter files"].items():
+                if yn=="yes":
+                    self.read_file(filename)
+        return ParamDB._self
+
+    def __init__(self): pass
+
+    def clear(self):
         self._dict={}
-        if make_global: ParamDB._global=self
-        for f in load_files: self.read_file(f)
-
-    @staticmethod
-    def get_global(*args,**kwargs):
-        if hasattr(ParamDB,"_global"):
-            return ParamDB._global
-        else:
-            return ParamDB(*args,make_global=True,**kwargs)
 
     def read_file(self,filename,from_root=True):
         if from_root:
-            filename=os.path.join(ROOT_DIR,'parameters',filename)
+            filename=os.path.join(ROOT_DIR,'parameters',filename+".txt")
         with open(filename) as f:
             k=[]
             indents=[[-1,[]]]
@@ -77,26 +80,39 @@ class ParamDB(MultilevelDict):
 
                 # a line at same or lesser indent is the signal to add the previously stored list to dict
                 if indent <= indents[-1][0]:
-                    self[indents[-1][1][:-1]]=value_parser(indents[-1][1][-1])
+                    self[indents[-1][1][:-1]]=parse(indents[-1][1][-1])
                 while indent <= indents[-1][0]:
                     indents.pop()
                 indents.append([indent,indents[-1][1]+items_on_line])
 
-def value_parser(val, err_on_fail=False):
-    ParamDB.get_global()
-    try: return float(val)
-    except: pass
-    try: return ParamDB._ureg(val).to_base_units().magnitude
-    except: pass
-    if err_on_fail: raise Exception("Could not parse "+val)
-    return val
+    @staticmethod
+    def parse(val, err_on_fail=False):
+        pdb=ParamDB()
+        try: return float(val)
+        except: pass
+        try: return pdb._ureg(val).to_base_units().magnitude
+        except: pass
+        if err_on_fail: raise Exception("Could not parse "+val)
+        return val
 
-def to_unit(val,unit):
-    return val/value_parser(unit,err_on_fail=True)
+    @staticmethod
+    def to_unit(val,unit):
+        pdb=ParamDB()
+        return val/pdb.parse(unit,err_on_fail=True)
 
-hbar=to_unit(const.hbar,"J s")
-m_e=to_unit(const.electron_mass,"J s")
 
+parse=ParamDB.parse
+to_unit=ParamDB.to_unit
+
+pdb=ParamDB()
+convenient_constants=["hbar","c","m_e","angstrom","nm","um","mm","cm","mV","V","kV","MV","meV","eV","keV","MeV"]
+for const in convenient_constants:
+    globals()[const]=parse(const,err_on_fail=True)
+
+convenient_constants+=['q','kT']
+q=parse('e',err_on_fail=True)
+T=300
+kT=parse('k',err_on_fail=True)*T
 
 class Material():
     def __init__(self, matname, pdb=None,conditions=['relaxed','default']):
@@ -118,7 +134,7 @@ class Material():
 
 if __name__=="__main__":
 
-    pdb=ParamDB(make_global=True)
+    pdb=ParamDB()
     pdb.read_file('VM2003.txt')
     gan=Material("GaN")
     gan['lattice','a']

@@ -8,10 +8,10 @@ Created on Tue Jan  3 23:13:27 2017
 import re
 
 import numpy as np
-from poissolve.maths.fermidiracintegral import fd12, fd12p
+from pynitride.poissolve.maths.fermidiracintegral import fd12, fd12p
 
-from poissolve.constants import kT,hbar,q
-from poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
+from pynitride.poissolve.constants import kT,hbar,q
+from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
 
 
 class FermiDirac3D():

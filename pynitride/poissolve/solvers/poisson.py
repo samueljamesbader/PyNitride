@@ -1,8 +1,8 @@
 import numpy as np
-from poissolve.maths.tdma import tdma
+from pynitride.poissolve.maths.tdma import tdma
 import numbers
-from poissolve.constants import q
-from poissolve.mesh.functions import MidFunction, MaterialFunction, PointFunction
+from pynitride.poissolve.constants import q
+from pynitride.poissolve.mesh.functions import MidFunction, MaterialFunction, PointFunction
 
 
 class PoissonSolver():

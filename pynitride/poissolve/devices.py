@@ -1,8 +1,8 @@
 import matplotlib.pyplot as mpl
 mpl.interactive(True)
-from poissolve.constants import nm, cm, eV
+from pynitride.poissolve.constants import nm, cm, eV
 from pynitride.poissolve.mesh.structure import Mesh, EpiStack
-from poissolve.mesh.functions import PointFunction, MaterialFunction,RegionFunction,DeltaFunction
+from pynitride.poissolve.mesh.functions import PointFunction, MaterialFunction,RegionFunction,DeltaFunction
 
 def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
 
@@ -119,7 +119,7 @@ def super_gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 
 if __name__=='__main__':
 
-    from poissolve.solvers.coupled import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
+    from pynitride.poissolve.solvers.coupled import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
     from pynitride.poissolve.visual import plot_QFV, plot_wavefunctions
 
     mpl.close('all')
@@ -141,7 +141,7 @@ if __name__=='__main__':
 
     if True: # qwhemt
         #qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,500*nm,1e16*cm**-3,surface=1*eV)
-        from poissolve.materials import read_1dp_mat
+        from pynitride.poissolve.materials import read_1dp_mat
         read_1dp_mat()
         qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,150*nm,1e17*cm**-3,surface=1*eV,snidermode=True)
         #qwhemt.plot_mesh()

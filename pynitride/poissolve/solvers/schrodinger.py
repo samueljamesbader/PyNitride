@@ -1,7 +1,7 @@
 import numpy as np
-from poissolve.constants import q, hbar, kT, eV
-from poissolve.mesh.functions import ConstantFunction
-from poissolve.solvers.fermidirac import FermiDirac3D
+from pynitride.poissolve.constants import q, hbar, kT, eV
+from pynitride.poissolve.mesh.functions import ConstantFunction, MaterialFunction, PointFunction
+from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
 
@@ -150,9 +150,9 @@ class SchrodingerSolver():
         m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
 
 if __name__=='__main__':
-    from poissolve.constants import MV, cm
-    from poissolve.devices import gan_qwhemt
-    from poissolve.mesh.functions import MaterialFunction, PointFunction
+    from pynitride.poissolve.constants import MV, cm
+    from pynitride.poissolve.devices import gan_qwhemt
+    from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction
     import matplotlib.pyplot as mpl
     mpl.interactive(False)
     xc=2
@@ -160,7 +160,7 @@ if __name__=='__main__':
     xw=20
     xs=300
     F=2.2*MV/cm
-    m=gan_qwhemt(xc,xb,xw,xs,1e16*cm**-3,surface='GenericMetal')
+    m,sm=gan_qwhemt(xc,xb,xw,xs,1e16*cm**-3,surface='GenericMetal')
     z=m.z
     m['kT']=ConstantFunction(m,0)
     m['DEc']=MaterialFunction(m,'DEc').to_point_function(interp='z')
@@ -173,7 +173,7 @@ if __name__=='__main__':
     m['Ec']=m['mqV']+m['DEc']
     m['Ev']=m['Ec']-m['Eg']
     m['EF']=ConstantFunction(m,0)
-    sm=m.submesh([5,30])
+    #sm=m.submesh([5,30])
     #sm.plot_mesh()
     #sm.plot_function('Ec')
 
