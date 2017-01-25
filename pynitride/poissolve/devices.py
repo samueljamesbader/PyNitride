@@ -141,9 +141,9 @@ if __name__=='__main__':
 
     if True: # qwhemt
         #qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,500*nm,1e16*cm**-3,surface=1*eV)
-        from pynitride.poissolve.materials import read_1dp_mat
-        read_1dp_mat()
-        qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,150*nm,1e17*cm**-3,surface=1*eV,snidermode=True)
+        #from pynitride.poissolve.materials import read_1dp_mat
+        #read_1dp_mat()
+        qwhemt,sm=gan_qwhemt(2.5*nm,4.5*nm,25*nm,150*nm,1e17*cm**-3,surface=1*eV,snidermode=False)
         #qwhemt.plot_mesh()
         i=0
         def stoppah():
