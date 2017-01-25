@@ -10,7 +10,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pickle
 
-from pynitride.poissolve.materials import Material
+from pynitride.paramdb import Material
 from pynitride.poissolve.mesh.functions import Function
 
 

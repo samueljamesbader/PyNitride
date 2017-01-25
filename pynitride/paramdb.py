@@ -105,7 +105,7 @@ parse=ParamDB.parse
 to_unit=ParamDB.to_unit
 
 pdb=ParamDB()
-convenient_constants=["hbar","c","m_e","angstrom","nm","um","mm","cm","mV","V","kV","MV","meV","eV","keV","MeV"]
+convenient_constants=["hbar","c","m_e","angstrom","nm","um","mm","cm","mV","V","kV","MV","meV","eV","keV","MeV","epsilon_0"]
 for const in convenient_constants:
     globals()[const]=parse(const,err_on_fail=True)
 
@@ -115,10 +115,10 @@ T=300
 kT=parse('k',err_on_fail=True)*T
 
 class Material():
-    def __init__(self, matname, pdb=None,conditions=['relaxed','default']):
+    def __init__(self, matname, conditions=['relaxed','default']):
         self.matname=matname
         self.conditions=conditions
-        self._pdb=pdb if pdb else ParamDB.get_global()
+        self._pdb=ParamDB()
     def __getitem__(self,key):
         if isinstance(key, str): key=[key]
         for condition in self.conditions:
@@ -131,6 +131,26 @@ class Material():
             return self.__getitem__(key)
         except:
             return default
+
+    # http://stackoverflow.com/a/25176504/2081118
+    def __eq__(self,other):
+        if isinstance(other,self.__class__):
+            return self._matname==other._matname
+        return NotImplemented
+    def __neq__(self,other):
+        if isinstance(other,self.__class__):
+            return self._matname!=other._matname
+        return NotImplemented
+    def __hash__(self):
+        return hash(self._matname)
+
+
+
+
+
+
+
+
 
 if __name__=="__main__":
 

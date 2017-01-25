@@ -1,6 +1,6 @@
 import matplotlib.pyplot as mpl
 mpl.interactive(True)
-from pynitride.poissolve.constants import nm, cm, eV
+from pynitride.paramdb import nm, cm, eV
 from pynitride.poissolve.mesh.structure import Mesh, EpiStack
 from pynitride.poissolve.mesh.functions import PointFunction, MaterialFunction,RegionFunction,DeltaFunction
 
