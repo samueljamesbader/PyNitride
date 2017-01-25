@@ -1,0 +1,9 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Vim swap files
+.*.sw*
+
+# PyCharm files
+.idea
