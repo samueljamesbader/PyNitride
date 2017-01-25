@@ -1,7 +1,0 @@
-poissolve.tests.test_structure module
-=====================================
-
-.. automodule:: poissolve.tests.test_structure
-    :members:
-    :undoc-members:
-    :show-inheritance:

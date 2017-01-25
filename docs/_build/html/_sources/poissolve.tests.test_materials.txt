@@ -1,7 +1,0 @@
-poissolve.tests.test_materials module
-=====================================
-
-.. automodule:: poissolve.tests.test_materials
-    :members:
-    :undoc-members:
-    :show-inheritance:

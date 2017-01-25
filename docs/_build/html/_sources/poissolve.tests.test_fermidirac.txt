@@ -1,7 +1,0 @@
-poissolve.tests.test_fermidirac module
-======================================
-
-.. automodule:: poissolve.tests.test_fermidirac
-    :members:
-    :undoc-members:
-    :show-inheritance:

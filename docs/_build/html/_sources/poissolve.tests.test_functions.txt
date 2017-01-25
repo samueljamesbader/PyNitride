@@ -1,7 +1,0 @@
-poissolve.tests.test_functions module
-=====================================
-
-.. automodule:: poissolve.tests.test_functions
-    :members:
-    :undoc-members:
-    :show-inheritance:

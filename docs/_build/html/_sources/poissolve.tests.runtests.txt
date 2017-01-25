@@ -1,7 +1,0 @@
-poissolve.tests.runtests module
-===============================
-
-.. automodule:: poissolve.tests.runtests
-    :members:
-    :undoc-members:
-    :show-inheritance:

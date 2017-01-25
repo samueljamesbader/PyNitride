@@ -1,7 +1,0 @@
-poissolve.tests.test_fermidiracintegral module
-==============================================
-
-.. automodule:: poissolve.tests.test_fermidiracintegral
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -1,7 +1,0 @@
-poissolve.tests.test_tdma module
-================================
-
-.. automodule:: poissolve.tests.test_tdma
-    :members:
-    :undoc-members:
-    :show-inheritance:
