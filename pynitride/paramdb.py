@@ -74,8 +74,7 @@ class ParamDB(MultilevelDict):
             if firstline.startswith("PyNitride"):
                 return self._read_PyNitride_file(f)
             elif firstline.startswith("beta7"):
-                raise NotImplementedError
-                #return self._read_1DP_file(f)
+                return self._read_1DP_file(f)
 
     def _read_PyNitride_file(self,filehandle):
         k=[]
@@ -93,7 +92,9 @@ class ParamDB(MultilevelDict):
                 indents.pop()
             indents.append([indent,indents[-1][1]+items_on_line])
 
-    #def _read_1DP_file(self,filehandle):
+    def _read_1DP_file(self,filehandle):
+
+        pass
 
 
 
