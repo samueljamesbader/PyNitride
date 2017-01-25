@@ -1,0 +1,9 @@
+eHz = e / second
+ssam = eV fs**2 / nm**2
+
+@system neu using international
+    nanometer
+    ssam
+    femtosecond
+    eHz
+@end
