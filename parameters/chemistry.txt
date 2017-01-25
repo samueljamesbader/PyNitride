@@ -1,3 +1,5 @@
+PyNitride v1
+
 element
     Gallium-71
         mass: 70.9247 amu

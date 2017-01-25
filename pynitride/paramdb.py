@@ -70,20 +70,32 @@ class ParamDB(MultilevelDict):
         if from_root:
             filename=os.path.join(ROOT_DIR,'parameters',filename+".txt")
         with open(filename) as f:
-            k=[]
-            indents=[[-1,[]]]
-            for line in [l.rstrip().split('#')[0] for l in f]+['#']:
-                if line.strip()=="": continue
-                items_on_line=[k2 for k2 in [k.strip() for k in line.split(':')] if k2!=""]
+            firstline=next(f)
+            if firstline.startswith("PyNitride"):
+                return self._read_PyNitride_file(f)
+            elif firstline.startswith("beta7"):
+                raise NotImplementedError
+                #return self._read_1DP_file(f)
 
-                indent=len(line)-len(line.lstrip())
+    def _read_PyNitride_file(self,filehandle):
+        k=[]
+        indents=[[-1,[]]]
+        for line in [l.rstrip().split('#')[0] for l in filehandle]+['#']:
+            if line.strip()=="": continue
+            items_on_line=[k2 for k2 in [k.strip() for k in line.split(':')] if k2!=""]
 
-                # a line at same or lesser indent is the signal to add the previously stored list to dict
-                if indent <= indents[-1][0]:
-                    self[indents[-1][1][:-1]]=parse(indents[-1][1][-1])
-                while indent <= indents[-1][0]:
-                    indents.pop()
-                indents.append([indent,indents[-1][1]+items_on_line])
+            indent=len(line)-len(line.lstrip())
+
+            # a line at same or lesser indent is the signal to add the previously stored list to dict
+            if indent <= indents[-1][0]:
+                self[indents[-1][1][:-1]]=parse(indents[-1][1][-1])
+            while indent <= indents[-1][0]:
+                indents.pop()
+            indents.append([indent,indents[-1][1]+items_on_line])
+
+    #def _read_1DP_file(self,filehandle):
+
+
 
     @staticmethod
     def parse(val, err_on_fail=False):

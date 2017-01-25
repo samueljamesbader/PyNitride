@@ -1,3 +1,5 @@
+PyNitride v1
+
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
 material: GaN
@@ -105,7 +107,7 @@ material: GaAs
                     mxys: .067 m_e
                     mdos: .067 m_e
                     DE: 0
-           hole []
+           hole: []
         dielectric
             eps: 1 epsilon_0 # SO FAKE
 material: AlGaAs # to match li kuhn paper
@@ -114,7 +116,7 @@ material: AlGaAs # to match li kuhn paper
             Eg : 1 #FAKE
             DEc: .4 eV
             barrier
-                GenericMetal 0 eV
+                GenericMetal: 0 eV
             electron
                 Gamma
                     g: 2
@@ -122,7 +124,7 @@ material: AlGaAs # to match li kuhn paper
                     mxys: .1 m_e
                     mdos: .1 m_e
                     DE: 0
-            hole []
+            hole: []
         dielectric
             eps: 1 epsilon_0 # SO FAKE
 

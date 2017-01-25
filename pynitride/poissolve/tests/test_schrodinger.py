@@ -1,7 +1,7 @@
 import pytest
-from poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
-from poissolve.solvers.schrodinger import SchrodingerSolver
-from poissolve.devices import gan_qwhemt
+from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
+from pynitride.poissolve.solvers.schrodinger import SchrodingerSolver
+from pynitride.poissolve.devices import gan_qwhemt
 import matplotlib.pyplot as mpl
 import numpy as np
 
@@ -40,7 +40,7 @@ if __name__=='__main__':
 #@plots
 def test_li_kuhn_1994():
     global N, E0,num
-    from poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
+    from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
     from pynitride.poissolve.mesh.structure import Mesh, EpiStack
     import matplotlib.pyplot as mpl
     mpl.interactive(False)
@@ -63,14 +63,14 @@ def test_li_kuhn_1994():
             N+=[len(m.z)]
             z=m.z
 
-            from poissolve.solvers.poisson import PoissonSolver
+            from pynitride.poissolve.solvers.poisson import PoissonSolver
             m['rho']=ConstantFunction(m,0)
             m['EF']=ConstantFunction(m,0)
             PoissonSolver(m).solve()
 
 
             m['kT']=ConstantFunction(m,0)
-            m['DEc']=MaterialFunction(m,'DEc').to_point_function(interp='z')
+            m['DEc']=MaterialFunction(m,['bands','DEc']).to_point_function(interp='z')
             m['mqV']=PointFunction(m,np.choose(1*(z>xs-1e-8)+1*(z>L+xs-1e-8),
                                                [V0-m['DEc'][0]+0*z,
                                                 0*z,
