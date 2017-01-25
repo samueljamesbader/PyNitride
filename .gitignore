@@ -8,5 +8,6 @@ __pycache__/
 # PyCharm files
 .idea
 
-# Built docs
+# Built components
 docs/_build
+build/
