@@ -11,8 +11,8 @@ substrate slope=0
 
 v1 0.0
 #no holes
-#schrodingerstart=5nm
-#schrodingerstop=50nm
+schrodingerstart=5nm
+schrodingerstop=50nm
 temp=300K
 dy=.2
 
