@@ -29,11 +29,14 @@ class Coupled_FD_Poisson():
         for activation in np.logspace(-low_act,-0.,rise):
             self._fd.solve(activation=activation)
             err=self._ps.isolve(visual=False)
+            print(err)
             if callback(): return
+        print("Rose")
         for i in range(max_iter):
             self._fd.solve(activation=1)
             err=self._ps.isolve(visual=False)
             if callback(): return
+            print(err)
             if err<tol:
                 print("Success (max err={:.2g})after {:d} refinement iterations".format(err,i-1))
                 break
@@ -75,9 +78,13 @@ class Coupled_Schrodinger_Poisson():
         self._ps=PoissonSolver(m)
 
 
+
+        print('hi')
+
+
     def solve(self, low_act=4, rise=500, tol=1e-8, max_iter=100, callback=lambda *args: None):
         self._ps.solve()
-        if callback(): return
+        #if callback(): return
         for activation in np.logspace(-low_act,-0.,rise):
             #self._fd.solve(activation=activation)
             for s in self._classical_charge_solvers: s.solve(activation)
@@ -92,7 +99,11 @@ class Coupled_Schrodinger_Poisson():
                 break
         assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)
         for i in range(max_iter):
-            for s in self._quantum_charge_solvers: s.solve(activation=1)
+            for s in self._quantum_charge_solvers:
+                if isinstance(s,SchrodingerSolver):
+                    s.solve(activation=1)
+                elif isinstance(s,FermiDirac3D):
+                    s.solve(activation=1,quantum_band_shift=True)
             err=self._ps.isolve(visual=False)
             if callback(): return
             if err<tol:

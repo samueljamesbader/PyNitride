@@ -3,7 +3,7 @@ PyNitride v1
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
 material: GaN
-    conditions: relaxed # actually this is strained to AlN
+    conditions: relaxed # actually this is some mix of relaxed and strained to AlN...
         bands
             Eg: 3.605 eV
             DEc: 0 eV
@@ -34,6 +34,9 @@ material: GaN
                     mxys: 1.1 m_e
                     mdos: 1.5 m_e
                     DE: .02 eV
+        polarization
+            Ptot: .56 nm**-2
+
     conditions: default
         abbrev: GaN
         dielectric
@@ -47,6 +50,7 @@ material: GaN
                 type: Acceptor
                 E: 230 meV
                 g: 4
+
 material: AlN
     conditions: relaxed
         bands
@@ -81,6 +85,8 @@ material: AlN
                     mxys: 3.81 m_e
                     mdos: 1.54 m_e
                     DE: .019 eV
+        polarization
+            Ptot: 0 cm**-2
     conditions: default
         abbrev: AlN
         dielectric

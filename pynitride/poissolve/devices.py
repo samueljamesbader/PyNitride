@@ -40,29 +40,14 @@ def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False):
 
     sm=m.submesh([xc,xc+xb+xw+xw/3])
 
-
-    # No polarization charge
-    m['rho_pol']=PointFunction(m,0.0)
-
     # Substrate impurities
     m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
     m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
 
 
-    if snidermode:
-        P=MaterialFunction(m,'P')
-    else:
-        # Hackish addition of polarization
-        P=MaterialFunction(m,
-                lambda mat: {
-                    "GaN":5.6e-1,
-                    "AlN":0.0,
-                }[mat['abbrev']])
+    P=MaterialFunction(m,['polarization','Ptot'])
     m['rho_pol']=P.differentiate(fill_value=0.0)
     return m,sm
-
-
-
 
 def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
     # Build device
@@ -72,22 +57,17 @@ def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
         epistack=EpiStack(['cap','GaN',xc],['barrier','AlGaN',xb],['subs','GaN',xs],surface=surface)
     m=Mesh(epistack,max_dz=5,refinements=[[xc,.02,1.2],[xc+xb,.02,1.2]])
 
-    # No polarization charge
-    m['rho_pol']=PointFunction(m,0.0)
-
     # Substrate impurities
     m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
     m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
 
 
-    # Hackish addition of polarization
-    P=MaterialFunction(m,
-                       lambda mat: {
-                           "GaN":.25*5.6e-1,
-                           "AlGaN":0.0,
-                       }[mat['abbrev']])
+    P=MaterialFunction(m,['polarization','Ptot'])
     m['rho_pol']=P.differentiate(fill_value=0.0)
     return m
+
+
+
 def super_gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 
     # Build device
@@ -97,25 +77,13 @@ def super_gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
         epistack=EpiStack(['cap','GaN',xc],['barrier','AlN',xb],['subs','GaN',xs],surface=surface)
     m=Mesh(epistack,max_dz=10,refinements=[[xc,.02,1.2],[xc+xb,.02,1.2]])
 
-    # No polarization charge
-    m['rho_pol']=PointFunction(m,0.0)
-
     # Substrate impurities
     m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
     m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
 
-
-    # Hackish addition of polarization
-    P=MaterialFunction(m,
-                       lambda mat: {
-                           "GaN":.25*5.6e-1,
-                           "AlN":0.0,
-                       }[mat['abbrev']])
+    P=MaterialFunction(m,['polarization','Ptot'])
     m['rho_pol']=P.differentiate(fill_value=0.0)
     return m
-
-
-
 
 if __name__=='__main__':
 

@@ -10,10 +10,10 @@ def fd12(x):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         return np.choose((0 + (x > 0) + (x > 2) + (x > 5)), [
-            sum(map(lambda i: (-1) ** i * a[i] * np.exp((i + 1) * x), range(7)), 0),
+            np.sum(list(map(lambda i: (-1) ** i * a[i] * np.exp((i + 1) * x), range(7))), 0),
             np.polyval(b1[::-1], x),
             np.polyval(b2[::-1], x),
-            sum(map(lambda i: c[i] * abs(x + (x == 0)) ** (1.5 - 2 * i), range(7)), 0)
+            np.sum(list(map(lambda i: c[i] * abs(x + (x == 0)) ** (1.5 - 2 * i), range(7))), 0)
         ])
 
 
@@ -26,8 +26,8 @@ def fd12p(x):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", RuntimeWarning)
         return np.choose((0 + (x > 0) + (x > 2) + (x > 5)), [
-            sum(map(lambda i: (-1) ** i * (i + 1) * a[i] * np.exp((i + 1) * x), range(7)), 0),
+            np.sum(list(map(lambda i: (-1) ** i * (i + 1) * a[i] * np.exp((i + 1) * x), range(7))), 0),
             np.polyval(np.polyder(b1[::-1]), x),
             np.polyval(np.polyder(b2[::-1]), x),
-            sum(map(lambda i: c[i] * (1.5 - 2 * i) * abs(x + (x == 0)) ** (1.5 - 2 * i - 1), range(7)), 0)
+            np.sum(list(map(lambda i: c[i] * (1.5 - 2 * i) * abs(x + (x == 0)) ** (1.5 - 2 * i - 1), range(7))), 0)
         ])

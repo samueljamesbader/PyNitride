@@ -55,7 +55,6 @@ class ParamDB(MultilevelDict):
             self._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","_system.txt"))
 
             self.read_file("_meta")
-            print(self._dict)
             for filename,yn in self["meta","default parameter files"].items():
                 if yn=="yes":
                     self.read_file(filename)
@@ -72,11 +71,11 @@ class ParamDB(MultilevelDict):
         with open(filename) as f:
             firstline=next(f)
             if firstline.startswith("PyNitride"):
-                return self._read_PyNitride_file(f)
+                return self._read_PyNitride_paramfile(f)
             elif firstline.startswith("beta7"):
-                return self._read_1DP_file(f)
+                return self._read_1DP_paramfile(f)
 
-    def _read_PyNitride_file(self,filehandle):
+    def _read_PyNitride_paramfile(self,filehandle):
         k=[]
         indents=[[-1,[]]]
         for line in [l.rstrip().split('#')[0] for l in filehandle]+['#']:
@@ -92,10 +91,42 @@ class ParamDB(MultilevelDict):
                 indents.pop()
             indents.append([indent,indents[-1][1]+items_on_line])
 
-    def _read_1DP_file(self,filehandle):
+    def _read_1DP_paramfile(self,filehandle):
 
-        pass
+        for line in filehandle:
+            mo=re.match(r"^(\w+)\s+binary\s+\w+",line.strip())
+            if mo:
+                matname=mo.groups(0)[0]
 
+                tmp={}
+                next(filehandle) # skip mystery zeros line in materials file
+                for line in filehandle:
+                    mo=re.match(r"(\w+)=([\deE\+\-\.]+)",line)
+                    if mo is None: break
+                    try:
+                        tmp[mo.groups()[0]]=eval(mo.groups()[1])
+                    except:
+                        import numpy as np
+                        tmp[mo.groups()[0]]=np.NaN
+
+                import scipy.constants as const
+                self['material',matname,'conditions','default']=dict(
+                    bands=dict(
+                        Eg=tmp['eg'] *eV,
+                        DEc=tmp['dec'] *eV,
+                        barrier=dict(),
+                        electron=dict(
+                            Gamma=dict(g=2*tmp['val'],mzs=tmp['me']*m_e,mxys=tmp['me']*m_e,mdos=tmp['me']*m_e,DE=0)),
+                        hole=dict(
+                            HH=dict(g=2,mzs=tmp['mh']*m_e,mxys=tmp['mh']*m_e,mdos=tmp['mh']*m_e,DE=0),
+                            LH=dict(g=2,mzs=tmp['mlh']*m_e,mxys=tmp['mlh']*m_e,mdos=tmp['mlh']*m_e,DE=0),
+                            SO=dict(g=2,mzs=tmp['mhso']*m_e,mxys=tmp['mhso']*m_e,mdos=tmp['mhso']*m_e,DE=0))),
+                    dielectric=dict(eps=tmp['er']*epsilon_0),dopants=dict(
+                        Donor=dict(type='Donor',E=tmp['ed']*eV, g=2),
+                        Acceptor=dict(type='Acceptor',E=tmp['ea']*eV, g=4),
+                        DeepDonor=dict(type='Donor',E=tmp['edd']*eV, g=2),
+                        DeepAcceptor=dict(type='Acceptor',E=tmp['eda']*eV, g=4)),
+                    polarization=dict(Ptot=-tmp['pol']/const.elementary_charge/cm**2))
 
 
     @staticmethod

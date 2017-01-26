@@ -8,7 +8,7 @@ Created on Tue Jan  3 23:13:27 2017
 import re
 
 import numpy as np
-from pynitride.poissolve.maths.fermidiracintegral import fd12, fd12p
+from pynitride.poissolve.maths.cfermidiracintegral import fd12, fd12p
 
 from pynitride.paramdb import kT,hbar,q
 from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
@@ -69,14 +69,15 @@ class FermiDirac3D():
 
 
     @staticmethod
-    def carrier_density(EF,Ec,Ev,Nc,Nv,conduction_band_shifts=0,valence_band_shifts=0,compute_derivs=True):
+    def carrier_density(EF,Ec,Ev,Nc,Nv,conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True):
 
         # Can save a copy and loop by checking if shifts are zero
-        Ec_eff=Ec+conduction_band_shifts
-        Ev_eff=Ev-valence_band_shifts
+        Ec_eff=Ec if conduction_band_shifts is None else Ec+conduction_band_shifts
+        Ev_eff=Ev if valence_band_shifts is None else Ev-valence_band_shifts
 
-        n=np.sum(Nc*fd12((EF-Ec)/kT),axis=0)
-        p=np.sum(Nv*fd12((Ev-EF)/kT),axis=0)
+        # Can save time by moving the summation inside the FD integral?
+        n=np.sum(Nc*fd12((EF-Ec_eff)/kT),axis=0)
+        p=np.sum(Nv*fd12((Ev_eff-EF)/kT),axis=0)
 
         if compute_derivs:
             nderiv=np.sum(-(Nc/kT)*fd12p((EF-Ec_eff)/kT),axis=0)
@@ -106,7 +107,7 @@ class FermiDirac3D():
         else:
             return Ndp,Nam
 
-    def solve(self,activation=1):
+    def solve(self,activation=1, quantum_band_shift=False):
         m=self._mesh
         EF=m['EF']
         Ec=m['Ec']
@@ -115,8 +116,12 @@ class FermiDirac3D():
         m['Ndp'],m['Nam'],m['Ndpderiv'],m['Namderiv']=\
             self.ionized_donor_density(m,EF,Ec,Ev,self._dopants,compute_derivs=True)
 
-        m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,
-            conduction_band_shifts=self._cDE,valence_band_shifts=self._vDE,compute_derivs=True)
+        if quantum_band_shift:
+            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,
+                conduction_band_shifts=self._cDE,valence_band_shifts=self._vDE,compute_derivs=True)
+        else:
+            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,
+               conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True)
 
         if activation!=1:
             for k in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:

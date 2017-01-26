@@ -30,7 +30,9 @@ class SchrodingerSolver():
                 v[b]['DE']=MaterialFunction(m,['bands',carrier,b,'DE'],pos='point')
             m[{'electron':'Ec_eff','hole':'Ev_eff'}[carrier]]=PointFunction(m,empty=(len(bands),))
 
-        for k in ['n','p','nderiv','pderiv']: m[k]=PointFunction(m,empty=())
+        for k in ['n','p','nderiv','pderiv']:
+            if k not in m:
+                m[k]=PointFunction(m,empty=())
 
     @staticmethod
     def z_kinetic_term(mesh,mz=None):
