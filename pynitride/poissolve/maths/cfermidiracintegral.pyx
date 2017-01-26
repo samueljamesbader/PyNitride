@@ -98,7 +98,9 @@ cdef cnp.ndarray fd12_2d_c(double[:,::] x):
     for ic in range(x.shape[0]):
         for i in range(x.shape[1]):
             partial_sum=0
-            if x[ic,i]<=0:
+            if x[ic,i]<=-10:
+                partial_sum=exp(x[ic,i])
+            elif x[ic,i]<=0:
                 s=1
                 for j in range(ORDER):
                     partial_sum+=s*a[j]*exp((j+1)*x[ic,i])
@@ -129,7 +131,9 @@ cdef cnp.ndarray fd12p_2d_c(double[:,::] x):
     for ic in range(x.shape[0]):
         for i in range(x.shape[1]):
             partial_sum=0
-            if x[ic,i]<=0:
+            if x[ic,i]<=-10:
+                partial_sum=exp(x[ic,i])
+            elif x[ic,i]<=0:
                 s=1
                 for j in range(ORDER):
                     partial_sum+=s*ap[j]*exp((j+1)*x[ic,i])
