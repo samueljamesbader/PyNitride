@@ -1,23 +1,19 @@
 import pytest
 
-from poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
-from poissolve.solvers.poisson import PoissonSolver
+from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
+from pynitride.poissolve.solvers.poisson import PoissonSolver
 
 if __name__=='__main__':
     #pytest.main(args=[__file__])
     pytest.main(args=[__file__,'--plots'])
-from poissolve.tests.runtests import plots
+from tests.runtests import plots
 
 @plots
 def test_poisson(nonuniformmesh):
     #nonuniformmesh=uniformmesh
     nonuniformmesh['rho']=PointFunction(nonuniformmesh)
     # Hackish addition of polarization
-    P=MaterialFunction(nonuniformmesh,
-            lambda mat: {
-                "Gallium Nitride":5.6e-1,
-                "Aluminum Nitride":0.0,
-            }[mat['name']])
+    P=MaterialFunction(nonuniformmesh,['polarization','Ptot'])
     #self._globalmesh['P',P)
     rho_p=P.differentiate(fill_value=0.0)
     nonuniformmesh['EF']=PointFunction(nonuniformmesh,0.0)

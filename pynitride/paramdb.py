@@ -101,11 +101,16 @@ class ParamDB(MultilevelDict):
                 tmp={}
                 next(filehandle) # skip mystery zeros line in materials file
                 for line in filehandle:
-                    mo=re.match(r"(\w+)=([\deE\+\-\.]+)",line)
+                    mo=re.match(r"(\w+)=([\d\*eE\+\-\.Temp]+)",line)
                     if mo is None: break
                     try:
-                        tmp[mo.groups()[0]]=eval(mo.groups()[1])
-                    except:
+                        tmp[mo.groups()[0]]=eval("(lambda Temp: "+mo.groups()[1].replace('^','**')+")("+str(to_unit(T,'K'))+")")
+                        if matname=="GaN" or matname=="AlN":
+                            if mo.groups()[0]=='pol':
+                                print(mo.groups(),tmp[mo.groups()[0]])
+                    except Exception as e:
+                        print(e)
+                        print(mo.groups())
                         import numpy as np
                         tmp[mo.groups()[0]]=np.NaN
 

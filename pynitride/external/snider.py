@@ -74,7 +74,7 @@ def import_1dp_output(fileprefix,m,sm):
             NdmNa += [NdmNai]
     x, Ec, Ev, F, EF= [np.array(a) for a in [x, Ec, Ev, F, EF]]
     n, p, NdmNa =[np.array(a)*(1/cm**3) for a in [n, p, NdmNa]]
-    m['Ec'],m['Ev'],m['EF'],m['n'],m['p'] = [PointFunction(m,a) for a in [Ec,Ev,EF,n,p]]
+    m['Ec'],m['Ev'],m['EF'],m['n'],m['p'],m['Ndp-Nam'] = [PointFunction(m,a) for a in [Ec,Ev,EF,n,p,NdmNa]]
     #(m['E']-MaterialFunction(m,'DEc',pos='point'))
     m['E']=m['Ec'].differentiate()
     m['rho']=PointFunction(m,np.NaN)

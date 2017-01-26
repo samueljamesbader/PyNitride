@@ -88,6 +88,9 @@ class PoissonSolver():
         # What I had after redoing Neumann at bottom
         d[-1]=-m['rho'][-1]-m['D'][-1]/m._dzp[-1]
 
+        ## Trying to just fix the last point of D at zero
+        d[-1]=-m['D'][-1]/m._dzp[-1]
+
 
 
         import numpy as np

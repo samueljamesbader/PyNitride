@@ -82,7 +82,7 @@ class Coupled_Schrodinger_Poisson():
         print('hi')
 
 
-    def solve(self, low_act=4, rise=500, tol=1e-8, max_iter=100, callback=lambda *args: None):
+    def solve(self, low_act=4, rise=500, tol=1e-10, max_iter=100, callback=lambda *args: None):
         self._ps.solve()
         #if callback(): return
         for activation in np.logspace(-low_act,-0.,rise):
@@ -95,7 +95,7 @@ class Coupled_Schrodinger_Poisson():
             err=self._ps.isolve(visual=False)
             if callback(): return
             if err<tol:
-                print("Semi-classical success (max err={:.2g})after {:d} refinement iterations".format(err,i-1))
+                print("Semi-classical success (max err={:.2g}) after {:d} refinement iterations".format(err,i-1))
                 break
         assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)
         for i in range(max_iter):
@@ -107,6 +107,6 @@ class Coupled_Schrodinger_Poisson():
             err=self._ps.isolve(visual=False)
             if callback(): return
             if err<tol:
-                print("Full success (max err={:.2g})after {:d} refinement iterations".format(err,i-1))
+                print("Full success (max err={:.2g}) after {:d} refinement iterations".format(err,i-1))
                 break
         assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)

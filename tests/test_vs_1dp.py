@@ -5,6 +5,7 @@ import numpy as np
 from pynitride.poissolve.visual import plot_carrierFV, plot_wavefunctions
 from pynitride.external.snider import import_1dp_input, import_1dp_output
 from pynitride.poissolve.solvers.coupled import Coupled_Schrodinger_Poisson, Coupled_FD_Poisson
+from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 
 
 if __name__=="__main__": pass
@@ -47,10 +48,10 @@ def doit():
         if i>400:
             plot_carrierFV(m)
             return 1
-    csp=Coupled_Schrodinger_Poisson(m,schrodinger=sm)
-    csp.solve(callback=callback,low_act=3,rise=40)
-    #csp=Coupled_FD_Poisson(m)
-    #csp.solve(callback=callback,rise=100)
+    #csp=Coupled_Schrodinger_Poisson(m,schrodinger=sm)
+    #csp.solve(callback=callback,low_act=3,rise=40)
+    csp=Coupled_FD_Poisson(m)
+    csp.solve(callback=callback,rise=40)
 
     return m,sm,csp
 
@@ -59,8 +60,8 @@ def doit():
 
 if __name__=='__main__':
     import cProfile
-    cProfile.run("doit()",'crestats.txt')
-    #m,sm,csp=doit()
+    #cProfile.run("doit()",'crestats.txt')
+    m,sm,csp=doit()
     import matplotlib.pyplot as mpl
     mpl.interactive(True)
     plot_carrierFV(m)
@@ -71,8 +72,28 @@ if __name__=='__main__':
         indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
         m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"))
         import_1dp_output(join(indir,"GaN_AlN_HEMT"),m2,sm2)
-        mpl.interactive(False)
         plot_carrierFV(m2)
+        #plot_wavefunctions(sm,bands=['e_Gamma'])
+
+
+        s_Ev=m2['Ev'].copy()
+        s_rho=m2['rho'].copy()
+        s_p=m2['p'].copy()
+        s_n=m2['n'].copy()
+        s_ndpmnam=m2['Ndp-Nam'].copy()
+
+        rc=(m2['E']*MaterialFunction(m2,['dielectric','eps'])).differentiate()
+        mpl.sca(mpl.gcf().get_axes()[0])
+        to_unit(-rc,'cm**-3').plot('--')
+
+
+        rc.plot('--')
+        fd2=FermiDirac3D(m2)
+        fd2.solve()
+        to_unit(-m2['rho'],'cm**-3').plot('x')
+        #mpl.ylim(1e9,1e23)
+        #mpl.yscale('log')
+        #mpl.interactive(False)
 
 if 0:
     plot_wavefunctions(sm,bands=['e_Gamma'])
