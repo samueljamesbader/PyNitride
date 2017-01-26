@@ -29,7 +29,7 @@ if __name__=="__main__":
     
 
 # How stringent a relative tolerance for comparison to reference values
-rtols={'fd12':1e-5, 'fd12p':1e-3}
+rtols={'fd12':1e-4, 'fd12p':1e-3}
 
 def test_fd12():
     
