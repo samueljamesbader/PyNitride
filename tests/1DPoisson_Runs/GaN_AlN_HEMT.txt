@@ -6,7 +6,7 @@ surface	schottky=.6	v1
 GaN	t=2nm
 AlN t=10nm
 GaN t=10nm Naa=1e16
-GaN t=500nm Naa=1e16
+GaN t=1000nm Naa=1e16
 substrate slope=0
 
 v1 0.0
@@ -14,5 +14,5 @@ v1 0.0
 schrodingerstart=5nm
 schrodingerstop=50nm
 temp=300K
-dy=.5
+dy=.2
 

@@ -60,13 +60,15 @@ def doit():
 if __name__=='__main__':
     import cProfile
     cProfile.run("doit()",'crestats.txt')
-    #import matplotlib.pyplot as mpl
-    #mpl.interactive(True)
-    #plot_carrierFV(m)
-    ##plot_wavefunctions(sm,bands=['e_Gamma'])
+    #m,sm,csp=doit()
+    import matplotlib.pyplot as mpl
+    mpl.interactive(True)
+    plot_carrierFV(m)
+    #plot_wavefunctions(sm,bands=['e_Gamma'])
 
     #mpl.gca().title="Mine"
-    if 0:
+    if 1:
+        indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
         m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"))
         import_1dp_output(join(indir,"GaN_AlN_HEMT"),m2,sm2)
         mpl.interactive(False)
