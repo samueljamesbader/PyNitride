@@ -28,7 +28,7 @@ class FermiDirac3D():
         dopants={'Donor':{},'Acceptor':{}}
         for k in mesh:
             mo=re.match("(.*)ActiveConc",k)
-            if mo and mo.group(1) not in dopants:
+            if mo:# and mo.group(1) not in dopants:
                 d=mo.group(1)
                 types=set(t for t in (l.material.get(['dopants',d,'type'],None) for l in mesh._layers) if t is not None)
                 assert len(types)<2, "Can't have one dopant be acceptor in one material and donor in another.  You'll have " \
