@@ -254,10 +254,10 @@ class Mesh():
         if key in self._functions:
             self._functions[key][:] = value
         else:
-            assert isinstance(value,Function), "Must be a poissolve.mesh_function.Function"
+            assert isinstance(value,Function), "Must be a mesh.functions.Function"
             self._functions[key] = value
             for sm in self._submeshes:
-                sm[key]=value.restrict(sm)
+                sm._functions[key]=value.restrict(sm)
 
     def plot_function(self, key, *args, **kwargs):
         self._functions[key].plot(*args, **kwargs)

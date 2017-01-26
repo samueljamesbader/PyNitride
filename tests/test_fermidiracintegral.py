@@ -5,7 +5,7 @@ Created on Tue Jan  3 10:05:16 2017
 @author: sam
 """
 import numpy as np
-from poissolve.maths.fermidiracintegral import fd12,fd12p
+from pynitride.poissolve.maths.cfermidiracintegral import fd12,fd12p
 
 # Put no pytest code before this: it should be run *after* pytest.main
 import pytest
@@ -17,13 +17,13 @@ if __name__=="__main__":
         print("fd12 computed {:d} values in {:.3e} s (average of {:d} runs)."\
             .format(
                 numvalues,
-                timeit('fd12(x)','x=np.linspace(-10,10,'+str(numvalues)+')',
+                timeit('fd12(x)','x=np.reshape(np.linspace(-10,10,{:d}),(2,{:d}))'.format(numvalues,int(numvalues/2)),
                     number=Nrepeat,globals=globals())/Nrepeat,
                 Nrepeat))
         print("fd12p computed {:d} values in {:.3e} s (average of {:d} runs)."\
             .format(
                 numvalues,
-                timeit('fd12p(x)','x=np.linspace(-10,10,'+str(numvalues)+')',
+                timeit('fd12p(x)','x=np.reshape(np.linspace(-10,10,{:d}),(2,{:d}))'.format(numvalues,int(numvalues/2)),
                     number=Nrepeat,globals=globals())/Nrepeat,
                 Nrepeat))
     

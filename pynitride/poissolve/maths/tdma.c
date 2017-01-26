@@ -5,7 +5,7 @@
     "distutils": {
         "depends": []
     },
-    "module_name": "poissolve.maths.tdma"
+    "module_name": "pynitride.poissolve.maths.tdma"
 }
 END: Cython Metadata */
 
@@ -436,8 +436,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__poissolve__maths__tdma
-#define __PYX_HAVE_API__poissolve__maths__tdma
+#define __PYX_HAVE__pynitride__poissolve__maths__tdma
+#define __PYX_HAVE_API__pynitride__poissolve__maths__tdma
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -662,7 +662,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "poissolve/maths/tdma.pyx",
+  "pynitride/poissolve/maths/tdma.pyx",
   "__init__.pxd",
   "stringsource",
   "type.pxd",
@@ -2014,7 +2014,7 @@ static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
 
-/* Module declarations from 'poissolve.maths.tdma' */
+/* Module declarations from 'pynitride.poissolve.maths.tdma' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -2026,7 +2026,7 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice); /*proto*/
+static PyArrayObject *__pyx_f_9pynitride_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2060,10 +2060,10 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_double = { "double", NULL, sizeof(double), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "poissolve.maths.tdma"
-int __pyx_module_is_main_poissolve__maths__tdma = 0;
+#define __Pyx_MODULE_NAME "pynitride.poissolve.maths.tdma"
+int __pyx_module_is_main_pynitride__poissolve__maths__tdma = 0;
 
-/* Implementation of 'poissolve.maths.tdma' */
+/* Implementation of 'pynitride.poissolve.maths.tdma' */
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
@@ -2126,7 +2126,6 @@ static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static const char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static const char __pyx_k_strided_and_direct[] = "<strided and direct>";
-static const char __pyx_k_poissolve_maths_tdma[] = "poissolve.maths.tdma";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
@@ -2137,8 +2136,9 @@ static const char __pyx_k_Invalid_shape_in_axis_d_d[] = "Invalid shape in axis %
 static const char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.array";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
+static const char __pyx_k_pynitride_poissolve_maths_tdma[] = "pynitride.poissolve.maths.tdma";
 static const char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
-static const char __pyx_k_home_sam_PycharmProjects_Poisso[] = "/home/sam/PycharmProjects/Poissolve/poissolve/maths/tdma.pyx";
+static const char __pyx_k_home_sam_PycharmProjects_PyNitr[] = "/home/sam/PycharmProjects/PyNitride/pynitride/poissolve/maths/tdma.pyx";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
@@ -2200,7 +2200,7 @@ static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
-static PyObject *__pyx_kp_s_home_sam_PycharmProjects_Poisso;
+static PyObject *__pyx_kp_s_home_sam_PycharmProjects_PyNitr;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_itemsize;
@@ -2219,7 +2219,7 @@ static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_pack;
-static PyObject *__pyx_n_s_poissolve_maths_tdma;
+static PyObject *__pyx_n_s_pynitride_poissolve_maths_tdma;
 static PyObject *__pyx_n_s_pyx_getbuffer;
 static PyObject *__pyx_n_s_pyx_vtable;
 static PyObject *__pyx_n_s_range;
@@ -2238,7 +2238,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
-static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d, PyObject *__pyx_v_copy); /* proto */
+static PyObject *__pyx_pf_9pynitride_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d, PyObject *__pyx_v_copy); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -2310,7 +2310,7 @@ static PyObject *__pyx_tuple__27;
 static PyObject *__pyx_tuple__28;
 static PyObject *__pyx_tuple__29;
 
-/* "poissolve/maths/tdma.pyx":11
+/* "pynitride/poissolve/maths/tdma.pyx":11
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef cnp.ndarray tdma_c(double[::1] a, double[::1] b, double[::1] c, double[::1] d):             # <<<<<<<<<<<<<<
@@ -2318,7 +2318,7 @@ static PyObject *__pyx_tuple__29;
  *         int N=b.shape[0]
  */
 
-static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice __pyx_v_a, __Pyx_memviewslice __pyx_v_b, __Pyx_memviewslice __pyx_v_c, __Pyx_memviewslice __pyx_v_d) {
+static PyArrayObject *__pyx_f_9pynitride_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice __pyx_v_a, __Pyx_memviewslice __pyx_v_b, __Pyx_memviewslice __pyx_v_c, __Pyx_memviewslice __pyx_v_d) {
   int __pyx_v_N;
   int __pyx_v_k;
   double __pyx_v_m;
@@ -2354,7 +2354,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   __Pyx_RefNannySetupContext("tdma_c", 0);
   __Pyx_TraceCall("tdma_c", __pyx_f[0], 11, 0, __PYX_ERR(0, 11, __pyx_L1_error));
 
-  /* "poissolve/maths/tdma.pyx":13
+  /* "pynitride/poissolve/maths/tdma.pyx":13
  * cdef cnp.ndarray tdma_c(double[::1] a, double[::1] b, double[::1] c, double[::1] d):
  *     cdef:
  *         int N=b.shape[0]             # <<<<<<<<<<<<<<
@@ -2363,7 +2363,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
  */
   __pyx_v_N = (__pyx_v_b.shape[0]);
 
-  /* "poissolve/maths/tdma.pyx":16
+  /* "pynitride/poissolve/maths/tdma.pyx":16
  *         int k
  *         double m
  *         cnp.ndarray x_arr=np.empty(N)             # <<<<<<<<<<<<<<
@@ -2427,7 +2427,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   __pyx_v_x_arr = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "poissolve/maths/tdma.pyx":17
+  /* "pynitride/poissolve/maths/tdma.pyx":17
  *         double m
  *         cnp.ndarray x_arr=np.empty(N)
  *         double[::1] x=x_arr             # <<<<<<<<<<<<<<
@@ -2440,7 +2440,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "poissolve/maths/tdma.pyx":18
+  /* "pynitride/poissolve/maths/tdma.pyx":18
  *         cnp.ndarray x_arr=np.empty(N)
  *         double[::1] x=x_arr
  *     for k in range(1,N):             # <<<<<<<<<<<<<<
@@ -2451,7 +2451,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   for (__pyx_t_8 = 1; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_k = __pyx_t_8;
 
-    /* "poissolve/maths/tdma.pyx":19
+    /* "pynitride/poissolve/maths/tdma.pyx":19
  *         double[::1] x=x_arr
  *     for k in range(1,N):
  *         m=a[k]/b[k-1]             # <<<<<<<<<<<<<<
@@ -2468,7 +2468,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
     }
     __pyx_v_m = (__pyx_t_10 / __pyx_t_12);
 
-    /* "poissolve/maths/tdma.pyx":20
+    /* "pynitride/poissolve/maths/tdma.pyx":20
  *     for k in range(1,N):
  *         m=a[k]/b[k-1]
  *         b[k]-=m*c[k-1]             # <<<<<<<<<<<<<<
@@ -2479,7 +2479,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
     __pyx_t_14 = __pyx_v_k;
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_b.data) + __pyx_t_14)) )) -= (__pyx_v_m * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_c.data) + __pyx_t_13)) ))));
 
-    /* "poissolve/maths/tdma.pyx":21
+    /* "pynitride/poissolve/maths/tdma.pyx":21
  *         m=a[k]/b[k-1]
  *         b[k]-=m*c[k-1]
  *         d[k]-=m*d[k-1]             # <<<<<<<<<<<<<<
@@ -2491,7 +2491,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_d.data) + __pyx_t_16)) )) -= (__pyx_v_m * (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_d.data) + __pyx_t_15)) ))));
   }
 
-  /* "poissolve/maths/tdma.pyx":22
+  /* "pynitride/poissolve/maths/tdma.pyx":22
  *         b[k]-=m*c[k-1]
  *         d[k]-=m*d[k-1]
  *     for k in range(N):             # <<<<<<<<<<<<<<
@@ -2502,7 +2502,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_k = __pyx_t_8;
 
-    /* "poissolve/maths/tdma.pyx":23
+    /* "pynitride/poissolve/maths/tdma.pyx":23
  *         d[k]-=m*d[k-1]
  *     for k in range(N):
  *         x[k]=d[k]/b[k]             # <<<<<<<<<<<<<<
@@ -2521,7 +2521,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x.data) + __pyx_t_19)) )) = (__pyx_t_12 / __pyx_t_10);
   }
 
-  /* "poissolve/maths/tdma.pyx":24
+  /* "pynitride/poissolve/maths/tdma.pyx":24
  *     for k in range(N):
  *         x[k]=d[k]/b[k]
  *     for k in range(N-2,-1,-1):             # <<<<<<<<<<<<<<
@@ -2531,7 +2531,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   for (__pyx_t_7 = (__pyx_v_N - 2); __pyx_t_7 > -1L; __pyx_t_7-=1) {
     __pyx_v_k = __pyx_t_7;
 
-    /* "poissolve/maths/tdma.pyx":25
+    /* "pynitride/poissolve/maths/tdma.pyx":25
  *         x[k]=d[k]/b[k]
  *     for k in range(N-2,-1,-1):
  *         x[k]=(d[k]-c[k]*x[k+1])/b[k]             # <<<<<<<<<<<<<<
@@ -2552,7 +2552,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x.data) + __pyx_t_24)) )) = (__pyx_t_10 / __pyx_t_12);
   }
 
-  /* "poissolve/maths/tdma.pyx":26
+  /* "pynitride/poissolve/maths/tdma.pyx":26
  *     for k in range(N-2,-1,-1):
  *         x[k]=(d[k]-c[k]*x[k+1])/b[k]
  *     return x_arr             # <<<<<<<<<<<<<<
@@ -2564,7 +2564,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   __pyx_r = __pyx_v_x_arr;
   goto __pyx_L0;
 
-  /* "poissolve/maths/tdma.pyx":11
+  /* "pynitride/poissolve/maths/tdma.pyx":11
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef cnp.ndarray tdma_c(double[::1] a, double[::1] b, double[::1] c, double[::1] d):             # <<<<<<<<<<<<<<
@@ -2580,7 +2580,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
-  __Pyx_AddTraceback("poissolve.maths.tdma.tdma_c", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pynitride.poissolve.maths.tdma.tdma_c", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_x_arr);
@@ -2591,7 +2591,7 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
   return __pyx_r;
 }
 
-/* "poissolve/maths/tdma.pyx":30
+/* "pynitride/poissolve/maths/tdma.pyx":30
  * 
  * # remember  a[0]=0, c[N-1]=0
  * def tdma(a,b,c,d,copy=True):             # <<<<<<<<<<<<<<
@@ -2600,9 +2600,9 @@ static PyArrayObject *__pyx_f_9poissolve_5maths_4tdma_tdma_c(__Pyx_memviewslice 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_9poissolve_5maths_4tdma_1tdma(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_9poissolve_5maths_4tdma_1tdma = {"tdma", (PyCFunction)__pyx_pw_9poissolve_5maths_4tdma_1tdma, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_9poissolve_5maths_4tdma_1tdma(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_9pynitride_9poissolve_5maths_4tdma_1tdma(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_9pynitride_9poissolve_5maths_4tdma_1tdma = {"tdma", (PyCFunction)__pyx_pw_9pynitride_9poissolve_5maths_4tdma_1tdma, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_9pynitride_9poissolve_5maths_4tdma_1tdma(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_a = 0;
   PyObject *__pyx_v_b = 0;
   PyObject *__pyx_v_c = 0;
@@ -2677,18 +2677,18 @@ static PyObject *__pyx_pw_9poissolve_5maths_4tdma_1tdma(PyObject *__pyx_self, Py
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("tdma", 0, 4, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 30, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("poissolve.maths.tdma.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pynitride.poissolve.maths.tdma.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_9poissolve_5maths_4tdma_tdma(__pyx_self, __pyx_v_a, __pyx_v_b, __pyx_v_c, __pyx_v_d, __pyx_v_copy);
+  __pyx_r = __pyx_pf_9pynitride_9poissolve_5maths_4tdma_tdma(__pyx_self, __pyx_v_a, __pyx_v_b, __pyx_v_c, __pyx_v_d, __pyx_v_copy);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d, PyObject *__pyx_v_copy) {
+static PyObject *__pyx_pf_9pynitride_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_a, PyObject *__pyx_v_b, PyObject *__pyx_v_c, PyObject *__pyx_v_d, PyObject *__pyx_v_copy) {
   Py_ssize_t __pyx_v_N;
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
@@ -2710,7 +2710,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   __Pyx_INCREF(__pyx_v_c);
   __Pyx_INCREF(__pyx_v_d);
 
-  /* "poissolve/maths/tdma.pyx":31
+  /* "pynitride/poissolve/maths/tdma.pyx":31
  * # remember  a[0]=0, c[N-1]=0
  * def tdma(a,b,c,d,copy=True):
  *     N=len(b)             # <<<<<<<<<<<<<<
@@ -2720,7 +2720,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   __pyx_t_1 = PyObject_Length(__pyx_v_b); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 31, __pyx_L1_error)
   __pyx_v_N = __pyx_t_1;
 
-  /* "poissolve/maths/tdma.pyx":32
+  /* "pynitride/poissolve/maths/tdma.pyx":32
  * def tdma(a,b,c,d,copy=True):
  *     N=len(b)
  *     assert len(a)==N             # <<<<<<<<<<<<<<
@@ -2737,7 +2737,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   }
   #endif
 
-  /* "poissolve/maths/tdma.pyx":33
+  /* "pynitride/poissolve/maths/tdma.pyx":33
  *     N=len(b)
  *     assert len(a)==N
  *     assert len(c)==N             # <<<<<<<<<<<<<<
@@ -2754,7 +2754,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   }
   #endif
 
-  /* "poissolve/maths/tdma.pyx":34
+  /* "pynitride/poissolve/maths/tdma.pyx":34
  *     assert len(a)==N
  *     assert len(c)==N
  *     assert len(d)==N             # <<<<<<<<<<<<<<
@@ -2771,7 +2771,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   }
   #endif
 
-  /* "poissolve/maths/tdma.pyx":35
+  /* "pynitride/poissolve/maths/tdma.pyx":35
  *     assert len(c)==N
  *     assert len(d)==N
  *     if copy:             # <<<<<<<<<<<<<<
@@ -2781,7 +2781,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_copy); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 35, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "poissolve/maths/tdma.pyx":36
+    /* "pynitride/poissolve/maths/tdma.pyx":36
  *     assert len(d)==N
  *     if copy:
  *         a=a.copy()             # <<<<<<<<<<<<<<
@@ -2811,7 +2811,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_a, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "poissolve/maths/tdma.pyx":37
+    /* "pynitride/poissolve/maths/tdma.pyx":37
  *     if copy:
  *         a=a.copy()
  *         b=b.copy()             # <<<<<<<<<<<<<<
@@ -2841,7 +2841,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_b, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "poissolve/maths/tdma.pyx":38
+    /* "pynitride/poissolve/maths/tdma.pyx":38
  *         a=a.copy()
  *         b=b.copy()
  *         c=c.copy()             # <<<<<<<<<<<<<<
@@ -2871,7 +2871,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_c, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "poissolve/maths/tdma.pyx":39
+    /* "pynitride/poissolve/maths/tdma.pyx":39
  *         b=b.copy()
  *         c=c.copy()
  *         d=d.copy()             # <<<<<<<<<<<<<<
@@ -2900,7 +2900,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_d, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "poissolve/maths/tdma.pyx":35
+    /* "pynitride/poissolve/maths/tdma.pyx":35
  *     assert len(c)==N
  *     assert len(d)==N
  *     if copy:             # <<<<<<<<<<<<<<
@@ -2909,7 +2909,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
  */
   }
 
-  /* "poissolve/maths/tdma.pyx":40
+  /* "pynitride/poissolve/maths/tdma.pyx":40
  *         c=c.copy()
  *         d=d.copy()
  *     return tdma_c(a,b,c,d)             # <<<<<<<<<<<<<<
@@ -2923,7 +2923,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 40, __pyx_L1_error)
   __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_v_d);
   if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 40, __pyx_L1_error)
-  __pyx_t_3 = ((PyObject *)__pyx_f_9poissolve_5maths_4tdma_tdma_c(__pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_3 = ((PyObject *)__pyx_f_9pynitride_9poissolve_5maths_4tdma_tdma_c(__pyx_t_6, __pyx_t_7, __pyx_t_8, __pyx_t_9)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
   __pyx_t_6.memview = NULL;
@@ -2941,7 +2941,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "poissolve/maths/tdma.pyx":30
+  /* "pynitride/poissolve/maths/tdma.pyx":30
  * 
  * # remember  a[0]=0, c[N-1]=0
  * def tdma(a,b,c,d,copy=True):             # <<<<<<<<<<<<<<
@@ -2958,7 +2958,7 @@ static PyObject *__pyx_pf_9poissolve_5maths_4tdma_tdma(CYTHON_UNUSED PyObject *_
   __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __Pyx_AddTraceback("poissolve.maths.tdma.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("pynitride.poissolve.maths.tdma.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_a);
@@ -17620,7 +17620,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "poissolve.maths.tdma.array", /*tp_name*/
+  "pynitride.poissolve.maths.tdma.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -17726,7 +17726,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "poissolve.maths.tdma.Enum", /*tp_name*/
+  "pynitride.poissolve.maths.tdma.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -17974,7 +17974,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "poissolve.maths.tdma.memoryview", /*tp_name*/
+  "pynitride.poissolve.maths.tdma.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -18099,7 +18099,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "poissolve.maths.tdma._memoryviewslice", /*tp_name*/
+  "pynitride.poissolve.maths.tdma._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -18231,7 +18231,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
-  {&__pyx_kp_s_home_sam_PycharmProjects_Poisso, __pyx_k_home_sam_PycharmProjects_Poisso, sizeof(__pyx_k_home_sam_PycharmProjects_Poisso), 0, 0, 1, 0},
+  {&__pyx_kp_s_home_sam_PycharmProjects_PyNitr, __pyx_k_home_sam_PycharmProjects_PyNitr, sizeof(__pyx_k_home_sam_PycharmProjects_PyNitr), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
@@ -18250,7 +18250,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
-  {&__pyx_n_s_poissolve_maths_tdma, __pyx_k_poissolve_maths_tdma, sizeof(__pyx_k_poissolve_maths_tdma), 0, 0, 1, 1},
+  {&__pyx_n_s_pynitride_poissolve_maths_tdma, __pyx_k_pynitride_poissolve_maths_tdma, sizeof(__pyx_k_pynitride_poissolve_maths_tdma), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_getbuffer, __pyx_k_pyx_getbuffer, sizeof(__pyx_k_pyx_getbuffer), 0, 0, 1, 1},
   {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
@@ -18534,7 +18534,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "poissolve/maths/tdma.pyx":30
+  /* "pynitride/poissolve/maths/tdma.pyx":30
  * 
  * # remember  a[0]=0, c[N-1]=0
  * def tdma(a,b,c,d,copy=True):             # <<<<<<<<<<<<<<
@@ -18544,7 +18544,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__24 = PyTuple_Pack(6, __pyx_n_s_a, __pyx_n_s_b, __pyx_n_s_c, __pyx_n_s_d, __pyx_n_s_copy, __pyx_n_s_N); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__24);
   __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(5, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_sam_PycharmProjects_Poisso, __pyx_n_s_tdma, 30, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(5, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_sam_PycharmProjects_PyNitr, __pyx_n_s_tdma, 30, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 30, __pyx_L1_error)
 
   /* "View.MemoryView":282
  *         return self.name
@@ -18684,14 +18684,14 @@ PyMODINIT_FUNC PyInit_tdma(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_poissolve__maths__tdma) {
+  if (__pyx_module_is_main_pynitride__poissolve__maths__tdma) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "poissolve.maths.tdma")) {
-      if (unlikely(PyDict_SetItemString(modules, "poissolve.maths.tdma", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "pynitride.poissolve.maths.tdma")) {
+      if (unlikely(PyDict_SetItemString(modules, "pynitride.poissolve.maths.tdma", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -18759,7 +18759,7 @@ PyMODINIT_FUNC PyInit_tdma(void)
   #endif
   __Pyx_TraceCall("PyMODINIT_FUNC PyInit_tdma(void)", __pyx_f[0], 1, 0, __PYX_ERR(0, 1, __pyx_L1_error));
 
-  /* "poissolve/maths/tdma.pyx":3
+  /* "pynitride/poissolve/maths/tdma.pyx":3
  * cimport cython
  * cimport numpy as cnp
  * import numpy as np             # <<<<<<<<<<<<<<
@@ -18771,19 +18771,19 @@ PyMODINIT_FUNC PyInit_tdma(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "poissolve/maths/tdma.pyx":30
+  /* "pynitride/poissolve/maths/tdma.pyx":30
  * 
  * # remember  a[0]=0, c[N-1]=0
  * def tdma(a,b,c,d,copy=True):             # <<<<<<<<<<<<<<
  *     N=len(b)
  *     assert len(a)==N
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9poissolve_5maths_4tdma_1tdma, NULL, __pyx_n_s_poissolve_maths_tdma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_9pynitride_9poissolve_5maths_4tdma_1tdma, NULL, __pyx_n_s_pynitride_poissolve_maths_tdma); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_tdma, __pyx_t_1) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "poissolve/maths/tdma.pyx":1
+  /* "pynitride/poissolve/maths/tdma.pyx":1
  * cimport cython             # <<<<<<<<<<<<<<
  * cimport numpy as cnp
  * import numpy as np
@@ -18944,11 +18944,11 @@ PyMODINIT_FUNC PyInit_tdma(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init poissolve.maths.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init pynitride.poissolve.maths.tdma", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init poissolve.maths.tdma");
+    PyErr_SetString(PyExc_ImportError, "init pynitride.poissolve.maths.tdma");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
