@@ -48,10 +48,10 @@ def doit():
         if i>400:
             plot_carrierFV(m)
             return 1
-    #csp=Coupled_Schrodinger_Poisson(m,schrodinger=sm)
-    #csp.solve(callback=callback,low_act=3,rise=40)
-    csp=Coupled_FD_Poisson(m)
-    csp.solve(callback=callback,rise=40)
+    csp=Coupled_Schrodinger_Poisson(m,schrodinger=sm)
+    csp.solve(callback=callback,low_act=3,rise=40)
+    #csp=Coupled_FD_Poisson(m)
+    #csp.solve(callback=callback,rise=40)
 
     return m,sm,csp
 
@@ -88,9 +88,12 @@ if __name__=='__main__':
 
 
         rc.plot('--')
-        fd2=FermiDirac3D(m2)
-        fd2.solve()
-        to_unit(-m2['rho'],'cm**-3').plot('x')
+        #fd2=FermiDirac3D(m2)
+        #fd2.solve()
+        #to_unit(-m2['rho'],'cm**-3').plot('x')
+
+
+
         #mpl.ylim(1e9,1e23)
         #mpl.yscale('log')
         #mpl.interactive(False)
