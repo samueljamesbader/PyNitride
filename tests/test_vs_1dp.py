@@ -66,6 +66,7 @@ if __name__=='__main__':
     mpl.interactive(True)
     plot_carrierFV(m)
     #plot_wavefunctions(sm,bands=['e_Gamma'])
+    #plot_wavefunctions(sm,bands=['e_Gamma'])
 
     #mpl.gca().title="Mine"
     if 1:
@@ -73,7 +74,7 @@ if __name__=='__main__':
         m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"))
         import_1dp_output(join(indir,"GaN_AlN_HEMT"),m2,sm2)
         plot_carrierFV(m2)
-        #plot_wavefunctions(sm,bands=['e_Gamma'])
+        #plot_wavefunctions(sm2,bands=['e_Gamma'])
 
 
         s_Ev=m2['Ev'].copy()
