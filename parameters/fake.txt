@@ -2,10 +2,10 @@ PyNitride v1
 
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
-material: GaN
-    conditions: relaxed # actually this is some mix of relaxed and strained to AlN...
+material=GaN
+    conditions=relaxed # actually this is some mix of relaxed and strained to AlN...
+        Eg: 3.605 eV
         bands
-            Eg: 3.605 eV
             DEc: 0 eV
             barrier
                 GenericMetal: 1 eV

@@ -70,7 +70,7 @@ class SchrodingerSolver():
 
     @staticmethod
     def solve_schrodinger_problem(mesh,z_kinetic_term,potential,lateral_kinetic_term=0,
-                                  num_eigenvalues=3,psi_out=None):
+                                  num_eigenvalues=8,psi_out=None):
         if not psi_out: psi_out=PointFunction(mesh,empty=(num_eigenvalues,))
 
         H=z_kinetic_term+diags(potential)+lateral_kinetic_term

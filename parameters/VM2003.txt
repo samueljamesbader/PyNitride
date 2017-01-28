@@ -1,33 +1,31 @@
 PyNitride v1
 # Vurgaftman, I. & Meyer, J. R. Band parameters for nitrogen-containing semiconductors. J. Appl. Phys. 94, 3675–3696 (2003).
 
-material: GaN
-    conditions: default
+material=GaN
+    conditions=default
         stiffness
             C11: 390 GPa
             C12: 145 GPa
             C13: 106 GPa
             C33: 398 GPa
             C44: 105 GPa
-    conditions: relaxed
+    conditions=relaxed
         lattice
             a: 3.189 angstrom
             c: 5.185 angstrom
-        bands
-            electron
-                Gamma
-                    mzs: .2 m_e
-                    mxys: .2 m_e
+        carrier=electron,band=None
+            mzs: .2 m_e
+            mxys: .2 m_e
 
-material: AlN
-    conditions: default
+material=AlN
+    conditions=default
         stiffness
             C11: 396 GPa
             C12: 137 GPa
             C13: 108 GPa
             C33: 373 GPa
             C44: 116 GPa
-    conditions: relaxed
+    conditions=relaxed
         lattice
             a: 3.112 angstrom
             c: 4.982 angstrom
