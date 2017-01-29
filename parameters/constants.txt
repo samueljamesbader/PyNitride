@@ -1,3 +1,0 @@
-# This file is currently not used.
-
-me = 9.10938356e-31 kg

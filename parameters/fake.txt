@@ -1,160 +1,125 @@
-PyNitride v1
+PyNitride v2
 
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
-material=GaN
+GaN
+    material type=binary
     conditions=relaxed # actually this is some mix of relaxed and strained to AlN...
         Eg: 3.605 eV
-        bands
+        surface=GenericMetal
+            electronbarrier: 1 eV
+        carrier=electron
             DEc: 0 eV
-            barrier
-                GenericMetal: 1 eV
-            electron
-                Gamma:
-                    g: 2
-                    mzs: .2 m_e
-                    mdos: .2 m_e
-                    DE: 0 eV
-            hole
-                HH:
-                    g: 2
-                    mzs: 1.1 m_e
-                    mxys: 1.6 m_e
-                    mdos: 1.5 m_e
-                    DE: 0 eV
-                LH:
-                    g: 2
-                    mzs: 1.1 m_e
-                    mxys: .15 m_e
-                    mdos: 1.5 m_e
-                    DE: 0 eV
-                CH:
-                    g: 2
-                    mzs: .15 m_e
-                    mxys: 1.1 m_e
-                    mdos: 1.5 m_e
-                    DE: .02 eV
+            band=.
+                g: 2
+                mzs: .2 m_e
+                mdos: .2 m_e
+                DE: 0 eV
+        carrier=hole
+            band=HH
+                g: 2
+                mzs: 1.1 m_e
+                mxys: 1.6 m_e
+                mdos: 1.5 m_e
+                DE: 0 eV
+            band=LH
+                g: 2
+                mzs: 1.1 m_e
+                mxys: .15 m_e
+                mdos: 1.5 m_e
+                DE: 0 eV
+            band=CH
+                g: 2
+                mzs: .15 m_e
+                mxys: 1.1 m_e
+                mdos: 1.5 m_e
+                DE: .02 eV
         polarization
             Ptot: .56 nm**-2
 
-    conditions: default
-        abbrev: GaN
+    conditions=.
         dielectric
             eps: 10.6 epsilon_0
-        dopants
-            Si
-                type: Donor
-                E: 15 meV
-                g: 2
-            Mg
-                type: Acceptor
-                E: 230 meV
-                g: 4
+        dopant=Si
+            type: 'Donor'
+            E: 15 meV
+            g: 2
+        dopant=Mg
+            type: 'Acceptor'
+            E: 230 meV
+            g: 4
 
-material: AlN
-    conditions: relaxed
-        bands
-            Eg: 6.14 eV
-            barrier
-                GenericMetal: 3 eV
-            Ei: 0 eV
+AlN
+    material type=binary
+    conditions=relaxed
+        Eg: 6.14 eV
+        surface=GenericMetal
+            electronbarrier: 3 eV
+        carrier=electron
             DEc: 1.835 eV
-            electron
-                Gamma
-                    g: 2
-                    mzs: .4 m_e
-                    mxys: .4 m_e
-                    mdos: .4 m_e
-                    DE: 0 eV
-            hole
-                HH:
-                    g: 2
-                    mzs: 3.5 m_e
-                    mxys: 10.4 m_e
-                    mdos: 7.26 m_e
-                    DE: 0 eV
-                LH:
-                    g: 2
-                    mzs: 3.5 m_e
-                    mxys: .24 m_e
-                    mdos: .58 m_e
-                    DE: 0 eV
-                CH:
-                    g: 2
-                    mzs: .25 m_e
-                    mxys: 3.81 m_e
-                    mdos: 1.54 m_e
-                    DE: .019 eV
+            band=.
+                g: 2
+                mzs: .4 m_e
+                mxys: .4 m_e
+                mdos: .4 m_e
+                DE: 0 eV
+        carrier=hole
+            DEv: .7
+            band=HH
+                g: 2
+                mzs: 3.5 m_e
+                mxys: 10.4 m_e
+                mdos: 7.26 m_e
+                DE: 0 eV
+            band=LH
+                g: 2
+                mzs: 3.5 m_e
+                mxys: .24 m_e
+                mdos: .58 m_e
+                DE: 0 eV
+            band=CH
+                g: 2
+                mzs: .25 m_e
+                mxys: 3.81 m_e
+                mdos: 1.54 m_e
+                DE: .019 eV
         polarization
             Ptot: 0 cm**-2
-    conditions: default
-        abbrev: AlN
+    conditions=.
         dielectric
             eps: 8.6 epsilon_0
-        dopants
-                DeepDonor
-                    type: Donor
-                    E: 4 eV
-                    g: 2
-                DeepAcceptor
-                    type: Acceptor
-                    E: 4 eV
-                    g: 4
+        dopant=DeepDonor
+            type: 'Donor'
+            E: 4 eV
+            g: 2
+        dopant=DeepAcceptor
+            type: 'Acceptor'
+            E: 4 eV
+            g: 4
 
-material: GaAs
-    conditions: default
-        bands:
-           Eg : 1 #FAKE
-           DEc: 0 eV
-           electron
-                Gamma
-                    g: 2
-                    mzs: .067 m_e
-                    mxys: .067 m_e
-                    mdos: .067 m_e
-                    DE: 0
-           hole: []
-        dielectric
-            eps: 1 epsilon_0 # SO FAKE
-material: AlGaAs # to match li kuhn paper
-    conditions: default
-        bands
-            Eg : 1 #FAKE
+GaAs
+    material type=binary
+    conditions=.
+        Eg : 1 #FAKE
+        carrier=electron
+            DEc: 0 eV
+            band=.
+                g: 2
+                mzs: .067 m_e
+                mxys: .067 m_e
+                mdos: .067 m_e
+                DE: 0
+AlGaAs # to match li kuhn paper
+    material type=ternary
+    conditions=.
+        Eg : 1.8 #FAKE
+        surface=GenericMetal
+            electronbarrier=0 eV
+        carrier=electron
             DEc: .4 eV
-            barrier
-                GenericMetal: 0 eV
-            electron
-                Gamma
-                    g: 2
-                    mzs: .1 m_e
-                    mxys: .1 m_e
-                    mdos: .1 m_e
-                    DE: 0
-            hole: []
-        dielectric
-            eps: 1 epsilon_0 # SO FAKE
-
-
-
-
-           # 'AlGaN':{'name': 'Aluminum Gallium Nitride', 'abbrev': 'AlGaN',
-           #        'Eg': (.25*6.14+.75*3.605)*eV, 'Ei':0, 'DEc': .25*(1.835)*eV,
-           #        'ladder': {
-           #            'electron':{'Gamma':{'g':2,'mzs':.4*m0,'mxys':.4*m0, 'mdos': .4*m0, 'DE': 0}},
-
-           #            # One hole in AlN as well...this is silly
-           #            'hole':{
-           #                # These values just come from NSM archive, don't trust them
-           #                'HH':{'g':2, 'mzs': 3.5*m0, 'mxys': 10.4*m0, 'mdos': 7.26*m0, 'DE':0 },
-           #                'LH':{'g':2, 'mzs': 3.5*m0, 'mxys': 0.24*m0, 'mdos': 0.58*m0, 'DE':0 },
-           #                'CH':{'g':2, 'mzs': .25*m0, 'mxys': 3.81*m0, 'mdos': 1.54*m0, 'DE':.019*eV },
-           #            }},
-           #        'eps': 8.6*eps_0,
-
-           #        # No basis in reality...
-           #        'dopants': {
-           #            'DeepDonor':{'type':'Donor','E':4*eV, 'g':2},
-           #            'DeepAcceptor':{'type':'Acceptor','E':4*eV,'g':4},},
-
-           #        'barrier':{'GenericMetal':1.5*eV} # hell if I know
-           #        },
+            band=.
+                g: 2
+                mzs: .1 m_e
+                mxys: .1 m_e
+                mdos: .1 m_e
+                DE: 0

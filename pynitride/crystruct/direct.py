@@ -2,12 +2,24 @@ import numpy as np
 from pynitride.paramdb import ParamDB
 
 def unit_cell_volume(mat):
-    a=mat['lattice','a']
-    c=mat['lattice','c']
+    a=mat['lattice.a']
+    c=mat['lattice.c']
     V_unitcell=np.sqrt(3)/2*a**2*c
 
-def density(mat):
+def density(mat, isotope='mostcommon'):
     pdb=ParamDB()
-    mass_unitcell= sum([pdb['element'][element]['mass']*num for element, num in mat['crystal','basis atoms'].items()])
-    return mass_unitcell/unit_cell_volume(mat)
 
+    crystal=mat['crystal']
+
+    if isotope=='mostcommon':
+        # sum the masses of the most common isotope for each atom in the basis
+        mass=\
+            sum(pdb[elt+'.isotope.mass'][np.argmax(pdb[elt+'.isotope.composition'])]\
+                for elt in pdb[crystal+'.conventional.basis.:.element'])
+    else: raise NotImplementedError
+
+    return mass/unit_cell_volume(mat)
+
+if __name__=='__main__':
+    from pynitride import Material, to_unit
+    print("Density of GaN: {:.2g}".format(to_unit(density(Material('GaN',conditions=['relaxed'])),'g/cm**2')))
