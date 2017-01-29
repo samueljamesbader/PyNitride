@@ -1,8 +1,9 @@
-PyNitride v1
+PyNitride v2
 # Vurgaftman, I. & Meyer, J. R. Band parameters for nitrogen-containing semiconductors. J. Appl. Phys. 94, 3675–3696 (2003).
 
-material=GaN
-    conditions=default
+GaN
+    material type = binary
+    conditions=.
         stiffness
             C11: 390 GPa
             C12: 145 GPa
@@ -13,12 +14,13 @@ material=GaN
         lattice
             a: 3.189 angstrom
             c: 5.185 angstrom
-        carrier=electron,band=None
+        carrier=electron,band=.
             mzs: .2 m_e
             mxys: .2 m_e
 
-material=AlN
-    conditions=default
+AlN
+    material type = binary
+    conditions=.
         stiffness
             C11: 396 GPa
             C12: 137 GPa

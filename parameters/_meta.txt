@@ -1,7 +1,7 @@
-PyNitride v1
+PyNitride v2
 
 meta
-    default parameter files
-        VM2003 : yes
-        chemistry : yes
-        fake: yes
+    default parameter files:
+        .:'VM2003.txt'
+        .:'chemistry.txt'
+        .:'fake.txt'
