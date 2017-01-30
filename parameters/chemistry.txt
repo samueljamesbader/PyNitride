@@ -1,5 +1,8 @@
 PyNitride v2
 
+material=GaN
+    crystal: 'wurtzite'
+
 # Element data from
 # https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses
 element=Gallium
