@@ -1,11 +1,20 @@
-from pynitride import *
+from pynitride import ParamDB, EpiStack, Mesh, PointFunction, ROOT_DIR, ConstantFunction, RegionFunction, MaterialFunction
+pmdb=ParamDB(units='neu')
+pmdb.make_accessible(globals(),['e','cm']); q=e
+T=300
 
+from textwrap import dedent
 import numpy as np
 import re
+import os.path
+
+import time
+import datetime
+
 
 # Current limitations.  Layer lines must contain t=(...)nm
 # Dopants max one per line.
-def import_1dp_input(fileprefix):
+def import_1dp_input(fileprefix,pmdb=ParamDB()):
     filename=fileprefix+".txt"
     layers=[]
     doping=[]
@@ -33,7 +42,7 @@ def import_1dp_input(fileprefix):
             mo=re.match("schrodingerstop\s*=\s*([\d\.eE\-\+]+)",line)
             if mo: sstop=float(mo.group(1))
 
-    mesh=Mesh(EpiStack(*layers,surface='GenericMetal'), dz, uniform=True)
+    mesh=Mesh(EpiStack(*layers,surface='GenericMetal',pmdb=pmdb), dz, uniform=True)
     assert np.allclose(mesh._dz,dz,atol=1e-10,rtol=0), "Meshing failed."
 
     for dopetype in set(d[0] for d in doping if len(d)):
@@ -109,3 +118,114 @@ def import_1dp_output(fileprefix,m,sm):
                 v[b]+=[float(mo.groups()[1])]
     for b,vi in v.items(): sm['Energies_'+b]=ConstantFunction(sm,vi)
 
+def convert_1dpmat_to_PyNitride(matfilename,outfilename,to_root=True):
+    if to_root: outfilename=os.path.join(ROOT_DIR,"parameters",outfilename)
+    with open(outfilename,'w') as out:
+        ts=time.time()
+        dt=datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        out.write("PyNitride v2\n\n# Autoconverted from 1D Poisson materials.txt "+dt+"\n")
+        with open(matfilename) as f:
+            next(f)
+            for line in f:
+                mo=re.match(r"^(\w+)\s+binary\s+\w+",line.strip())
+                if mo:
+                    matname=mo.groups(0)[0]
+
+                    tmp={}
+                    next(f) # skip mystery zeros line in materials file
+                    for line in f:
+                        mo=re.match(r"(\w+)=([\d\*eE\+\-\.Temp\/\^\(\)]+)",line)
+                        if mo is None: break
+                        try:
+                            tmp[mo.groups()[0]]=eval("(lambda Temp: "+mo.groups()[1].replace('^','**')+")("+str(T)+")")
+                            #if matname=="GaN" or matname=="AlN":
+                                #if mo.groups()[0]=='pol':
+                                #print(mo.groups(),tmp[mo.groups()[0]])
+                        except Exception as e:
+                            print(e)
+                            print(mo.groups())
+                            import numpy as np
+                            tmp[mo.groups()[0]]=np.NaN
+
+                    print(tmp)
+                    string=dedent("""
+                    material={:s}
+                        conditions=
+                            Eg:{:.10g} eV
+                            carrier=electron
+                                DEc: {:.10g} eV
+                                band=
+                                    g: 2 * {:d} # including spin
+                                    mzs:  {:.10g} m_e
+                                    mxys: {:.10g} m_e
+                                    mdos: {:.10g} m_e
+                                    DE: 0 eV,
+                            carrier=hole
+                                band=HH
+                                    g: 2 # including spin
+                                    mzs:  {:.10g} m_e
+                                    mxys: {:.10g} m_e
+                                    mdos: {:.10g} m_e
+                                    DE: 0 eV,
+                                band=LH
+                                    g: 2 # including spin
+                                    mzs:  {:.10g} m_e
+                                    mxys: {:.10g} m_e
+                                    mdos: {:.10g} m_e
+                                    DE: 0 eV,
+                                band=SO
+                                    g: 2 # including spin
+                                    mzs:  {:.10g} m_e
+                                    mxys: {:.10g} m_e
+                                    mdos: {:.10g} m_e
+                                    DE: 0 eV,
+                        dielectric
+                            eps: {:.10g} epsilon_0
+                        dopant=Donor
+                            type: 'Donor'
+                            E: {:.10g} eV
+                            g: 2
+                        dopant=Acceptor
+                            type: 'Acceptor'
+                            E: {:.10g} eV
+                            g: 4
+                        dopant=DeepDonor
+                            type: 'Donor'
+                            E: {:.10g} eV
+                            g: 2
+                        dopant=DeepAcceptor
+                            type: 'Acceptor'
+                            E: {:.10g} eV
+                            g: 4
+                        polarization
+                            Ptot: {:.10g} C/cm**2
+                    """.format(matname,tmp['eg'],tmp['dec'],
+                               int(tmp['val']),tmp['me'],tmp['me'],tmp['me'],
+                               tmp['mh'],tmp['mh'],tmp['mh'],
+                               tmp['mlh'],tmp['mlh'],tmp['mlh'],
+                               tmp['mhso'],tmp['mhso'],tmp['mhso'],
+                               tmp['er'],
+                               tmp['ed'],tmp['ea'],tmp['edd'],tmp['eda'],
+                               -tmp['pol']))
+                    out.write(string)
+                #import scipy.constants as const
+                #self['material',matname,'conditions','default']=dict(
+                #    bands=dict(
+                #        Eg=tmp['eg'] *eV,
+                #        DEc=tmp['dec'] *eV,
+                #        barrier=dict(),
+                #        electron=dict(
+                #            Gamma=dict(g=2*tmp['val'],mzs=tmp['me']*m_e,mxys=tmp['me']*m_e,mdos=tmp['me']*m_e,DE=0)),
+                #        hole=dict(
+                #            HH=dict(g=2,mzs=tmp['mh']*m_e,mxys=tmp['mh']*m_e,mdos=tmp['mh']*m_e,DE=0),
+                #            LH=dict(g=2,mzs=tmp['mlh']*m_e,mxys=tmp['mlh']*m_e,mdos=tmp['mlh']*m_e,DE=0),
+                #            SO=dict(g=2,mzs=tmp['mhso']*m_e,mxys=tmp['mhso']*m_e,mdos=tmp['mhso']*m_e,DE=0))),
+                #    dielectric=dict(eps=tmp['er']*epsilon_0),dopant=dict(
+                #        Donor=dict(type='Donor',E=tmp['ed']*eV, g=2),
+                #        Acceptor=dict(type='Acceptor',E=tmp['ea']*eV, g=4),
+                #        DeepDonor=dict(type='Donor',E=tmp['edd']*eV, g=2),
+                #        DeepAcceptor=dict(type='Acceptor',E=tmp['eda']*eV, g=4)),
+                #    polarization=dict(Ptot=-tmp['pol']/const.elementary_charge/cm**2))
+
+if __name__=="__main__":
+    convert_1dpmat_to_PyNitride('/usr/local/bin/materials.txt',"1dp.txt")

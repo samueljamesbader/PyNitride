@@ -6,13 +6,12 @@ to_unit=Value.to_unit
 parse=Value.parse
 del Value
 
-convenient_constants=["hbar","c","m_e","angstrom","nm","um","mm","cm","mV","V","kV","MV","meV","eV","keV","MeV","epsilon_0"]
-for const in convenient_constants:
-    globals()[const]=parse(const)
-q=parse('e')
+variables=["hbar","c","m_e","angstrom","nm","um","mm","cm","mV","V","kV","MV","meV","eV","keV","MeV","epsilon_0","e","k"]
+ParamDB().make_accessible(globals(),variables)
+q=e
 T=300
-kT=parse('k')*T
-del convenient_constants
+kT=k*T
+del variables
 
 from pynitride.poissolve.mesh.structure import Mesh, SubMesh, EpiStack
 from pynitride.poissolve.mesh.functions import MaterialFunction, MidFunction, PointFunction, ConstantFunction, RegionFunction

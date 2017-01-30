@@ -10,15 +10,15 @@ import numpy as np
 from scipy.interpolate import interp1d
 import pickle
 
-from pynitride.paramdb import Material
+from pynitride.paramdb import Material, ParamDB
 from pynitride.poissolve.mesh.functions import Function
 
 
 class Layer():
-    def __init__(self, name, matname, thickness):
+    def __init__(self, name, matname, thickness, pmdb=ParamDB()):
         self._name = name
         self._matname = matname
-        self._mat = Material(matname)
+        self._mat = Material(matname,pmdb=pmdb)
         self._thickness = thickness
 
     @property
@@ -35,18 +35,18 @@ class Layer():
 
     # if not found and default=... is passed, will return that instead of error
     def get(self, key, default=None):
-        return self._mat.get(key,default)
+        return self._mat.get(key,default=default)
 
     def __getitem__(self, key):
         return self._mat[key]
 
 
 class EpiStack():
-    def __init__(self,*args,surface=None):
+    def __init__(self,*args,surface=None,pmdb=ParamDB()):
         if isinstance(args[0],Layer):
             self._layers=args
         else:
-            self._layers=[Layer(l[0], l[1], l[2]) if len(l) == 3 else Layer(l[0], l[0], l[1]) for l in args]
+            self._layers=[Layer(l[0], l[1], l[2],pmdb=pmdb) if len(l) == 3 else Layer(l[0], l[0], l[1],pmdb=pmdb) for l in args]
         self._surface=surface
 
     @property

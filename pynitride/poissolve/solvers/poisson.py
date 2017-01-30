@@ -1,7 +1,9 @@
 import numpy as np
 from pynitride.poissolve.maths.tdma import tdma
 import numbers
-from pynitride.paramdb import q
+from pynitride.paramdb import ParamDB
+pmdb=ParamDB(units='neu')
+pmdb.make_accessible(globals(),['e']); q=e
 from pynitride.poissolve.mesh.functions import MidFunction, MaterialFunction, PointFunction
 
 
@@ -12,16 +14,16 @@ class PoissonSolver():
         if isinstance(mesh._layers.surface,numbers.Real):
             self._phib=mesh._layers.surface
         else:
-            self._phib=mesh._layers[0].material['bands','barrier',mesh._layers.surface]
+            self._phib=mesh._layers[0].material['surface='+mesh._layers.surface,'electronbarrier']
 
         # ARE THESE NECESSARY
         mesh['D']= MidFunction(mesh)
         mesh['E']= MidFunction(mesh)
-        eps=mesh['eps']= MaterialFunction(mesh, ['dielectric','eps'])
+        eps=self._eps=mesh['eps']= MaterialFunction(mesh, 'dielectric.eps')
         mesh['mqV']= PointFunction(mesh, 0.0)
-        mesh['DEc']= MaterialFunction(mesh, ['bands','DEc'], pos='point')
+        mesh['DEc']= MaterialFunction(mesh, 'electron.DEc', pos='point')
         mesh['Ec']= PointFunction(mesh)
-        mesh['Eg']= MaterialFunction(mesh, ['bands',"Eg"], pos='point')
+        mesh['Eg']= MaterialFunction(mesh, 'Eg', pos='point')
         mesh['Ev']= PointFunction(mesh)
 
         mesh['arho2']= PointFunction(mesh)
@@ -57,7 +59,7 @@ class PoissonSolver():
         self._update_others()
         mqV=m['mqV']
         m['E']=mqV.differentiate()
-        m['D']=MidFunction(m,MaterialFunction(m,['dielectric','eps'])*m['E'])
+        m['D']=MidFunction(m,self._eps*m['E'])
         m['arho2']=m['D'].differentiate()
 
     def _update_others(self):
@@ -115,7 +117,7 @@ class PoissonSolver():
 
         mqV=m['mqV']
         m['E']=mqV.differentiate()
-        m['D']=MidFunction(m,MaterialFunction(m,['dielectric','eps'])*m['E'])
+        m['D']=MidFunction(m,self._eps*m['E'])
         m['arho2']=m['D'].differentiate()
 
 

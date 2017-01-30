@@ -18,8 +18,8 @@ Accessing parameters
 Parameters can be accessed from a :py:class:`~pynitride.paramdb.ParamDB` object.  They will be returned in the internal unit system of PyNitride.  For example, if the relative dielectric constant of GaN is :math:`\epsilon_r=10.4`, then ::
 
     >>> from pynitride import *
-    >>> pdb=ParamDB()
-    >>> epsilon=pdb['GaN.dielectric.eps']
+    >>> pmdb=ParamDB()
+    >>> epsilon=pmdb['GaN.dielectric.eps']
     >>> print("{:.3g} eps_0".format(to_unit(epsilon,"epsilon_0")))
     10.4 eps_0
     >>> print("{:.2g} F/cm".format(to_unit(epsilon,"F/cm")))

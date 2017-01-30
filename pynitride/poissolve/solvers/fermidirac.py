@@ -10,7 +10,10 @@ import re
 import numpy as np
 from pynitride.poissolve.maths.cfermidiracintegral import fd12, fd12p
 
-from pynitride.paramdb import kT,hbar,q
+from pynitride.paramdb import ParamDB
+pmdb=ParamDB(units='neu')
+pmdb.make_accessible(globals(),["k","hbar","e"]);q=e
+kT=k*300
 from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
 
 
@@ -26,21 +29,20 @@ class FermiDirac3D():
     @staticmethod
     def identifydopants(mesh):
         dopants={'Donor':{},'Acceptor':{}}
-        for k in mesh:
-            mo=re.match("(.*)ActiveConc",k)
-            if mo:# and mo.group(1) not in dopants:
-                d=mo.group(1)
-                types=set(t for t in (l.material.get(['dopants',d,'type'],None) for l in mesh._layers) if t is not None)
-                assert len(types)<2, "Can't have one dopant be acceptor in one material and donor in another.  You'll have " \
-                                   "to use two separate dopant names.  Sorry. "
-                if len(types)==1:
-                    dopants[list(types)[0]][d]={'conc':mesh[k]}
-                else:
-                    print("No materials include {} as a dopant.".format(k))
+        for d in [k[:-10] for k in mesh if k.endswith("ActiveConc")]:
+
+            types=set(t for t in (l.material.get('dopant='+d+'.type',default=None) for l in mesh._layers) if t is not None)
+            if len(types)>1: raise Exception(
+                "Can't have one dopant be acceptor in one material and donor in another.  "\
+                "You'll have to use two separate dopant names.  Sorry. ")
+            if len(types)==1:
+                dopants[list(types)[0]][d]={'conc':mesh[d+'ActiveConc']}
+            else:
+                print("No materials include {} as a dopant.".format(d))
         for doptype in dopants.keys():
             for d,v in dopants[doptype].items():
-                v['E']=MaterialFunction(mesh,lambda mat: mat.get(['dopants',d,'E'],np.NaN),pos='point')
-                v['g']=MaterialFunction(mesh,lambda mat: mat.get(['dopants',d,'g'],np.NaN),pos='point')
+                v['E']=MaterialFunction(mesh,d+'.E',pos='point')
+                v['g']=MaterialFunction(mesh,d+'.g',pos='point')
         mesh['Nd']=np.sum(d['conc'] for d in dopants['Donor'].values())\
             if len(dopants['Donor']) else ConstantFunction(mesh,0)
         mesh['Na']=np.sum(d['conc'] for d in dopants['Acceptor'].values()) \
@@ -52,21 +54,16 @@ class FermiDirac3D():
 
         # We'll have to confirm these formulae (factors of 2?) later...
         Nc=MaterialFunction(mesh,pos='point',prop=lambda mat:
-        [mat['bands','electron',b,'g']*(mat['bands','electron',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
-         for b in mat['bands','electron']])
+            mat['electron.band.g']*(mat['electron.band.mdos']*kT/(2*np.pi*hbar**2))**(3/2))
         Nv=MaterialFunction(mesh,pos='point',prop=lambda mat:
-        [mat['bands','hole',b,'g']*(mat['bands','hole',b,'mdos']*kT/(2*np.pi*hbar**2))**(3/2)
-         for b in mat['bands','hole']])
+            mat['hole.band.g']*(mat['hole.band.mdos']*kT/(2*np.pi*hbar**2))**(3/2))
         return Nc,Nv
 
     @staticmethod
     def band_edge_shifts(mesh):
-        cDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            [mat['bands','electron',b,'DE'] for b in mat['bands','electron']])
-        vDE=MaterialFunction(mesh,pos='point',prop=lambda mat:
-            [mat['bands','hole',b,'DE'] for b in mat['bands','hole']])
+        cDE=MaterialFunction(mesh,pos='point',prop=lambda mat: mat['electron.band.DE'])
+        vDE=MaterialFunction(mesh,pos='point',prop=lambda mat: mat['hole.band.DE'])
         return cDE,vDE
-
 
     @staticmethod
     def carrier_density(EF,Ec,Ev,Nc,Nv,conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True):

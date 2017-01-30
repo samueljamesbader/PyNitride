@@ -143,7 +143,7 @@ def ConstantFunction(mesh, val, dtype='float', pos='point'):
     arr=as_strided(np.array(x), shape=newshape, strides=newstrides)
     return {'point': PointFunction, 'mid': MidFunction}[pos](mesh,value=arr)
 
-def MaterialFunction(mesh, prop, pos='mid'):
+def MaterialFunction(mesh, prop, default=None,pos='mid'):
     # could make this more efficient by directly interpolating if Point case?
     # this function almost duplicates RegionFunction...
 
@@ -152,7 +152,7 @@ def MaterialFunction(mesh, prop, pos='mid'):
 
     propfunc = (lambda i: prop(mesh._layers[i].material)) \
         if callable(prop) \
-        else (lambda i: mesh._layers[i][prop])
+        else (lambda i: mesh._layers[i].get(prop,default=default))
 
     import numbers
     for i, ptc in enumerate(ptcounts):

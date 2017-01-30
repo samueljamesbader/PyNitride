@@ -79,7 +79,6 @@ class Coupled_Schrodinger_Poisson():
 
 
 
-        print('hi')
 
 
     def solve(self, low_act=4, rise=500, tol=1e-10, max_iter=100, callback=lambda *args: None):
