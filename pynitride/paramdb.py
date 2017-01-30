@@ -7,6 +7,7 @@ import numbers
 import numpy as np
 
 def parr(arr):
+    if not len(arr): return arr
     if hasattr(arr[0],'units'):
         u=arr[0].units
         return np.array([(a/u).magnitude for a in arr])*u
@@ -67,10 +68,9 @@ class MultilevelDict():
 
         for c in constraints:
             if c in cks:
-                vals=[self._subgetitem(cont[c+"="+cv], keyparts, extract,**constraints) for cv in constraints[c]]
+                vals=[self._subgetitem(cont[c+"="+cv], keyparts, extract,**constraints) for cv in constraints[c] if c+'='+cv in cont]
                 vals=[v for v in vals if v is not None]
                 if len(vals): return vals[0]
-                else: return None
 
         if '' in cvs:
             vals=[self._subgetitem(cont[keq], keyparts, extract,**constraints)
@@ -84,8 +84,9 @@ class MultilevelDict():
 
 
     def get(self,key,default=None,extract=None,**constraints):
+        if isinstance(key,str): key=key.split(".")
         if extract is None: extract=self._extract
-        v=self._subgetitem(self._dict,key.split("."),extract=extract,**constraints)
+        v=self._subgetitem(self._dict,key,extract=extract,**constraints)
         return v if v is not None else default
 
     def __getitem__(self, key):
@@ -94,10 +95,8 @@ class MultilevelDict():
         return v
 
     def __setitem__(self,key,value):
-        keyparts=key.split(".")
-
-        # The extract value of this Value object is probably not set in accordance with the ParamDB
         raise NotImplementedError
+        keyparts=key.split(".")
         node=self._subgetitem(self._dict,keyparts[:-1])[keyparts[-1]]=Value(value,preparsed=True)
 
     def __getattr__(self, item):
@@ -139,7 +138,7 @@ class Value():
         else:
             self.raw=val
             self.parsed=Value.parse(self.raw)
-        self.neu=self.parsed.to_base_units()\
+        self.neu=self.parsed.to_base_units().magnitude\
             if hasattr(self.parsed,'to_base_units')\
             else self.parsed
 
@@ -178,8 +177,8 @@ class Value():
         :param unit: The desired units for the result as a string (eg "cm**-2")
         :return: the number representing that quantity in the desired units.
         """
-        pdb=ParamDB()
-        return val/pdb.parse(unit,err_on_fail=True)
+        pmdb=ParamDB()
+        return val/Value(unit).neu
 
 class ParamDB(MultilevelDict):
 
@@ -347,29 +346,31 @@ class ParamDB(MultilevelDict):
                     polarization=dict(Ptot=-tmp['pol']/const.elementary_charge/cm**2))
         if regenerate_index: self.regenerate_index()
 
+    def make_accessible(self,destdict,variables=[],variablenames=None):
+        if variablenames is None: variablenames=variables
+        for v,vn in zip(variables,variablenames):
+            destdict[vn]=getattr(Value(v),self._extract)
 
 #def parse(val):
-    #pdb=ParamDB()
-    #v=pdb._ureg(val)
+    #pmdb=ParamDB()
+    #v=pmdb._ureg(val)
     #if isinstance(v,numbers.Number): return v
     #else: return v.to_base_units().magnitude
 
 
 class Material():
-    def __init__(self, matname, conditions=['relaxed']):
+    def __init__(self, matname, conditions=['relaxed'],pmdb=ParamDB()):
         self.matname=matname
         self.conditions=conditions
-        self._pdb=ParamDB()
+        self._pmdb=pmdb
     def __getitem__(self,key):
-        val=self._pdb.get("material="+self.matname+"."+key,default=None,conditions=self.conditions)
+        val=self.get(key)
         if val is not None:
             return val
-        raise Exception("Key not found: " + str(key) + " with constraints "+ str(self.conditions))
+        else: raise Exception("Key not found: " + str(key) + " with constraints "+ str(self.conditions))
     def get(self,key,default=None):
-        try:
-            return self.__getitem__(key)
-        except:
-            return default
+        if isinstance(key,str): key=key.split('.');
+        return self._pmdb.get(["material="+self.matname]+list(key),default=None,conditions=self.conditions)
 
     # http://stackoverflow.com/a/25176504/2081118
     def __eq__(self,other):
@@ -392,12 +393,15 @@ ParamDB()
 
 
 if __name__=="__main__":
-    pdb=ParamDB()
-    print(pdb['wurtzite.conventional.basis.[:].element'])
-    #pdb.read_file('VM2003.txt')
+    pmdb=ParamDB()
+    print(pmdb['wurtzite.conventional.basis.[:].element'])
+
+    pmdb2=ParamDB(units='neu')
+    print(Material('GaN',pmdb=pmdb2)['dielectric'])
+    #pmdb.read_file('VM2003.txt')
     #gan=Material("GaN")
     #gan['lattice','a']
 
-    #print(pdb._dict)
-    #print(pdb._index)
-    #print(pdb.search("GaN"))
+    #print(pmdb._dict)
+    #print(pmdb._index)
+    #print(pmdb.search("GaN"))

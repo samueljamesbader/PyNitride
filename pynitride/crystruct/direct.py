@@ -7,23 +7,23 @@ def unit_cell_volume(mat):
     return np.sqrt(3)/2*a**2*c
 
 def density(mat, isotope='mostcommon'):
-    pdb=ParamDB()
+    pmdb=ParamDB()
 
     crystal=mat['crystal']
 
     # sum the masses of the most common isotope for each atom in the basis
     if isotope=='mostcommon':
         mass=\
-            sum(pdb[elt+'.isotope.mass'][np.argmax(pdb[elt+'.isotope.composition'])]\
-                for elt in pdb[crystal+'.conventional.basis.element'])
+            sum(pmdb[elt+'.isotope.mass'][np.argmax(pmdb[elt+'.isotope.composition'])]\
+                for elt in pmdb[crystal+'.conventional.basis.element'])
     elif isotope=='compositional':
         mass= \
-            np.sum(sum([np.multiply(pdb[elt+'.isotope.mass'],pdb[elt+'.isotope.composition']) \
-                for elt in pdb[crystal+'.conventional.basis.element']]))
+            np.sum(sum([np.multiply(pmdb[elt+'.isotope.mass'],pmdb[elt+'.isotope.composition']) \
+                for elt in pmdb[crystal+'.conventional.basis.element']]))
     elif isinstance(isotope,dict):
         mass= \
-            sum(pdb[elt+'.'+str(isotope[elt])+'.mass'] \
-                for elt in pdb[crystal+'.conventional.basis.element'])
+            sum(pmdb[elt+'.'+str(isotope[elt])+'.mass'] \
+                for elt in pmdb[crystal+'.conventional.basis.element'])
 
     else: raise NotImplementedError
 

@@ -1,9 +1,10 @@
 import pytest
-from pynitride import *
+from pynitride import ROOT_DIR, MaterialFunction, to_unit
+from pynitride.paramdb import ParamDB, Value
 from os.path import expanduser, join
 import numpy as np
 from pynitride.poissolve.visual import plot_carrierFV, plot_wavefunctions
-from pynitride.external.snider import import_1dp_input, import_1dp_output
+from pynitride.external.snider import import_1dp_input, import_1dp_output, convert_1dpmat_to_PyNitride
 from pynitride.poissolve.solvers.coupled import Coupled_Schrodinger_Poisson, Coupled_FD_Poisson
 from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 
@@ -30,16 +31,19 @@ def nothing():
     # print("sigma_p: {:.3g}".format(np.trapz(p*((x<25) & (x>7)),x)/1e7))
 
 def doit():
-    pdb=ParamDB()
-    pdb.clear()
-    pdb.read_file('/usr/local/bin/materials',from_root='False')
+    convert_1dpmat_to_PyNitride('/usr/local/bin/materials.txt','1dp.txt')
+    pmdb=ParamDB(units='neu')
+    pmdb.clear()
+    pmdb.read_file('1dp.txt')
 
     indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
-    m,sm=import_1dp_input(join(indir,"GaN_AlN_HEMT"))
+    m,sm=import_1dp_input(join(indir,"GaN_AlN_HEMT"),pmdb=pmdb)
     #import_1dp_output(join(indir,"GaN_AlN_HEMT"),m,sm)
     #plot_carrierFV(m)
 
-    ParamDB()['material','GaN','conditions','default','bands','barrier']['GenericMetal']=.6*eV
+    pmdb._dict['material=GaN']['surface=GenericMetal']={}
+    pmdb._dict['material=GaN']['surface=GenericMetal']['electronbarrier']=Value(".6*eV")
+    #ParamDB()['GaN.surface=GenericMetal.electronbarrier']=.6*eV
 
     i=0
     def callback():
@@ -70,25 +74,28 @@ if __name__=='__main__':
 
     #mpl.gca().title="Mine"
     if 1:
+        pmdb=ParamDB(units='neu')
+        pmdb.clear()
+        pmdb.read_file('1dp.txt')
         indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
-        m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"))
+        m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"),pmdb=pmdb)
         import_1dp_output(join(indir,"GaN_AlN_HEMT"),m2,sm2)
         plot_carrierFV(m2)
         #plot_wavefunctions(sm2,bands=['e_Gamma'])
 
 
-        s_Ev=m2['Ev'].copy()
-        s_rho=m2['rho'].copy()
-        s_p=m2['p'].copy()
-        s_n=m2['n'].copy()
-        s_ndpmnam=m2['Ndp-Nam'].copy()
+#        s_Ev=m2['Ev'].copy()
+#        s_rho=m2['rho'].copy()
+#        s_p=m2['p'].copy()
+#        s_n=m2['n'].copy()
+#        s_ndpmnam=m2['Ndp-Nam'].copy()
+#
+#        rc=(m2['E']*MaterialFunction(m2,['dielectric','eps'])).differentiate()
+#        mpl.sca(mpl.gcf().get_axes()[0])
+        #to_unit(-rc,'cm**-3').plot('--')
 
-        rc=(m2['E']*MaterialFunction(m2,['dielectric','eps'])).differentiate()
-        mpl.sca(mpl.gcf().get_axes()[0])
-        to_unit(-rc,'cm**-3').plot('--')
 
-
-        rc.plot('--')
+        #rc.plot('--')
         #fd2=FermiDirac3D(m2)
         #fd2.solve()
         #to_unit(-m2['rho'],'cm**-3').plot('x')

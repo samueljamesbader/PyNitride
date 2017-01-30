@@ -1,7 +1,9 @@
 import pytest
 from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
 from pynitride.poissolve.solvers.schrodinger import SchrodingerSolver
-from pynitride.poissolve.devices import gan_qwhemt
+from pynitride.paramdb import ParamDB
+pmdb=ParamDB(units='neu')
+#from pynitride.poissolve.devices import gan_qwhemt
 import matplotlib.pyplot as mpl
 import numpy as np
 
@@ -55,7 +57,7 @@ def test_li_kuhn_1994():
         E0=[]
         num=[]
         for Ntarget in np.linspace(100,3000,33):
-            m=Mesh(EpiStack(['AlGaAs',xs],['GaAs',L],['AlGaAs',xs],surface='GenericMetal'),max_dz=(2*xs+L)/Ntarget,
+            m=Mesh(EpiStack(['AlGaAs',xs],['GaAs',L],['AlGaAs',xs],surface='GenericMetal',pmdb=pmdb),max_dz=(2*xs+L)/Ntarget,
                    refinements=([[xs,(2*xs+L)/Ntarget/5,1.4],[xs+L,(2*xs+L)/Ntarget/5,1.4]] if meshtype=='refined' else None),uniform=(meshtype=='uniform'))
             m['rho_pol']=ConstantFunction(m,0)
             #mpl.figure()
@@ -70,7 +72,7 @@ def test_li_kuhn_1994():
 
 
             m['kT']=ConstantFunction(m,0)
-            m['DEc']=MaterialFunction(m,['bands','DEc']).to_point_function(interp='z')
+            m['DEc']=MaterialFunction(m,['electron','DEc']).to_point_function(interp='z')
             m['mqV']=PointFunction(m,np.choose(1*(z>xs-1e-8)+1*(z>L+xs-1e-8),
                                                [V0-m['DEc'][0]+0*z,
                                                 0*z,
@@ -84,7 +86,7 @@ def test_li_kuhn_1994():
             start=time.time()
             SchrodingerSolver(m,carriers=['electron']).solve()
             print("points {} time {}".format(m.z.shape[0],time.time()-start))
-            E0+=[m['Energies_e_Gamma'][0,0]]
+            E0+=[m['Energies_e_'][0,0]]
             num+=[np.max(m._dz)/np.min(m._dz)-1]
             print('hi')
             #from poissolve.visual import plot_wavefunctions

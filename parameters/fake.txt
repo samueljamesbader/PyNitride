@@ -13,6 +13,7 @@ material=GaN
             band=
                 g: 2
                 mzs: .2 m_e
+                mxys: .2 m_e
                 mdos: .2 m_e
                 DE: 0 eV
         carrier=hole
@@ -109,12 +110,22 @@ material=GaAs
                 mxys: .067 m_e
                 mdos: .067 m_e
                 DE: 0
+        #Faker than fake
+        carrier=hole
+            band=
+                g: 2
+                mzs: .1 m_e
+                mxys: .1 m_e
+                mdos: .1 m_e
+                DE: 0
+        dielectric
+            eps: 1 epsilon_0
 material=AlGaAs # to match li kuhn paper
     material type: 'ternary'
     conditions=
         Eg : 1.8 #FAKE
         surface=GenericMetal
-            electronbarrier=0 eV
+            electronbarrier:0 eV
         carrier=electron
             DEc: .4 eV
             band=
@@ -123,3 +134,13 @@ material=AlGaAs # to match li kuhn paper
                 mxys: .1 m_e
                 mdos: .1 m_e
                 DE: 0
+        #Faker than fake
+        carrier=hole
+            band=
+                g: 2
+                mzs: .1 m_e
+                mxys: .1 m_e
+                mdos: .1 m_e
+                DE: 0
+        dielectric
+            eps: 1 epsilon_0

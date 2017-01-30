@@ -1,5 +1,7 @@
 import numpy as np
-from pynitride.paramdb import q, hbar, kT, eV
+from pynitride.paramdb import ParamDB
+pmdb=ParamDB(units='neu')
+pmdb.make_accessible(globals(),["k","hbar","e","eV"]);q=e;kT=k*300
 from pynitride.poissolve.mesh.functions import ConstantFunction, MaterialFunction, PointFunction
 from pynitride.poissolve.solvers.fermidirac import FermiDirac3D
 from scipy.sparse import diags
@@ -21,13 +23,13 @@ class SchrodingerSolver():
 
         self._props={c:{} for c in carriers}
         for carrier,v in self._props.items():
-            bands=mesh._layers[0].material['bands',carrier].keys()
+            bands=mesh._layers[0].material[carrier,"band"]
             for i,b in enumerate(bands):
                 v[b]={}
-                v[b]['T']=self.z_kinetic_term(m,MaterialFunction(m,['bands',carrier,b,'mzs']))
-                v[b]['mxys']=MaterialFunction(m,['bands',carrier,b,'mxys'],pos='point')
-                v[b]['g']=mesh._layers[0].material['bands',carrier][b]['g'] # can't vary spatially
-                v[b]['DE']=MaterialFunction(m,['bands',carrier,b,'DE'],pos='point')
+                v[b]['T']=self.z_kinetic_term(m,MaterialFunction(m,[carrier,b,'mzs']))
+                v[b]['mxys']=MaterialFunction(m,[carrier,b,'mxys'],pos='point')
+                v[b]['g']=mesh._layers[0].material[[carrier,b,'g']] # can't vary spatially
+                v[b]['DE']=MaterialFunction(m,[carrier,b,'DE'],pos='point')
             m[{'electron':'Ec_eff','hole':'Ev_eff'}[carrier]]=PointFunction(m,empty=(len(bands),))
 
         for k in ['n','p','nderiv','pderiv']:
@@ -165,8 +167,8 @@ if __name__=='__main__':
     m,sm=gan_qwhemt(xc,xb,xw,xs,1e16*cm**-3,surface='GenericMetal')
     z=m.z
     m['kT']=ConstantFunction(m,0)
-    m['DEc']=MaterialFunction(m,['bands','DEc']).to_point_function(interp='z')
-    m['Eg']=MaterialFunction(m,['bands','Eg']).to_point_function(interp='z')
+    m['DEc']=MaterialFunction(m,['electron','DEc']).to_point_function(interp='z')
+    m['Eg']=MaterialFunction(m,['Eg']).to_point_function(interp='z')
     m['mqV']=PointFunction(m,np.choose(1*(z>xc)+1*(z>xc+xb)+1*(z>xc+xb+xw),
                                        [F*(z-xc),
                                         0*z,
