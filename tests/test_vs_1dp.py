@@ -69,7 +69,7 @@ if __name__=='__main__':
     import matplotlib.pyplot as mpl
     mpl.interactive(True)
     plot_carrierFV(m)
-    #plot_wavefunctions(sm,bands=['e_Gamma'])
+    plot_wavefunctions(sm,bands=['e_'])
     #plot_wavefunctions(sm,bands=['e_Gamma'])
 
     #mpl.gca().title="Mine"
