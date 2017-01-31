@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 from poissolve.mesh.functions import MaterialFunction, MidFunction, PointFunction
 
-from pynitride.poissolve.mesh.structure import EpiStack, Mesh
+from pynitride.poissolve.mesh import EpiStack, Mesh
 
 if __name__=='__main__':
     pytest.main(args=[__file__])

@@ -23,13 +23,13 @@ def clear_plots():
         
 @pytest.fixture(scope='module')  
 def nonuniformmesh():
-    from pynitride.poissolve.mesh.structure import EpiStack, Mesh
+    from pynitride.poissolve.mesh import EpiStack, Mesh
     epistack=EpiStack(['GaN',2.5],['AlN',5],['GaN',17],['AlN',30],surface='GenericMetal')
     m=Mesh(epistack,max_dz=1,refinements=[[7.5,.1,1.1],[24,.25,1.2]])
     return m
 @pytest.fixture(scope='module')
 def uniformmesh():
-    from pynitride.poissolve.mesh.structure import EpiStack, Mesh
+    from pynitride.poissolve.mesh import EpiStack, Mesh
     epistack=EpiStack(['GaN',2.5],['AlN',5],['GaN',17],['AlN',30],surface='GenericMetal')
     m=Mesh(epistack,max_dz=.1)
     return m

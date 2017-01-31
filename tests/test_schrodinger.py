@@ -1,6 +1,7 @@
 import pytest
-from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
-from pynitride.poissolve.solvers.schrodinger import SchrodingerSolver
+from pynitride.poissolve.mesh.functions import MaterialFunction, MidFunction
+from pynitride import PointFunction, MidFunction, ConstantFunction, MaterialFunction
+from pynitride.poissolve.solvers import SchrodingerSolver, PoissonSolver
 from pynitride.paramdb import ParamDB
 pmdb=ParamDB(units='neu')
 #from pynitride.poissolve.devices import gan_qwhemt
@@ -43,7 +44,7 @@ if __name__=='__main__':
 def test_li_kuhn_1994():
     global N, E0,num
     from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, ConstantFunction
-    from pynitride.poissolve.mesh.structure import Mesh, EpiStack
+    from pynitride.poissolve.mesh import Mesh, EpiStack
     import matplotlib.pyplot as mpl
     mpl.interactive(False)
 
@@ -65,7 +66,7 @@ def test_li_kuhn_1994():
             N+=[len(m.z)]
             z=m.z
 
-            from pynitride.poissolve.solvers.poisson import PoissonSolver
+            from pynitride.poissolve.solvers_old.poisson import PoissonSolver
             m['rho']=ConstantFunction(m,0)
             m['EF']=ConstantFunction(m,0)
             PoissonSolver(m).solve()

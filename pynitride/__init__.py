@@ -1,8 +1,7 @@
 import os.path
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 
-from pynitride.paramdb import ParamDB, Material, Value, parr
-to_unit=Value.to_unit
+from pynitride.paramdb import ParamDB, Material, Value, parr, to_unit
 parse=Value.parse
 del Value
 
@@ -13,5 +12,5 @@ T=300
 kT=k*T
 del variables
 
-from pynitride.poissolve.mesh.structure import Mesh, SubMesh, EpiStack
-from pynitride.poissolve.mesh.functions import MaterialFunction, MidFunction, PointFunction, ConstantFunction, RegionFunction
+from pynitride.poissolve.mesh import Mesh, SubMesh, EpiStack, PointFunction, MidFunction, ConstantFunction, \
+    MaterialFunction, RegionFunction
