@@ -4,6 +4,53 @@ import numpy as np
 from libc.math cimport pow, exp
 from functools import wraps
 
+############################
+### TDMA
+############################
+
+# https://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)
+# but with indices shifted
+
+# assumes a[0]=0, c[n-1]=0
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef cnp.ndarray tdma_c(double[::1] a, double[::1] b, double[::1] c, double[::1] d):
+    cdef:
+        int N=b.shape[0]
+        int k
+        double m
+        cnp.ndarray x_arr=np.empty(N)
+        double[::1] x=x_arr
+    for k in range(1,N):
+        m=a[k]/b[k-1]
+        b[k]-=m*c[k-1]
+        d[k]-=m*d[k-1]
+    for k in range(N):
+        x[k]=d[k]/b[k]
+    for k in range(N-2,-1,-1):
+        x[k]=(d[k]-c[k]*x[k+1])/b[k]
+    return x_arr
+
+
+# remember  a[0]=0, c[N-1]=0
+def tdma(a,b,c,d,copy=True):
+    N=len(b)
+    assert len(a)==N
+    assert len(c)==N
+    assert len(d)==N
+    if copy:
+        a=a.copy()
+        b=b.copy()
+        c=c.copy()
+        d=d.copy()
+    return tdma_c(a,b,c,d)
+
+#######################
+### FD
+#######################
+
+
+
 # Wong et al Solid-State Electronics Vol. 37, No. I, pp. 61~64, 1994
 # http://dx.doi.org.proxy.library.cornell.edu/10.1016/0038-1101(94)90105-8
 DEF ORDER=7
@@ -13,75 +60,12 @@ b1[:]=[.76514793,.60488667,.19003355,2.00193968e-2,-4.12643816e-3,-4.70958992e-4
 b2[:]=[.78095732,.57254453,.21419339,1.38432741e-2,-5.54949386e-3,6.48814900e-4,-2.84050520e-5]
 c[:]=[.752253,.928195,.680839,25.7829,-553.636,3531.43,-3254.65]
 
-####DEF ORDER=3
-
 for j in range(ORDER):
     ap[j] =a[j]*(j+1)
     b1p[ORDER-j-1]=(ORDER-j-1)*b1[ORDER-j-1]
     b2p[ORDER-j-1]=(ORDER-j-1)*b2[ORDER-j-1]
     cp[j] =(1.5-2*j)*c[j]
 
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
-#cdef cnp.ndarray fd12_c(double[::1] x):
-#
-#    cdef:
-#        cnp.ndarray outarr=np.empty(x.shape[0])
-#        double[::1] out=outarr
-#        int i,j,s
-#        double partial_sum=0
-#
-#    for i in range(x.shape[0]):
-#        partial_sum=0
-#        if x[i]<=0:
-#            s=1
-#            for j in range(ORDER):
-#                partial_sum+=s*a[j]*exp((j+1)*x[i])
-#                s*=-1
-#        elif x[i]<=2:
-#            partial_sum=b1[ORDER-1]
-#            for j in range(1,ORDER):
-#                partial_sum=partial_sum*x[i] + b1[ORDER-j-1]
-#        elif x[i]<=5:
-#            partial_sum=b2[ORDER-1]
-#            for j in range(1,ORDER):
-#                partial_sum=partial_sum*x[i] + b2[ORDER-j-1]
-#        else:
-#            for j in range(ORDER):
-#                partial_sum+=c[j]*pow(x[i],1.5-2*j)
-#        out[i]=partial_sum
-#    return outarr
-#
-#
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
-#cdef cnp.ndarray fd12p_c(double[::1] x):
-#    cdef:
-#        cnp.ndarray outarr=np.empty(x.shape[0])
-#        double[::1] out=outarr
-#        int i,j,s
-#        double partial_sum=0
-#
-#    for i in range(x.shape[0]):
-#        partial_sum=0
-#        if x[i]<=0:
-#            s=1
-#            for j in range(ORDER):
-#                partial_sum+=s*ap[j]*exp((j+1)*x[i])
-#                s*=-1
-#        elif x[i]<=2:
-#            partial_sum=b1p[ORDER-2]
-#            for j in range(1,ORDER-1):
-#                partial_sum=partial_sum*x[i] + b1p[ORDER-j-1]
-#        elif x[i]<=5:
-#            partial_sum=b2p[ORDER-2]
-#            for j in range(1,ORDER-1):
-#                partial_sum=partial_sum*x[i] + b2p[ORDER-j-1]
-#        else:
-#            for j in range(ORDER):
-#                partial_sum+=cp[j]*pow(x[i],.5-2*j)
-#        out[i]=partial_sum
-#    return outarr
 
 
 ############################################
@@ -171,9 +155,9 @@ cdef cnp.ndarray fd12p_2d_c(double[:,::] x):
 #    return numpywrapper(&fd12_c,x)
 #def fd12p(x):
 #    return numpywrapper(&fd12p_c,x)
-    
-    
-    
+
+
+
 def numpywrapper(func):
     @wraps(func)
     def func2(x):
@@ -187,7 +171,7 @@ def numpywrapper(func):
 @numpywrapper
 def fd12(x): return fd12_2d_c(x)
 
-@numpywrapper    
+@numpywrapper
 def fd12p(x):
     #print(x.shape)
     return fd12p_2d_c(x)

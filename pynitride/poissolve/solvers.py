@@ -3,8 +3,7 @@ import numbers
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from pynitride.poissolve.maths.tdma import tdma
-from pynitride.poissolve.maths.cfermidiracintegral import fd12, fd12p
+from pynitride.poissolve.maths import tdma, fd12, fd12p
 from pynitride import ParamDB, MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 
 pmdb=ParamDB(units='neu')
