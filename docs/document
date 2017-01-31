@@ -4,5 +4,5 @@ if [[ "$PWD" = *docs ]]; then
     exit
 fi
 cd docs
-sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct ../tests -f -e
+sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct -f -e
 make html

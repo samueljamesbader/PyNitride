@@ -5,3 +5,4 @@ PyNitride
    :maxdepth: 4
 
    pynitride
+   tests
