@@ -1,6 +1,13 @@
 pynitride package
 =================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pynitride.poissolve
+
 Submodules
 ----------
 

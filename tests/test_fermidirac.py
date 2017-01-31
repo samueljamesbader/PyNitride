@@ -6,7 +6,7 @@ from poissolve.mesh.functions import MaterialFunction, PointFunction, RegionFunc
 from poissolve.solvers.fermidirac import FermiDirac3D
 from poissolve.solvers.poisson import PoissonSolver
 
-from pynitride.poissolve.mesh.structure import EpiStack, Mesh
+from pynitride.poissolve.mesh import EpiStack, Mesh
 
 if __name__=='__main__':
     #pytest.main(args=[__file__])

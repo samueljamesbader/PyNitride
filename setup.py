@@ -6,7 +6,7 @@ ext_options = {"compiler_directives": {"profile": True}, "annotate": True}
 setup(
     name='Poissolve',
     version='0.1.2',
-    packages=['poissolve', 'poissolve.maths', 'poissolve.tests', 'poissolve.solvers'],
+    packages=['poissolve', 'poissolve.maths', 'poissolve.tests', 'poissolve.solvers_old'],
     url='',
     license='',
     author='Samuel James Bader',

@@ -160,30 +160,32 @@ class Value():
         else:
             return ParamDB._ureg(raw)
 
-    @staticmethod
-    def to_unit(val,unit):
-        r""" Convert a number from PyNitride's internal units to any other units.
+def parse(val):
+    v=ParamDB._ureg(val)
+    return v.to_base_units().magnitude
 
-        Any number used in PyNitride or pulled from the parameter database is assumed to be in "nanoelectronic units", and
-        this function provides conversion to other units for outputing readable results to a user.
-        Note that this function does not and could not possibly ensure that your conversion is dimensionally valid, since
-        the val input is just a number.  The user is responsible for knowing what val is (eg a distance, or an energy etc)
-        and requesting sensible output dimensions.  The output dimensions are interpreted by Pint and a full list of allowed
-        values (including units such as ``meter``, prefixed units such as ``meV``, more complex units like ``cm**-2`` and
-        constants such as ``hbar``) is provided in the
-        `Pint docs <https://github.com/hgrecco/pint/blob/master/pint/default_en.txt>`_.
+def to_unit(val,unit):
+    r""" Convert a number from PyNitride's internal units to any other units.
 
-        :param val: A numerical quantity which is in the internal unit system of PyNitride
-        :param unit: The desired units for the result as a string (eg "cm**-2")
-        :return: the number representing that quantity in the desired units.
-        """
-        pmdb=ParamDB()
-        return val/Value(unit).neu
+    Any number used in PyNitride or pulled from the parameter database is assumed to be in "nanoelectronic units", and
+    this function provides conversion to other units for outputing readable results to a user.
+    Note that this function does not and could not possibly ensure that your conversion is dimensionally valid, since
+    the val input is just a number.  The user is responsible for knowing what val is (eg a distance, or an energy etc)
+    and requesting sensible output dimensions.  The output dimensions are interpreted by Pint and a full list of allowed
+    values (including units such as ``meter``, prefixed units such as ``meV``, more complex units like ``cm**-2`` and
+    constants such as ``hbar``) is provided in the
+    `Pint docs <https://github.com/hgrecco/pint/blob/master/pint/default_en.txt>`_.
+
+    :param val: A numerical quantity which is in the internal unit system of PyNitride
+    :param unit: The desired units for the result as a string (eg "cm**-2")
+    :return: the number representing that quantity in the desired units.
+    """
+    return val/ParamDB._ureg(unit)
 
 class ParamDB(MultilevelDict):
 
     # Enforce singleton pattern
-    def __init__(self,globalDB=True,units='Pint',temperature=300):
+    def __init__(self,globalDB=True,units='neu',temperature=300):
 
         # Make sure a static unit registry is loaded
         if not hasattr(ParamDB,'_ureg'):
@@ -303,59 +305,12 @@ class ParamDB(MultilevelDict):
 
         if regenerate_index: self.regenerate_index()
 
-    def _read_1DP_paramfile(self,filehandle, regenerate_index=True):
-
-        for line in filehandle:
-            mo=re.match(r"^(\w+)\s+binary\s+\w+",line.strip())
-            if mo:
-                matname=mo.groups(0)[0]
-
-                tmp={}
-                next(filehandle) # skip mystery zeros line in materials file
-                for line in filehandle:
-                    mo=re.match(r"(\w+)=([\d\*eE\+\-\.Temp]+)",line)
-                    if mo is None: break
-                    try:
-                        tmp[mo.groups()[0]]=eval("(lambda Temp: "+mo.groups()[1].replace('^','**')+")("+str(to_unit(T,'K'))+")")
-                        #if matname=="GaN" or matname=="AlN":
-                            #if mo.groups()[0]=='pol':
-                                #print(mo.groups(),tmp[mo.groups()[0]])
-                    except Exception as e:
-                        print(e)
-                        print(mo.groups())
-                        import numpy as np
-                        tmp[mo.groups()[0]]=np.NaN
-
-                import scipy.constants as const
-                self['material',matname,'conditions','default']=dict(
-                    bands=dict(
-                        Eg=tmp['eg'] *eV,
-                        DEc=tmp['dec'] *eV,
-                        barrier=dict(),
-                        electron=dict(
-                            Gamma=dict(g=2*tmp['val'],mzs=tmp['me']*m_e,mxys=tmp['me']*m_e,mdos=tmp['me']*m_e,DE=0)),
-                        hole=dict(
-                            HH=dict(g=2,mzs=tmp['mh']*m_e,mxys=tmp['mh']*m_e,mdos=tmp['mh']*m_e,DE=0),
-                            LH=dict(g=2,mzs=tmp['mlh']*m_e,mxys=tmp['mlh']*m_e,mdos=tmp['mlh']*m_e,DE=0),
-                            SO=dict(g=2,mzs=tmp['mhso']*m_e,mxys=tmp['mhso']*m_e,mdos=tmp['mhso']*m_e,DE=0))),
-                    dielectric=dict(eps=tmp['er']*epsilon_0),dopant=dict(
-                        Donor=dict(type='Donor',E=tmp['ed']*eV, g=2),
-                        Acceptor=dict(type='Acceptor',E=tmp['ea']*eV, g=4),
-                        DeepDonor=dict(type='Donor',E=tmp['edd']*eV, g=2),
-                        DeepAcceptor=dict(type='Acceptor',E=tmp['eda']*eV, g=4)),
-                    polarization=dict(Ptot=-tmp['pol']/const.elementary_charge/cm**2))
-        if regenerate_index: self.regenerate_index()
 
     def make_accessible(self,destdict,variables=[],variablenames=None):
         if variablenames is None: variablenames=variables
         for v,vn in zip(variables,variablenames):
             destdict[vn]=getattr(Value(v),self._extract)
 
-#def parse(val):
-    #pmdb=ParamDB()
-    #v=pmdb._ureg(val)
-    #if isinstance(v,numbers.Number): return v
-    #else: return v.to_base_units().magnitude
 
 
 class Material():

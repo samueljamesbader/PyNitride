@@ -17,7 +17,10 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
    :maxdepth: 2
 
         API Reference <modules>
-        Math and Physics <solve_schrodinger>
+        Math and Physics <static_rst/solve_schrodinger>
+        Units system <static_rst/units.rst>
+        Parameter Database <static_rst/parameter_database.rst>
+
 
 Or connect with the project author (`Sam Bader <http://sambader.net>`_)
 and the associated research groups: (`Prof Jena <https://djena.engineering.cornell.edu/>`_

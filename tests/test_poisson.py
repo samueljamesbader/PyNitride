@@ -1,7 +1,7 @@
 import pytest
 
-from pynitride.poissolve.mesh.functions import MaterialFunction, PointFunction, MidFunction
-from pynitride.poissolve.solvers.poisson import PoissonSolver
+from pynitride.poissolve.mesh import PointFunction, MaterialFunction, MidFunction
+from pynitride.poissolve.solvers import PoissonSolver
 
 if __name__=='__main__':
     #pytest.main(args=[__file__])

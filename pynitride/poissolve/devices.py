@@ -1,8 +1,10 @@
 import matplotlib.pyplot as mpl
 mpl.interactive(True)
 from pynitride.paramdb import nm, cm, eV
-from pynitride.poissolve.mesh.structure import Mesh, EpiStack
-from pynitride.poissolve.mesh.functions import PointFunction, MaterialFunction,RegionFunction,DeltaFunction
+from pynitride.poissolve.mesh import Mesh, EpiStack, DeltaFunction
+from pynitride.poissolve.mesh.functions import MaterialFunction,RegionFunction,DeltaFunction
+from pynitride import PointFunction, MaterialFunction, RegionFunction
+
 
 def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
 
@@ -87,7 +89,8 @@ def super_gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 
 if __name__=='__main__':
 
-    from pynitride.poissolve.solvers.coupled import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
+    from pynitride.poissolve.solvers_old.coupled import Coupled_Schrodinger_Poisson
+    from pynitride.poissolve.solvers import Coupled_FD_Poisson, Coupled_Schrodinger_Poisson
     from pynitride.poissolve.visual import plot_QFV, plot_wavefunctions
 
     mpl.close('all')
