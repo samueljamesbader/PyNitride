@@ -14,9 +14,9 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-        API Reference <modules>
+        API Reference <pynitride>
         Math and Physics <static_rst/solve_schrodinger>
         Units system <static_rst/units.rst>
         Parameter Database <static_rst/parameter_database.rst>
@@ -24,7 +24,7 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
 
 Or connect with the project author (`Sam Bader <http://sambader.net>`_)
 and the associated research groups: (`Prof Jena <https://djena.engineering.cornell.edu/>`_
-and `Prof Xing <http://grace.engineering.cornell.edu/>`_)
+and `Prof Xing <http://grace.engineering.cornell.edu/>`_).  We love talking about device physics!
 
 Indices and tables
 ==================
