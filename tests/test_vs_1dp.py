@@ -61,8 +61,8 @@ def doit():
 
 if __name__=='__main__':
     import cProfile
-    cProfile.run("doit()",'crestats.txt')
-    #m,sm,csp=doit()
+    #cProfile.run("doit()",'crestats.txt')
+    m,sm,csp=doit()
     import matplotlib.pyplot as mpl
     mpl.interactive(True)
     plot_carrierFV(m)
