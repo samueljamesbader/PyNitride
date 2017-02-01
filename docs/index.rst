@@ -26,10 +26,10 @@ Or connect with the project author (`Sam Bader <http://sambader.net>`_)
 and the associated research groups: (`Prof Jena <https://djena.engineering.cornell.edu/>`_
 and `Prof Xing <http://grace.engineering.cornell.edu/>`_).  We love talking about device physics!
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. Indices and tables
+    ==================
+..
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
 

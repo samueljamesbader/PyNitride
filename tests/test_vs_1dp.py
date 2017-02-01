@@ -1,5 +1,4 @@
 from os.path import expanduser, join
-
 from pynitride import ROOT_DIR, MaterialFunction
 from pynitride.paramdb import ParamDB, Value
 from pynitride.poissolve.snider import import_1dp_input, import_1dp_output, convert_1dpmat_to_PyNitride
@@ -31,6 +30,7 @@ def doit():
     convert_1dpmat_to_PyNitride('/usr/local/bin/materials.txt','1dp.txt')
     pmdb=ParamDB(units='neu')
     pmdb.clear()
+    pmdb._dict['T']=300
     pmdb.read_file('1dp.txt')
 
     indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
@@ -60,8 +60,9 @@ def doit():
 
 
 if __name__=='__main__':
-    #cProfile.run("doit()",'crestats.txt')
-    m,sm,csp=doit()
+    import cProfile
+    cProfile.run("doit()",'crestats.txt')
+    #m,sm,csp=doit()
     import matplotlib.pyplot as mpl
     mpl.interactive(True)
     plot_carrierFV(m)
@@ -72,6 +73,7 @@ if __name__=='__main__':
     if 1:
         pmdb=ParamDB(units='neu')
         pmdb.clear()
+        pmdb._dict['T']=300
         pmdb.read_file('1dp.txt')
         indir=expanduser(join(ROOT_DIR,"tests","1DPoisson_Runs"))
         m2,sm2=import_1dp_input(join(indir,"GaN_AlN_HEMT"),pmdb=pmdb)

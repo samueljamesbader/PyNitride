@@ -48,6 +48,7 @@ class EpiStack():
         else:
             self._layers=[Layer(l[0], l[1], l[2],pmdb=pmdb) if len(l) == 3 else Layer(l[0], l[0], l[1],pmdb=pmdb) for l in args]
         self._surface=surface
+        self._pmdb=pmdb
 
     @property
     def layers(self):
@@ -192,6 +193,8 @@ class Mesh():
 
         # Store functions which live on this mesh
         self._functions = {}
+
+        self.pmdb=stack._pmdb
 
     def index(self, z):
         return np.rint(self._z2i_interp(z)).astype(int)
@@ -342,6 +345,7 @@ class SubMesh(Mesh):
         # interpolate the zp -> index mapping
         self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
 
+        self.pmdb=mesh.pmdb
 
 if __name__ == '__main__':
     from runpy import run_path
