@@ -1,5 +1,6 @@
 from distutils.core import setup
 from Cython.Build import cythonize
+import numpy
 
 ext_options = {"compiler_directives": {"profile": True}, "annotate": True}
 
@@ -13,5 +14,6 @@ setup(
     author_email='samuel.james.bader@gmail.com',
     description='Python utilities for 1D band diagrams and simulation',
     ext_modules = cythonize(["pynitride/poissolve/maths.pyx"], **ext_options),
-    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython', 'pint']
+    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython', 'pint'],
+    include_dirs=[numpy.get_include()]
 )
