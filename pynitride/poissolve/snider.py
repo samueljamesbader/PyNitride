@@ -1,7 +1,6 @@
 from pynitride import ParamDB, EpiStack, Mesh, PointFunction, ROOT_DIR, ConstantFunction, RegionFunction, MaterialFunction
 pmdb=ParamDB(units='neu')
-pmdb.make_accessible(globals(),['e','cm']); q=e
-T=300
+q,cm=pmdb.quantity("e,cm")
 
 from textwrap import dedent
 import numpy as np
@@ -119,11 +118,13 @@ def import_1dp_output(fileprefix,m,sm):
     for b,vi in v.items(): sm['Energies_'+b]=ConstantFunction(sm,vi)
 
 def convert_1dpmat_to_PyNitride(matfilename,outfilename,to_root=True):
+    T=300
     if to_root: outfilename=os.path.join(ROOT_DIR,"parameters",outfilename)
     with open(outfilename,'w') as out:
         ts=time.time()
         dt=datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
         out.write("PyNitride v2\n\n# Autoconverted from 1D Poisson materials.txt "+dt+"\n")
+        out.write("#Assuming T=300K")
         with open(matfilename) as f:
             next(f)
             for line in f:

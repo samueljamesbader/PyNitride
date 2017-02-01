@@ -6,14 +6,6 @@ import scipy.constants as const
 import numbers
 import numpy as np
 
-def parr(arr):
-    if not len(arr): return arr
-    if hasattr(arr[0],'units'):
-        u=arr[0].units
-        return np.array([(a/u).magnitude for a in arr])*u
-    else:
-        return np.array(arr)
-
 class MultilevelDict():
     def __init__(self,dictionary={}):
         if isinstance(dictionary,MultilevelDict):
@@ -31,6 +23,9 @@ class MultilevelDict():
 
     def _subgetitem(self, cont, keyparts,extract, **constraints):
         if not len(keyparts):
+            # this first "if" is a hack to make temperature work since don't have setitem yet
+            if isinstance(cont,numbers.Number):
+                return cont
             if isinstance(cont,Value):
                 return getattr(cont,extract)
             elif isinstance(cont,dict):
@@ -44,11 +39,11 @@ class MultilevelDict():
                 if not isinstance(cont,list):
                     raise Exception("Using [...] in a lookup expects an array parameter at that level.")
                 if k=="[:]":
-                    return parr([self._subgetitem(v,keyparts[1:],extract,**constraints) for v in cont])
+                    return self.quantity([self._subgetitem(v,keyparts[1:],extract,**constraints) for v in cont])
                 else:
                     return self._subgetitem(cont[int(k[1:-1])], keyparts[1:], extract,**constraints)
             else:
-                return parr([self._subgetitem(v,keyparts,extract,**constraints) for v in cont])
+                return self.quantity([self._subgetitem(v,keyparts[1:],extract,**constraints) for v in cont])
 
         if k in cont:
             return self._subgetitem(cont[k], keyparts[1:], extract,**constraints)
@@ -64,7 +59,8 @@ class MultilevelDict():
                 for keq in subs if keq.startswith(k+"=")]
             if len(keyparts)==1:
                 return [keq.split("=")[1] for keq in subs if keq.startswith(k+"=")]
-            return parr([v for v in vals if v is not None])
+
+            return self.quantity([v for v in vals if v is not None])
 
         for c in constraints:
             if c in cks:
@@ -129,6 +125,37 @@ class MultilevelDict():
         else:
             items=[self._index[item_ind] for item_ind in item_inds]
         return [".".join(i) for i in items]
+
+    def quantity(self,*args):
+        # If it's a single array, and not made of numeric or Pint quantity elements, just return as is
+        if len(args)==1 and hasattr(args[0],'__iter__') and not isinstance(args[0],str):
+            if args[0]==[]: return np.array([])
+            elif not (isinstance(args[0][0],numbers.Number) or hasattr(args[0][0],"units")):
+                return args[0]
+
+        if self._units=='neu':
+            if len(args)==1 and isinstance(args[0],str):
+                if "," in args[0]:
+                    return [self.quantity(s) for s in args[0].split(',')]
+            elif len(args)==1 and hasattr(args[0],'__iter__'):
+                return np.array([self.quantity(a) for a in args[0]])
+            return ParamDB._ureg.Quantity(*args).to_base_units().magnitude
+        elif self._units=='Pint':
+            if len(args)==1 and isinstance(args[0],str):
+                if "," in args[0]:
+                    return [self.quantity(s) for s in args[0].split(',')]
+            elif len(args)==1 and hasattr(args[0],'__iter__'):
+                lst=args[0]
+                if not len(lst):
+                    return np.array([])
+                elif hasattr(lst[0], 'units'):
+                    u=lst[0].units
+                    return np.array([(a/u).magnitude for a in lst]) * u
+                else:
+                    return np.array(lst)
+            return ParamDB._ureg.Quantity(*args)
+
+
 
 class Value():
     def __init__(self, val, preparsed=False):
@@ -202,6 +229,7 @@ class ParamDB(MultilevelDict):
             ParamDB._global.read_file("_meta.txt", regenerate_index=False)
             for filename in ParamDB._global["meta.default global parameter files"]:
                 ParamDB._global.read_file(filename, regenerate_index=False)
+            ParamDB._global._dict['T']=temperature
             ParamDB._global.regenerate_index()
 
         # If a global database is desired, we just need to share its data
@@ -214,8 +242,10 @@ class ParamDB(MultilevelDict):
             self.read_file("_meta.txt", regenerate_index=False)
             for filename in self["meta.default local parameter files"]:
                 self.read_file(filename, regenerate_index=False)
+            self._dict['T']=temperature
             self.regenerate_index()
 
+        self._units=units
         if units=='Pint':
             self._extract='value'
         elif units=='neu':
@@ -306,11 +336,11 @@ class ParamDB(MultilevelDict):
         if regenerate_index: self.regenerate_index()
 
 
-    def make_accessible(self,destdict,variables=[],variablenames=None):
-        if variablenames is None: variablenames=variables
-        for v,vn in zip(variables,variablenames):
-            destdict[vn]=getattr(Value(v),self._extract)
-
+    def get_constants(self,constants):
+        if self._units=='Pint':
+            return [ParamDB._ureg(c) for c in constants.split(",")]
+        elif self._units=='neu':
+            return [ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")]
 
 
 class Material():

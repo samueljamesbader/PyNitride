@@ -1,3 +1,8 @@
+r""" Provides several cython-optimized mathematical utilities for band diagram generation.
+
+These functions are validated and speed-checked by the :py:mod:`tests.test_maths` module.
+"""
+
 cimport cython
 cimport numpy as cnp
 import numpy as np
@@ -86,110 +91,113 @@ for j in range(ORDER):
     b1p[ORDER-j-1]=(ORDER-j-1)*b1[ORDER-j-1]
     b2p[ORDER-j-1]=(ORDER-j-1)*b2[ORDER-j-1]
     cp[j] =(1.5-2*j)*c[j]
-
-
-# c-function to implement Fermi-Dirac 1/2.  See :py:func:`~pynitride.poissolve.maths.fd12` for more.
-cdef double fd12_scalar(double x):
+############################################
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef cnp.ndarray fd12_2d_c(double[:,::] x):
 
     cdef:
-        double partial_sum
-        long j
-        long s
+        cnp.ndarray outarr=np.empty((x.shape[0],x.shape[1]))
+        double[:,::] out=outarr
+        int ic,i,j,s
+        double partial_sum=0
 
-    # Follows the sums from Wong et al (see documentation for fd12)
-    partial_sum=0
-    if x<=-10:
-        partial_sum=exp(x)
-    elif x<=0:
-        s=1
-        for j in range(ORDER):
-            partial_sum+=s*a[j]*exp((j+1)*x)
-            s*=-1
-    elif x<=2:
-        partial_sum=b1[ORDER-1]
-        for j in range(1,ORDER):
-            partial_sum=partial_sum*x + b1[ORDER-j-1]
-    elif x<=5:
-        partial_sum=b2[ORDER-1]
-        for j in range(1,ORDER):
-            partial_sum=partial_sum*x + b2[ORDER-j-1]
-    else:
-        for j in range(ORDER):
-            partial_sum+=c[j]*pow(x,1.5-2*j)
-    return partial_sum
+    for ic in range(x.shape[0]):
+        for i in range(x.shape[1]):
+            partial_sum=0
+            if x[ic,i]<=-10:
+                partial_sum=exp(x[ic,i])
+            elif x[ic,i]<=0:
+                s=1
+                for j in range(ORDER):
+                    partial_sum+=s*a[j]*exp((j+1)*x[ic,i])
+                    s*=-1
+            elif x[ic,i]<=2:
+                partial_sum=b1[ORDER-1]
+                for j in range(1,ORDER):
+                    partial_sum=partial_sum*x[ic,i] + b1[ORDER-j-1]
+            elif x[ic,i]<=5:
+                partial_sum=b2[ORDER-1]
+                for j in range(1,ORDER):
+                    partial_sum=partial_sum*x[ic,i] + b2[ORDER-j-1]
+            else:
+                for j in range(ORDER):
+                    partial_sum+=c[j]*pow(x[ic,i],1.5-2*j)
+            out[ic,i]=partial_sum
+    return outarr
 
-
-# c-function to implement Fermi-Dirac 1/2 Derivative.  See :py:func:`~pynitride.poissolve.maths.fd12p` for more.
-cdef double fd12p_scalar(double x):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef cnp.ndarray fd12p_2d_c(double[:,::] x):
     cdef:
-        double partial_sum
-        long j
-        long s
-    partial_sum=0
+        cnp.ndarray outarr=np.empty((x.shape[0],x.shape[1]))
+        double[:,::] out=outarr
+        int ic,i,j,s
+        double partial_sum=0
 
-    # Code is the same as in fd12_scalar except using the primed coefficients,
-    # and changing the power in the final sum
-    if x<=-10:
-        partial_sum=exp(x)
-    elif x<=0:
-        s=1
-        for j in range(ORDER):
-            partial_sum+=s*ap[j]*exp((j+1)*x)
-            s*=-1
-    elif x<=2:
-        partial_sum=b1p[ORDER-1]
-        for j in range(1,ORDER-1):
-            partial_sum=partial_sum*x + b1p[ORDER-j-1]
-    elif x<=5:
-        partial_sum=b2p[ORDER-1]
-        for j in range(1,ORDER-1):
-            partial_sum=partial_sum*x + b2p[ORDER-j-1]
-    else:
-        for j in range(ORDER):
-            partial_sum+=cp[j]*pow(x,.5-2*j)
-    return partial_sum
+    for ic in range(x.shape[0]):
+        for i in range(x.shape[1]):
+            partial_sum=0
+            if x[ic,i]<=-10:
+                partial_sum=exp(x[ic,i])
+            elif x[ic,i]<=0:
+                s=1
+                for j in range(ORDER):
+                    partial_sum+=s*ap[j]*exp((j+1)*x[ic,i])
+                    s*=-1
+            elif x[ic,i]<=2:
+                partial_sum=b1p[ORDER-1]
+                for j in range(1,ORDER-1):
+                    partial_sum=partial_sum*x[ic,i] + b1p[ORDER-j-1]
+            elif x[ic,i]<=5:
+                partial_sum=b2p[ORDER-1]
+                for j in range(1,ORDER-1):
+                    partial_sum=partial_sum*x[ic,i] + b2p[ORDER-j-1]
+            else:
+                for j in range(ORDER):
+                    partial_sum+=cp[j]*pow(x[ic,i],.5-2*j)
+            out[ic,i]=partial_sum
+    return outarr
+##################################################
 
-cdef cnp.ndarray dimsimple(double (*func)(double),x):
-    r"""Broadcasts the scalar function func over the numpy array x.
 
-    :param func: a cdef function which takes a double and returns a double.
-    :param x: a numpy float array of arbitrary shape and dimensionality
-    :return: an array of the same shape as ``x``, with the values obtained by calling ``func`` element-wise
-    """
-    x=np.asarray(x,dtype='float')
-    out=np.empty(x.shape,np.float)
-    cdef double xi
 
-    it=cnp.PyArray_MultiIterNew(2,<cnp.PyObject*>x,<cnp.PyObject*>out)
-    while cnp.PyArray_MultiIter_NOTDONE(it):
-        xi=(<double*>(cnp.PyArray_MultiIter_DATA(it,0)))[0]
-        (<double*>cnp.PyArray_MultiIter_DATA(it,1))[0]=func(xi)
-        cnp.PyArray_MultiIter_NEXT(it)
-    return out
 
-# Table 6 and Equations 24-26
+
+
+
+
+
+#cdef numpywrapper(cnp.ndarray (*func)(double[::1]),x):
+#    if hasattr(x,'__iter__'):
+#        return func(np.asarray(x,dtype='float'))
+#    else:
+#        return func(np.asarray([x],dtype='float'))[0]
+#
+#def fd12(x):
+#    return numpywrapper(&fd12_c,x)
+#def fd12p(x):
+#    return numpywrapper(&fd12p_c,x)
+
+
+
+def numpywrapper(func):
+    @wraps(func)
+    def func2(x):
+        print(type(x))
+        print(x.shape)
+        if hasattr(x,'__iter__'):
+            return np.reshape(func(np.atleast_2d(np.asarray(x,dtype='float'))),x.shape)
+            #return func(np.asarray(x,dtype='float'))
+        else:
+            return func(np.asarray([[x]],dtype='float'))[0,0]
+    return func2
+
+@numpywrapper
 def fd12(x):
-    r"""Implements the Fermi-Dirac integral of order 1/2 (Van Halen and Pulfrey approximation).
+    return fd12_2d_c(x)
 
-    This is essentially as given in Table 6 and Equations 24-26 of
-    `(Wong et al Solid-State Electronics 1994) <http://dx.doi.org/10.1016/0038-1101(94)90105-8>`_, except that
-    for very negative arguments (:math:`x < -10`), this function will replace the sum over integrals by simply
-    the first term (:math:`e^x`).  Since, in a typical simulation, the Fermi-Dirac integral is often computed for
-    arguments with very negative :math:`x` (ie Fermi-level in midgap), this often results in a several-times
-    speedup.
-
-    :param x: the argument to the Fermi-Dirac 1/2 integral, as a numpy array.
-    :returns: the evaluation, as a numpy array.
-    """
-    return dimsimple(fd12_scalar,x)
-
+@numpywrapper
 def fd12p(x):
-    r"""Implements the derivative of the :py:func:`~pynitride.poissolve.maths.fd12`.
-
-    Computes :math:`\mathcal{F}_{1/2}'(x)`, which is equal to :math:`\mathcal{F}_{-1/2}(x)`.  The appropriate sums
-    were obtained by simply differentiating the expressions used to form :py:func:`~pynitride.poissolve.maths.fd12`.
-
-    :param x: the argument to the Fermi-Dirac -1/2 integral, as a numpy array.
-    :returns: the evaluation, as a numpy array.
-    """
-    return dimsimple(fd12p_scalar,x)
+    #print(x.shape)
+    return fd12p_2d_c(x)

@@ -7,8 +7,7 @@ from pynitride.poissolve.maths import tdma, fd12, fd12p
 from pynitride import ParamDB, MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 
 pmdb=ParamDB(units='neu')
-pmdb.make_accessible(globals(),["k","hbar","e"]);q=e
-kT=k*300
+k,hbar,q=pmdb.quantity("k,hbar,e")
 
 
 class SchrodingerSolver():
@@ -17,8 +16,7 @@ class SchrodingerSolver():
 
         :param mesh: the :py:class:`~poissolve.mesh.structure.Mesh` on which the Schrodinger problem is defined
         :param carriers: list of carriers (elements may be 'electron' or 'hole') to quantize
-            energy levels beyond those solved for.)
-        """
+       """
         self._mesh=m=mesh
         self._dopants=FermiDirac3D.identifydopants(mesh)
         self._Nc,self._Nv=FermiDirac3D.effective_dos_3d(mesh)
@@ -85,7 +83,7 @@ class SchrodingerSolver():
         return energies, psi_out
 
     @staticmethod
-    def carrier_density(psi,g,mxys,eta,summed=True):
+    def carrier_density(psi,g,mxys,eta,kT,summed=True):
         return (g/(2*np.pi)*kT/hbar**2)* \
               np.sum(mxys*(psi**2*(np.log(1+np.exp(eta)))).T,axis=1)
 
@@ -99,6 +97,7 @@ class SchrodingerSolver():
     def solve(self,activation=1, eff_mass_average=True):
         m=self._mesh
         EF=m['EF']
+        kT=k*m.pmdb['T']
 
         for carrier,bands in self._props.items():
             electron,hole=(carrier=="electron"),(carrier=="hole")
@@ -121,7 +120,7 @@ class SchrodingerSolver():
 
                 if electron: eta=(m['EF']-E_i)/kT
                 elif hole:   eta=(E_i-m['EF'])/kT
-                conc+=self.carrier_density(Psi,bandparms['g'],meff,eta)
+                conc+=self.carrier_density(Psi,bandparms['g'],meff,eta,kT)
                 deriv+=self.carrier_density_deriv(Psi,bandparms['g'],meff,eta)
 
                 if electron: np.maximum(E_i[-1],m['Ec'],out=m['Ec_eff'][i,:])
@@ -136,22 +135,22 @@ class SchrodingerSolver():
         if 'electron' not in carriers:
             m['n']=0
             m['nderiv']=0
-        for k,v in zip(['n','p','nderiv','pderiv'],
+        for key,v in zip(['n','p','nderiv','pderiv'],
                 FermiDirac3D.carrier_density(EF,
                     Ec=m['Ec_eff'] if 'electron' in carriers else m['Ec'],
                     Ev=m['Ev_eff'] if 'hole' in carriers else m['Ev'],
-                    Nc=self._Nc,Nv=self._Nv,
+                    Nc=self._Nc,Nv=self._Nv,kT=kT,
                     conduction_band_shifts=0 if 'electron' in carriers else self._cDE,
                     valence_band_shifts=0 if 'hole' in carriers else self._vDE,
                     compute_derivs=True)):
-            m[k]+=v
+            m[key]+=v
 
         m['Ndp'],m['Nam'],m['Ndpderiv'],m['Namderiv']= \
-            FermiDirac3D.ionized_donor_density(m,EF,m['Ec'],m['Ev'],self._dopants,compute_derivs=True)
+            FermiDirac3D.ionized_donor_density(m,EF,m['Ec'],m['Ev'],kT,self._dopants,compute_derivs=True)
 
         if activation!=1:
-            for k in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
-                m[k]*=activation
+            for key in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
+                m[key]*=activation
 
         m['rho']=activation*m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
         m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
@@ -318,7 +317,7 @@ class FermiDirac3D():
 
     @staticmethod
     def effective_dos_3d(mesh):
-
+        kT=k*mesh.pmdb['T']
         # We'll have to confirm these formulae (factors of 2?) later...
         Nc=MaterialFunction(mesh,pos='point',prop=lambda mat:
             mat['electron.band.g']*(mat['electron.band.mdos']*kT/(2*np.pi*hbar**2))**(3/2))
@@ -333,7 +332,7 @@ class FermiDirac3D():
         return cDE,vDE
 
     @staticmethod
-    def carrier_density(EF,Ec,Ev,Nc,Nv,conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True):
+    def carrier_density(EF,Ec,Ev,Nc,Nv,kT,conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True):
 
         # Can save a copy and loop by checking if shifts are zero
         Ec_eff=Ec if conduction_band_shifts is None else Ec+conduction_band_shifts
@@ -351,7 +350,7 @@ class FermiDirac3D():
             return n,p
 
     @staticmethod
-    def ionized_donor_density(mesh,EF,Ec,Ev,dopants,compute_derivs=True):
+    def ionized_donor_density(mesh,EF,Ec,Ev,kT,dopants,compute_derivs=True):
 
         # Tiwari Compound Semiconductor Devices pg31-32
 
@@ -376,20 +375,21 @@ class FermiDirac3D():
         EF=m['EF']
         Ec=m['Ec']
         Ev=m['Ev']
+        kT=k*m.pmdb['T']
 
         m['Ndp'],m['Nam'],m['Ndpderiv'],m['Namderiv']=\
-            self.ionized_donor_density(m,EF,Ec,Ev,self._dopants,compute_derivs=True)
+            self.ionized_donor_density(m,EF,Ec,Ev,kT,self._dopants,compute_derivs=True)
 
         if quantum_band_shift:
-            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,
+            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,kT,
                 conduction_band_shifts=self._cDE,valence_band_shifts=self._vDE,compute_derivs=True)
         else:
-            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,
+            m['n'],m['p'],m['nderiv'],m['pderiv']=self.carrier_density(EF,Ec,Ev,self._Nc,self._Nv,kT,
                conduction_band_shifts=None,valence_band_shifts=None,compute_derivs=True)
 
         if activation!=1:
-            for k in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
-                m[k]*=activation
+            for key in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
+                m[key]*=activation
 
         m['rho']=activation*m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
         m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])

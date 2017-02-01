@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+r""" Tests the high-performance mathematical methods in :py:mod:`pynitride.poissolve.maths`."""
 import numpy as np
 from pynitride.poissolve.maths import fd12,fd12p, tdma
 from scipy.sparse import diags
@@ -10,7 +11,7 @@ if __name__=="__main__": pytest.main(args=[__file__,'-s'])
 rtols={'fd12':1e-4, 'fd12p':1e-3}
 
 def test_fd12():
-    r"""Spot-checks :py:func:`~pynitride.poissolve.maths.fd12` against a couple Nanohub-computed values"""
+    r"""Spot-checks :py:func:`~pynitride.poissolve.maths.fd12` against a couple Nanohub-computed values."""
     
     # Give list, get ndarray
     f=fd12([0])
@@ -37,7 +38,7 @@ def test_fd12():
         "fd12 failed numerical comparison to Nanohub-computed values."
 
 def test_fd12p():
-    r"""Spot-checks :py:func:`~pynitride.poissolve.maths.fd12p` against a couple Nanohub-computed values"""
+    r"""Spot-checks :py:func:`~pynitride.poissolve.maths.fd12p` against a couple Nanohub-computed values."""
 
     # Give list, get ndarray
     f=fd12p([0])

@@ -1,8 +1,6 @@
 import matplotlib.pyplot as mpl
 from pynitride.paramdb import ParamDB
-ParamDB().make_accessible(globals(),["cm","MV","k","hbar","e","eV"])
-kT=k*300
-q=e
+cm,MV,k,hbar,q,eV=ParamDB().quantity("cm,MV,k,hbar,e,eV")
 import numpy as np
 
 def plot_QFV(mesh):
