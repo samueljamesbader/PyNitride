@@ -352,7 +352,7 @@ class Material():
         self.conditions=conditions
         self._pmdb=pmdb
     def __getitem__(self,key):
-        val=self(key)
+        return self(key)
     def __call__(self,key,default=BaseException,**kwargs):
         if isinstance(key,str):
             key=key.split('.')
