@@ -188,8 +188,6 @@ class PoissonSolver():
         self._left[1:]=eps/(mesh._dz * mesh._dzp[1:])
         self._right[:-1]=eps/(mesh._dz * mesh._dzp[:-1])
         self._center=-MidFunction(mesh,eps/mesh._dz).to_point_function(interp='unweighted')/mesh._dzp
-        #self._center=np.zeros(len(mesh.z))
-        #self._center[1:-1]=-1/(mesh._dz[1:]*mesh._dz[:-1])
         self._center[-1]=self._center[-2]
 
         self._left[:2]=0
@@ -287,7 +285,7 @@ class FermiDirac3D():
         dopants={'Donor':{},'Acceptor':{}}
         for d in [k[:-10] for k in mesh if k.endswith("ActiveConc")]:
 
-            types=set(t for t in (l.material.get('dopant='+d+'.type',default=None) for l in mesh._layers) if t is not None)
+            types=set(t for t in (l.material('dopant='+d+'.type',default=None) for l in mesh._layers) if t is not None)
             if len(types)>1: raise Exception(
                 "Can't have one dopant be acceptor in one material and donor in another.  "\
                 "You'll have to use two separate dopant names.  Sorry. ")

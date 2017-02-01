@@ -10,6 +10,8 @@ import numpy as np
 from matplotlib import pyplot as mpl
 from scipy.interpolate import interp1d
 import pickle
+from math import gcd,ceil
+from functools import reduce
 
 from pynitride.paramdb import Material, ParamDB
 
@@ -34,11 +36,11 @@ class Layer():
         return self._thickness
 
     # if not found and default=... is passed, will return that instead of error
-    def __call__(self, *args, **kwargs):
-        return self._mat(*args,**kwargs)
+    def get(self, key, default=None):
+        return self._mat(key,default=default)
 
     def __getitem__(self, key):
-        return self.__call__(key)
+        return self._mat[key]
 
 
 class EpiStack():
@@ -69,46 +71,62 @@ class EpiStack():
         return self._surface
 
 class Mesh():
-    """ Generates and manages a 1-D mesh."""
+    r""" Generates and manages a dual, potentially non-uniform mesh and functions defined on it.
+
+    See :ref:`Meshing Scheme <mesh>` for a discussion of the defintion and properties of the mesh.
+
+    The algorithm to create the mesh is to step through the regions one-by-one and build the mesh point-by-point.
+    At a point :math:`z`, the mesh will be extended by adding a maximal :math:`dz` which satisfies all the refinement
+    criteria (as a simplification, the criteria are evaluated at :math:`z`, but not :math:`z+dz`).  When the mesh being
+    constructed passes an interface, the entire mesh built since the last interface is shrunk uniformly so that the
+    most recent mesh point matches that interface.
+
+    Refinement criteria are given as a max spacing :math:`dz^p_0` near a refinement point :math:`z_0`, and an
+    exponential growth rate for that :math:`dz`.  This makes it easy to evaluate at any :math:`z` what is the maximal
+    allowed :math:`dz`.  As mentioned, when the mesh is built, the criteria are evaluated at the most recent point z,
+    not at :math:`z+dz`.  So it is possible that :math:`dz` may be slightly larger than the refinement criteria if the
+    limiting refinement is to the right.  If the mesh is sufficiently dense, the refinement criteria will be
+    approximately satisfied. But, because of this detail, note that these criteria are targets (which will be nearly
+    hit), not guarantees.
+
+    :param stack: the :py:class:`~pynitride.poissolve.mesh.EpiStack` representing the device
+    :param max_dz: (number) the maximum mesh spacing allowed globally.
+    :param refinements: a list of spots where the mesh should be refined.
+        Each element is a triple :math:`(z^p_0,dz^p_0,r)`,
+        where :math:`z_0` is the location that should be refined,
+        :math:`dz^p_0` is the target mesh spacing in the region of :math:`z_0`,
+        and :math:`r` is the target rate at which the mesh spacing is allowed to exponentially increase
+        moving away from :math:`z_0`. ie each refinement enforces a constraint of the form
+        :math:`dz \lesssim dz^p_0  r^{|z-z_0|}`.
+        Note that, when creating a uniform mesh, the only effect of this argument is to reduce ``max_dz`` if a
+        refinement with `dz^p_0` tighter than ``max_dz`` is included.
+
+    """
 
     def __init__(self, stack, max_dz, refinements=[], uniform=False):
-        """ Constructs a non-uniform mesh with vertices aligned to the interfaces of a material stack.
-        
-        The algorithm is to step through the regions one-by-one and build the mesh point-by-point.  At a
-        point z, the mesh will be extended by adding a maximal dz which satisfies all the refinement criteria
-        (as a simplification, the criteria are evaluated at z, not z+dz).  When the mesh being constructed
-        passes an interface, the entire mesh built since the last interface is shrunk uniformly so that the
-        last mesh point matches that interface.
-        
-        Refinement criteria are given as a max dz0 near a refinement point z0, and an exponential growth rate
-        for that dz.  This makes it easy to evaluate at any z what is the maximal allowed dz.  As mentioned,
-        when the mesh is built, the criteria are evaluated at the most recent point z, not at z+dz.  So it is
-        possible that dz may be slightly larger than the refinement criteria if the limiting refinement is to
-        the right.  If the mesh is sufficiently dense, the refinement criteria will be approximately satisfied.
-        But, because of this detail, note that these criteria are targets (which will be nearly hit), not
-        guarantees.  
 
-        Arguments:
-            stack: the EpiStack of the device
-            
-            max_dz: the maximum mesh spacing allowed globally.
-            
-            refinements: a list of spots where the mesh should be refined.  Each element is a triple
-                (z0,dz0,r), where z0 is the location that should be refined, dz0 is the target mesh spacing
-                in the region of z0, and r is the target rate at which the mesh spacing is allowed to
-                exponentially increase moving away from z0.  ie each refinement enforces a constraint of
-                the form dz < dz0 * r^|z-z0|.
-
-        """
+        # Make a uniform mesh
         if uniform:
-            from math import gcd,ceil
-            from functools import reduce
+
+            # Get the maximum spacing from the tightest of max_dz and the refinements
+            max_dz=min([max_dz]+[r[1] for r in refinements])
+
+            # Quick util to round and convert to an integer type
             rint=lambda x: int(round(x))
-            tgcd=reduce(gcd,[rint(l.thickness/1e-10) for l in stack])*1e-10
-            totthick=sum([l.thickness for l in stack])
+
+            # Get the gcd of the thicknesses, where distances are discretized to an integer number of milli-Angstroms
+            tgcd=reduce(gcd,[rint(l.thickness/1e-3) for l in stack])*1e-3
+
+            # The spacing to use must be an integer divisor of that gcd,
+            # and ceil guarantees it will be smaller than max_dz
             dz=tgcd/ceil(tgcd/max_dz)
+
+            # Figure out how many points this is, then use linspace to create the mesh
+            totthick=sum([l.thickness for l in stack])
             N=rint(totthick/dz)+1
             fixed_positions=np.linspace(0,totthick,num=N,endpoint=True)
+
+            # List all the interface indices
             interface_indices=np.rint(np.cumsum([l.thickness for l in stack])/dz)
 
         else:
@@ -281,7 +299,6 @@ class Mesh():
         return self._interfacesp
 
     def submesh(self, zbounds):
-        #return SubMesh(self, *list(self.index(zbounds)))
         return SubMesh(self, self.index(zbounds[0]),self.index(zbounds[1])+1)
 
     def save(self,filename):
@@ -298,17 +315,17 @@ class Mesh():
 
 class SubMesh(Mesh):
     """ Represents a Mesh restricted to to particular segment.
-    
+
     A submesh is essentially just a view of a mesh in that segment (data is shared).
     """
 
     """ Construct a submesh.
-    
+
     Arguments:
         mesh: the Mesh from which to draw data
         start: the start index (inclusive) of the slice
         stop: the stop index (exclusive) of the slice
-        
+
     """
 
     def __init__(self, mesh, start, stop):
@@ -474,7 +491,7 @@ class MidFunction(Function):
             out=(output[1:] if not flipped else np.flipud(output[:-1])), axis=-1)
         return output
 
-    def to_point_function(self, interp='unweighted'):
+    def to_point_function(self, interp='z'):
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]+=1
@@ -510,7 +527,7 @@ def MaterialFunction(mesh, prop, default=None,pos='mid'):
 
     propfunc = (lambda i: prop(mesh._layers[i].material)) \
         if callable(prop) \
-        else (lambda i: mesh._layers[i](prop,default=default))
+        else (lambda i: mesh._layers[i].get(prop,default=default))
 
     for i, ptc in enumerate(ptcounts):
         arr += [propfunc(i)] * ptc

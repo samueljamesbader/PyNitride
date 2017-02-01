@@ -25,4 +25,6 @@ docs/*.rst
 # Other caches
 .cache/*
 
+# Other special files
 tests/crestats.txt
+parameters/1dp.txt
