@@ -143,12 +143,9 @@ def convert_1dpmat_to_PyNitride(matfilename,outfilename,to_root=True):
                                 #if mo.groups()[0]=='pol':
                                 #print(mo.groups(),tmp[mo.groups()[0]])
                         except Exception as e:
-                            print(e)
-                            print(mo.groups())
                             import numpy as np
                             tmp[mo.groups()[0]]=np.NaN
 
-                    print(tmp)
                     string=dedent("""
                     material={:s}
                         conditions=

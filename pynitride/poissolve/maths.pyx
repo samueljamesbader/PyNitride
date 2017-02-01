@@ -160,6 +160,8 @@ cdef cnp.ndarray dimsimple(double (*func)(double),x):
     out=np.empty(x.shape,np.float)
     cdef double xi
 
+    # This is an older syntax... should rewrite in terms of nditer when I get the chance
+    # but at this point that's just a difference of taste inside of a blackboxed function...
     it=cnp.PyArray_MultiIterNew(2,<cnp.PyObject*>x,<cnp.PyObject*>out)
     while cnp.PyArray_MultiIter_NOTDONE(it):
         xi=(<double*>(cnp.PyArray_MultiIter_DATA(it,0)))[0]

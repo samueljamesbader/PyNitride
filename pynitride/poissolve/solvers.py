@@ -174,19 +174,13 @@ class PoissonSolver():
         if isinstance(mesh._layers.surface,numbers.Real):
             self._phib=mesh._layers.surface
         else:
-            self._phib=mesh._layers[0].material['surface='+mesh._layers.surface,'electronbarrier']
+            self._phib=mesh._layers[0].material('surface={}.electronbarrier'.format(mesh._layers.surface))
 
         # ARE THESE NECESSARY
-        mesh['D']= MidFunction(mesh)
-        mesh['E']= MidFunction(mesh)
         eps=self._eps=mesh['eps']= MaterialFunction(mesh, 'dielectric.eps')
         mesh['mqV']= PointFunction(mesh, 0.0)
         mesh['DEc']= MaterialFunction(mesh, 'electron.DEc', pos='point')
-        mesh['Ec']= PointFunction(mesh)
-        mesh['Eg']= MaterialFunction(mesh, 'Eg', pos='point')
-        mesh['Ev']= PointFunction(mesh)
-
-        mesh['arho2']= PointFunction(mesh)
+        self._Eg= MaterialFunction(mesh,'Eg', pos='point')
 
 
         self._left=np.empty(len(mesh._z))
@@ -210,10 +204,6 @@ class PoissonSolver():
         m=self._mesh
         qrho=q*m['rho']
         qrho[0]=0
-        #print(self._left)
-        #print(self._right)
-        #print(self._center)
-        #print(rho)
         m['mqV']=tdma(self._left,self._center,self._right,qrho)
         self._update_others()
         mqV=m['mqV']
@@ -224,7 +214,7 @@ class PoissonSolver():
     def _update_others(self):
         m=self._mesh
         m['Ec']=m['mqV']+m['EF'][0]+self._phib+m['DEc']
-        m['Ev']=m['Ec']-m['Eg']
+        m['Ev']=m['Ec']-self._Eg
 
     def isolve(self,visual=False):
         m=self._mesh

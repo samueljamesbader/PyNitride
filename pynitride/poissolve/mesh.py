@@ -34,11 +34,11 @@ class Layer():
         return self._thickness
 
     # if not found and default=... is passed, will return that instead of error
-    def get(self, key, default=None):
-        return self._mat.get(key,default=default)
+    def __call__(self, *args, **kwargs):
+        return self._mat(*args,**kwargs)
 
     def __getitem__(self, key):
-        return self._mat[key]
+        return self.__call__(key)
 
 
 class EpiStack():
@@ -510,7 +510,7 @@ def MaterialFunction(mesh, prop, default=None,pos='mid'):
 
     propfunc = (lambda i: prop(mesh._layers[i].material)) \
         if callable(prop) \
-        else (lambda i: mesh._layers[i].get(prop,default=default))
+        else (lambda i: mesh._layers[i](prop,default=default))
 
     for i, ptc in enumerate(ptcounts):
         arr += [propfunc(i)] * ptc
