@@ -79,16 +79,19 @@ class MultilevelDict():
             else: return None
 
 
-    def get(self,key,default=None,extract=None,**constraints):
+    def __call__(self,key,default=Exception("Multilevel key {:s} not found"),extract=None,**constraints):
         if isinstance(key,str): key=key.split(".")
         if extract is None: extract=self._extract
         v=self._subgetitem(self._dict,key,extract=extract,**constraints)
-        return v if v is not None else default
+        if v is None:
+            print("oops")
+            if isinstance(default,BaseException):
+                raise default
+            return default
+        return v
 
     def __getitem__(self, key):
-        v=self.get(key)
-        if v is None: raise Exception("Multilevel key error: {:s}".format(key))
-        return v
+        return self.__call__(key)
 
     def __setitem__(self,key,value):
         raise NotImplementedError
@@ -349,13 +352,17 @@ class Material():
         self.conditions=conditions
         self._pmdb=pmdb
     def __getitem__(self,key):
-        val=self.get(key)
-        if val is not None:
-            return val
-        else: raise Exception("Key not found: " + str(key) + " with constraints "+ str(self.conditions))
-    def get(self,key,default=None):
-        if isinstance(key,str): key=key.split('.');
-        return self._pmdb.get(["material="+self.matname]+list(key),default=None,conditions=self.conditions)
+        val=self(key)
+    def __call__(self,key,default=BaseException,**kwargs):
+        if isinstance(key,str):
+            key=key.split('.')
+        key=["material="+self.matname]+list(key)
+        kwargs=kwargs.copy()
+        kwargs.update(dict(conditions=self.conditions))
+        if default==BaseException:
+            default=Exception("Key not found in {}: {} with constraints {}"\
+              .format(self.matname,str(key),str(self.conditions)))
+        return self._pmdb(key,default=default,**kwargs)
 
     # http://stackoverflow.com/a/25176504/2081118
     def __eq__(self,other):
