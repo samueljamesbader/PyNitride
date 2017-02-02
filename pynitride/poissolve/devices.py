@@ -96,7 +96,7 @@ if __name__=='__main__':
     mpl.close('all')
     if False: # pn
         pn=gan_pn(xp=450*nm,xn=550*nm,Nd=1.0e18*cm**-3,Na=1.0e18*cm**-3,Ndspike=0e13*cm**-2,surface=2*eV)
-        print(pn.z.shape[0])
+        print(pn.zp.shape[0])
         #pn.plot_mesh()
         def stoppah():
             return 0

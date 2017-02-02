@@ -1,3 +1,12 @@
+r""" Cython-optimized mathematical utilities for the Poisson-Schrodinger problem.
+
+This module contains a couple useful high-performance math functions, including
+a tridiagonal matrix solver
+and an approximate Fermi-Dirac integral of order 1/2 and -1/2.
+These functions are compiled by Cython, and are tested for accuracy and speed by the
+:py:mod:`~tests.test_maths` module.
+"""
+
 cimport cython
 cimport numpy as cnp
 import numpy as np

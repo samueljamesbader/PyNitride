@@ -57,7 +57,7 @@ def test_fermi_dirac():
 
     mesh['EF']=PointFunction(mesh, 0.0)
     mesh['rho']=PointFunction(mesh, 0.0)
-    mesh['Ec']=PointFunction(mesh, np.linspace(-1,4,len(mesh.z)))
+    mesh['Ec']=PointFunction(mesh, np.linspace(-1, 4, len(mesh.zp)))
     mesh['Ev']=PointFunction(mesh,(mesh['Ec']-MaterialFunction(mesh,"Eg").to_point_function()))
 
     fd = FermiDirac3D(mesh)

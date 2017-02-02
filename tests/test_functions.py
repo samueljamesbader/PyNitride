@@ -28,7 +28,7 @@ def test_function_indexing():
     assert np.allclose(pf,[0,1,2,0,0,0,0,0,8,9,10])
     assert np.allclose(pf.integrate().differentiate(),[ np.NaN,   1.,   2.,   0.,   0.,   0.,   0.,   0.,   8.,   9.,  np.NaN], equal_nan=True)
     assert np.allclose(pf.differentiate().integrate(flipped=True),[-10.,  -9.,  -8., -10., -10., -10., -10., -10.,  -2.,  -1.,   0.])
-    MidFunction(m,m._dz).to_point_function()
+    MidFunction(m, m._dzp).to_point_function()
 
 
 def test_posconversion(nonuniformmesh):
@@ -36,7 +36,7 @@ def test_posconversion(nonuniformmesh):
     Fpt=Fmid.to_point_function()
     for (i,ll,lr),(il,ir,ll,lr) in zip(nonuniformmesh.interfaces_point,nonuniformmesh.interfaces_mid):
         print("Z")
-        print(nonuniformmesh.z[i])
+        print(nonuniformmesh.zp[i])
         print(nonuniformmesh.zp[il],nonuniformmesh.zp[ir])
         print("F")
         print(Fpt[i])

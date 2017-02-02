@@ -30,7 +30,7 @@ def test_mesh2():
     #pass
     epistack=EpiStack(['GaN',250],['AlN',5],['GaN',17],['AlN',30])
     m=Mesh(epistack,max_dz=1)
-    print(m.z)
+    print(m.zp)
     m.plot_mesh()
     #assert 0
 
