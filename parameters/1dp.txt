@@ -1,6 +1,6 @@
 PyNitride v2
 
-# Autoconverted from 1D Poisson materials.txt 2017-02-01 17:02:08
+# Autoconverted from 1D Poisson materials.txt 2017-02-01 19:17:13
 #Assuming T=300K
 material=GaAs
     conditions=

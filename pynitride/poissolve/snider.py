@@ -42,7 +42,7 @@ def import_1dp_input(fileprefix,pmdb=ParamDB()):
             if mo: sstop=float(mo.group(1))
 
     mesh=Mesh(EpiStack(*layers,surface='GenericMetal',pmdb=pmdb), dz, uniform=True)
-    assert np.allclose(mesh._dz,dz,atol=1e-10,rtol=0), "Meshing failed."
+    assert np.allclose(mesh._dzp, dz, atol=1e-10, rtol=0), "Meshing failed."
 
     for dopetype in set(d[0] for d in doping if len(d)):
         mesh[{'Na':'AcceptorActiveConc','Nd':'DonorActiveConc','Naa':'DeepAcceptorActiveConc','Ndd':'DeepDonorActiveConc'}[dopetype]]= \
@@ -87,7 +87,7 @@ def import_1dp_output(fileprefix,m,sm):
     m['E']=m['Ec'].differentiate()
     m['rho']=PointFunction(m,np.NaN)
 
-    assert np.allclose(m.z,x,atol=1e-10,rtol=0), "Meshes don't match"
+    assert np.allclose(m.zp, x, atol=1e-10, rtol=0), "Meshes don't match"
 
 
     #if not sm: return

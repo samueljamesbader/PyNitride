@@ -50,8 +50,8 @@ class SchrodingerSolver():
         :param mz: MidFunction of the effective mass along *z*
         :return: the *z* kinetic term as a sparse (CSC) matrix
         """
-        diagonal=(hbar**2/(mz*mesh._dz)).to_point_function(interp='unweighted')/mesh._dzp
-        offdiagonal=-(hbar**2/(2*mz*mesh._dz *np.sqrt(mesh._dzp[:-1]*mesh._dzp[1:])))
+        diagonal=(hbar**2/(mz*mesh._dzp)).to_point_function(interp='unweighted')/mesh._dzm
+        offdiagonal=-(hbar**2/(2*mz*mesh._dzp *np.sqrt(mesh._dzm[:-1]*mesh._dzm[1:])))
         T=diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
         return T
 
@@ -78,7 +78,7 @@ class SchrodingerSolver():
 
         H=z_kinetic_term+diags(potential)+lateral_kinetic_term
         energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(potential))
-        psi_out[:,:]=(1/np.sqrt(mesh._dzp))*eigenvectors.T
+        psi_out[:,:]=(1/np.sqrt(mesh._dzm))*eigenvectors.T
 
         return energies, psi_out
 
@@ -183,11 +183,11 @@ class PoissonSolver():
         self._Eg= MaterialFunction(mesh,'Eg', pos='point')
 
 
-        self._left=np.empty(len(mesh._z))
-        self._right=np.empty(len(mesh._z))
-        self._left[1:]=eps/(mesh._dz * mesh._dzp[1:])
-        self._right[:-1]=eps/(mesh._dz * mesh._dzp[:-1])
-        self._center=-MidFunction(mesh,eps/mesh._dz).to_point_function(interp='unweighted')/mesh._dzp
+        self._left=np.empty(len(mesh.zp))
+        self._right=np.empty(len(mesh.zp))
+        self._left[1:]=eps/(mesh.dzp * mesh.dzm[1:])
+        self._right[:-1]=eps/(mesh.dzp * mesh._dzm[:-1])
+        self._center=-MidFunction(mesh,eps/mesh.dzp).to_point_function(interp='unweighted')/mesh.dzm
         self._center[-1]=self._center[-2]
 
         self._left[:2]=0
@@ -232,13 +232,13 @@ class PoissonSolver():
 
         d= (q*m['arho2'] - qrho)
         d[0]=0
-        d[-1]=-m['D'][-1]/m._dzp[-1]
+        d[-1]=-m['D'][-1]/m._dzm[-1]
 
         # What I had after redoing Neumann at bottom
-        d[-1]=-m['rho'][-1]-m['D'][-1]/m._dzp[-1]
+        d[-1]=-m['rho'][-1]-m['D'][-1]/m._dzm[-1]
 
         ## Trying to just fix the last point of D at zero
-        d[-1]=-m['D'][-1]/m._dzp[-1]
+        d[-1]=-m['D'][-1]/m._dzm[-1]
 
 
 
@@ -247,11 +247,11 @@ class PoissonSolver():
             import matplotlib.pyplot as mpl
             mpl.figure()
             mpl.subplot(311)
-            mpl.plot(m.z,qrho-q*self._rhoprev)
+            mpl.plot(m.zp, qrho - q * self._rhoprev)
             print(np.max(np.abs(qrho-q*self._rhoprev)))
             mpl.title('rho- rhoprev')
             mpl.subplot(312)
-            mpl.plot(m.z,m['rhoderiv'])
+            mpl.plot(m.zp, m['rhoderiv'])
             mpl.title('rhoderiv')
             mpl.tight_layout()
 
@@ -442,12 +442,12 @@ class Coupled_Schrodinger_Poisson():
         if schrofull: schrodinger=m
         self._quantum_charge_solvers=[SchrodingerSolver(schrodinger,carriers=carriers)]
         if not schrofull:
-            if schrodinger._slice.start is not None and schrodinger._slice.start>0:
-                fd_sm=SubMesh(m,None,schrodinger._slice.start)
+            if schrodinger._slicep.start is not None and schrodinger._slicep.start>0:
+                fd_sm=SubMesh(m,None,schrodinger._slicep.start)
                 fd=FermiDirac3D(fd_sm)
                 self._quantum_charge_solvers+=[fd]
-            if schrodinger._slice.stop is not None and schrodinger._slice.stop<len(m.z):
-                fd_sm=SubMesh(m,schrodinger._slice.stop,None)
+            if schrodinger._slicep.stop is not None and schrodinger._slicep.stop<len(m.zp):
+                fd_sm=SubMesh(m,schrodinger._slicep.stop,None)
                 fd=FermiDirac3D(fd_sm)
                 self._quantum_charge_solvers+=[fd]
 

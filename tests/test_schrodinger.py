@@ -63,8 +63,8 @@ def test_li_kuhn_1994():
             m['rho_pol']=ConstantFunction(m,0)
             #mpl.figure()
             #m.plot_mesh()
-            N+=[len(m.z)]
-            z=m.z
+            N+=[len(m.zp)]
+            z=m.zp
 
             from pynitride.poissolve.solvers_old.poisson import PoissonSolver
             m['rho']=ConstantFunction(m,0)
@@ -86,9 +86,9 @@ def test_li_kuhn_1994():
             import time
             start=time.time()
             SchrodingerSolver(m,carriers=['electron']).solve()
-            print("points {} time {}".format(m.z.shape[0],time.time()-start))
+            print("points {} time {}".format(m.zp.shape[0], time.time() - start))
             E0+=[m['Energies_e_'][0,0]]
-            num+=[np.max(m._dz)/np.min(m._dz)-1]
+            num+=[np.max(m._dzp) / np.min(m._dzp) - 1]
             print('hi')
             #from poissolve.visual import plot_wavefunctions
             #mpl.figure()

@@ -107,7 +107,7 @@ if __name__=='__main__':
 if 0:
     plot_wavefunctions(sm,bands=['e_Gamma'])
 
-    sam=sm['Ec'][sm.index(6.5)]
+    sam=sm['Ec'][sm.indexp(6.5)]
     print("sam {:.2g}".format(sam))
 
     f=mpl.gcf()
@@ -115,7 +115,7 @@ if 0:
 
     mpl.figure()
     check=((-hbar**2/2*(sm['Psi_e_Gamma'].differentiate()/MaterialFunction(sm,['ladder','electron','Gamma','mzs'])).differentiate()+sm['Ec']*sm['Psi_e_Gamma'])/sm['Psi_e_Gamma'])
-    mpl.plot(sm.z,check.T)
+    mpl.plot(sm.zp, check.T)
     mpl.ylim(-10,10)
     mpl.xlim(0,15)
     mpl.title("Snider")
@@ -136,18 +136,18 @@ if 0:
     del sm._functions['Energies_h_LH']
     ss=SchrodingerSolver(sm)
     ss.solve()
-    mpl.plot(sm.z,sm['n']/(1/cm**3),'r--',linewidth=2)
-    mpl.plot(sm.z,sm['p']/(1/cm**3),'r--',linewidth=2)
+    mpl.plot(sm.zp, sm['n'] / (1 / cm ** 3), 'r--', linewidth=2)
+    mpl.plot(sm.zp, sm['p'] / (1 / cm ** 3), 'r--', linewidth=2)
 
     mpl.sca(mpl.gcf().get_axes()[-2])
     plot_wavefunctions(sm,bands=['e_Gamma'])
 
-    sam=sm['Ec'][sm.index(6.5)]
+    sam=sm['Ec'][sm.indexp(6.5)]
     print("sam {:.2g}".format(sam))
 
     mpl.figure()
     check=((-hbar**2/2*(sm['Psi_e_Gamma'].differentiate()/MaterialFunction(sm,['ladder','electron','Gamma','mzs'])).differentiate()+sm['Ec']*sm['Psi_e_Gamma'])/sm['Psi_e_Gamma'])
-    mpl.plot(sm.z,check.T)
+    mpl.plot(sm.zp, check.T)
     mpl.ylim(-10,10)
     mpl.xlim(0,15)
 

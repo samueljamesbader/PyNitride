@@ -2,7 +2,7 @@
 
 Meshing Scheme
 =====================================
-This page describes broadly the mathematical properties of the mesh scheme implemented in :py:mod:`~pynitride.poissolve.mesh`.
+This page describes the mathematical properties of the mesh scheme implemented in :py:mod:`~pynitride.poissolve.mesh`.
 
 Dual mesh
 -------------------
