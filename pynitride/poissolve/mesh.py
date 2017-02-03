@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Jan  3 17:15:41 2017
+r""" Meshing, submeshing, and manipulating funtions defined on meshes.
 
-@author: sam
+This module is tested by :py:mod:`~tests.test_mesh`.
 """
 
 import matplotlib.pyplot as mpl
@@ -356,9 +355,20 @@ class Mesh():
     #        return pickle.load(f)
 
 class SubMesh(Mesh):
-    """ Represents a Mesh restricted to to particular segment.
+    """ Represents a Mesh restricted to to particular segment of a larger mesh.
 
-    A submesh is essentially just a view of a mesh in that segment (data is shared).
+    A submesh is essentially just a view of a mesh within that segment, ie it has all of the same functionality as the
+    :py:class:`~pynitride.poissolve.mesh.Mesh` from which it is created, except that all operations on it (eg setting
+    or getting mesh functions) will only affect those functions within the prescribed range.  Vitally, the data is
+    *shared*, not copied, between a mesh and its submeshes.
+
+    Note: the constructor for SubMesh takes exact *indices* as bounds of the submesh region.  If you wish to instead specify
+    :math:`z`-positions, see the :py:func:`~pynitride.poissolve.mesh.Mesh.submesh` function of
+    :py:class:`~pynitride.poissolve.mesh.Mesh`.
+
+    :param mesh: the super :py:class:`~pynitride.poissolve.mesh.Mesh` within which this submesh will reside
+    :param start: The lower index (inclusive) of the submesh in the larger mesh
+    :param stop: The upper index (exclusive) of the submesh in the larger mesh
     """
 
     """ Construct a submesh.
@@ -405,33 +415,54 @@ class SubMesh(Mesh):
         self.pmdb=mesh.pmdb
 
 class Function(np.ndarray):
-    def __new__(cls, *args, **kwargs):
-        raise NotImplementedError
+    r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.
 
-    def __array_finalize__(self, obj):
-        if obj is None: return
+    These classes all subclass Numpy's
+    :ref:`ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>` so vectorized math should
+    just work.  Functions are arbitrarily shaped/dimensioned ``ndarray``'s, with the constraint that the last dimension
+    matches the length of the (point or mid) mesh on which it is defined.
 
-        self.mesh = getattr(obj, 'mesh', "View casting from ndarray not supported.")
+    A Function can be initialized via the ``value`` or ``empty`` parameter in numerous ways:
 
+        - if the ``empty`` argument is supplied, an empty (ie values uninitialized) array will be constructed with the
+          shape specified as a tuple to ``empty``
+        - if ``value`` is an array whose last dimension matches the mesh already, this function will just be a
+          view of ``value``.
+        - if ``value`` is a number (or generally, a non-iterable), it will be repeated to the length of the mesh.
+        - if ``value`` is one-dimensional but doesn't match the mesh, it will be converted to two-dimensional and
+          tiled along the trival axis to the length of the point mesh.
 
-class PointFunction(Function):
-    def __new__(cls, mesh, value=np.NaN, dtype='float', empty=False):
+    :param mesh: the :py:class:`~pynitride.poissolve.mesh.Mesh` on which this function is defined
+    :param value: (see above) the default value to initialize this array with
+    :param dtype: the Numpy data type of the array (See
+        :ref:`ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`.)
+    :param empty: (see above) False to use ``value``, or shape tuple to construct an array.
+
+    """
+    def __new__(cls, mesh, pos, value=np.NaN, dtype='float', empty=False):
+
+        if pos=='point': z=mesh.zp
+        if pos=='mid': z=mesh.zm
 
         # If the user just wants an empty array, the shape of an element is specified by empty
         if empty:
             vshape=list(empty)
-            obj = np.empty(vshape + list(mesh.zp.shape), dtype=dtype).view(cls)
+            obj = np.empty(vshape + list(z.shape), dtype=dtype).view(cls)
             obj.mesh=mesh
+            obj.z=z
+            obj.pos=pos
             return obj
 
-        # Otherwise, read thhe shape from the given value
+        # Otherwise, read the shape from the given value
         value = np.asarray(value,dtype=dtype)
         vshape=list(value.shape)
 
         # If the shape matches up to the mesh already, go ahead and just view that value as the PointFunction
-        if len(value.shape) and value.shape[-1]==mesh.zp.shape[0]:
+        if len(value.shape) and value.shape[-1]==z.shape[0]:
             obj=value.view(cls)
             obj.mesh = mesh
+            obj.z=z
+            obj.pos=pos
             return obj
 
         # If the shape is one dimensional (but doesn't match the mesh, see above), reshape it to 2d
@@ -439,107 +470,157 @@ class PointFunction(Function):
         elif len(value.shape)==1:
             value=np.reshape(value,(len(value),1))
 
-        # Try to form a full array by repeating this element len(mesh.z) times.
+        # Try to form a full array by repeating this element len(z) times.
         try:
-            obj = np.full(vshape + list(mesh.zp.shape), value, dtype=dtype).view(cls)
+            obj = np.full(vshape + list(z.shape), value, dtype=dtype).view(cls)
             obj.mesh = mesh
+            obj.z=z
+            obj.pos=pos
             return obj
         except:
-            raise Exception("Given arr of shape {} is not compatible with given point mesh of size {}".format(value.shape, mesh.zp.shape[0]))
+            raise Exception("Given arr of shape {} is not compatible with given mesh of size {}".format(value.shape, z.shape[0]))
 
     def plot(self,*args,**kwargs):
-        mpl.plot(self.mesh.zp, self, *args, **kwargs)
+        r""" Convenience function to plot this function versus mesh positions via matplotlib.
 
-    # def __array_prepare__(self, out_arr, context=None):
-    #    assert out_arr.shape==self.mesh.z.shape,\
-    #        "Can't combine Functions of different mesh sizes"
-    #    out_arr.shape=self.mesh.z.shape
-    #    return out_arr
+        ``*args`` and ``**kwargs`` are passed directly to matplotlib's ``plot()``
+        (See `Matplotlib docs <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>`_.)
+        """
+        mpl.plot(self.z, self, *args, **kwargs)
 
-    def differentiate(self):
-        return MidFunction(self.mesh, np.diff(self, axis=-1) / self.mesh.dzp)
+    def __array_finalize__(self, obj):
+        r""" Make sure that the ``mesh`` property is kept whenever a new Function is casted from another.
 
-    # provide a non-cumsum, just sum, version for efficiency when that's all that's wanted
-    def integrate(self, flipped=False):
-        return np.cumsum(
-            (self * self.mesh.dzm).T[:-1].T
-            if not flipped
-            else np.flipud(-self * self.mesh.dzm).T[:-1].T,
-            axis=-1).view(MidFunction)
+        See :ref:`Subclassing ndarray <https://docs.scipy.org/doc/numpy/user/basics.subclassing.html>`.
+
+        :param obj: the ndarray from which this array is being created
+        """
+        if obj is not None:
+            self.mesh = getattr(obj, 'mesh', "View casting from ndarray not supported.")
+            self.z =    getattr(obj, 'z'   , "View casting from ndarray not supported.")
+            self.pos =  getattr(obj, 'pos' , "View casting from ndarray not supported.")
+
+    def differentiate(self,fill_value=np.NaN):
+        r""" Central-difference derivative
+
+        Differentiate, accounting for the appropriate potentially non-uniform mesh spacing.
+        Note that the derivative of a point function is a mid function, and vice-versa.
+
+        :param fill_value: when differentiating a mid-function to a point-function, the central-difference derivative
+            at the boundary is not defined, this parameter provides a way to fill those boundary points in.
+        :return: a Function representing the derivative.
+        """
+        if self.pos=='point':
+            return Function(self.mesh, 'mid',np.diff(self, axis=-1) / self.mesh.dzp)
+        if self.pos=='mid':
+            pf = Function(self.mesh,'point',empty=np.array(self.T[0].shape))
+            pf.T[1:-1] = (np.diff(self,axis=-1) / self.mesh.dzm[1:-1]).T
+            pf.T[[0, -1]] = fill_value
+            return pf
+
+
+    def integrate(self,flipped=False,definite=False):
+        r""" Cumulative integral in either direction, or definite integral
+
+        Integrate, accounting for the appropriate potentially non-uniform mesh spacing
+        Note that the integral of a point function is a mid function, and vice-versa.
+        When integrating a point function to a mid function, the last point is ignored.
+        When integrating a mid function to a point function, the first point is zero.
+
+        :param flipped: If True, integrate from :math:`+z` to :math:`-z`,
+            rather than the default :math:`-z` to :math:`+z`
+        :param definite: give just the total integral rather than computing the cumulative.  Note that, when integrating
+            a mid function, this the last point of the cumulative result, but that's not true for a point function.
+        :return: a Function or, if ``definite``, just a number
+        """
+        if self.pos=='point':
+            if definite:
+                np.sum(self * self.mesh.dzm,axis=-1)
+            else:
+                return Function(self.mesh,pos='mid',value=np.cumsum(
+                    (self * self.mesh.dzm).T[:-1].T
+                    if not flipped
+                    else np.flipud(-self * self.mesh.dzm).T[:-1].T,
+                    axis=-1))#.view(Function)
+        if self.pos=="mid":
+            if definite:
+                np.sum(self * self.mesh._dz, axis=-1)
+            else:
+                output = Function(self.mesh,pos='point', value=0.0)
+                np.cumsum(
+                    self * self.mesh._dz if not flipped else np.flipud(-self * self.mesh._dz),
+                    out=(output[1:] if not flipped else np.flipud(output[:-1])), axis=-1)
+                return output
 
     def restrict(self, submesh):
-        # doesn't check that submesh and mesh are compatible
-        return type(self)(submesh, self.T[submesh._slicep].T)
+        r""" Returns a view of this function restricted to the given submesh.
 
-
-class MidFunction(Function):
-    def __new__(cls, mesh, value=np.NaN, dtype='float'):
-        value = np.asarray(value,dtype=dtype)
-        vshape=list(value.shape)
-        if len(value.shape) and value.shape[-1]==mesh.zm.shape[0]:
-            obj=value.view(cls)
-            obj.mesh = mesh
-            return obj
-        elif len(value.shape)==1:
-            value=np.array([value]).T
-        try:
-            obj = np.full(vshape+list(mesh.zm.shape), value, dtype=dtype).view(cls)
-        except:
-            # THIS MESSAGE MIGHT BE CONFUSING BECAUSE THE MESH IS ACTUALLY CALLED SIZE mesh.z
-            raise Exception("Given arr of shape {} is not compatible with given mid mesh of size {}".format(value.shape,mesh.zm.shape[0]))
-        obj.mesh = mesh
-        return obj
-
-    def plot(self,*args,**kwargs):
-        mpl.plot(self.mesh.zm,self,*args,**kwargs)
-        # def __array_prepare__(self, out_arr, context=None):
-    #    assert out_arr.shape==self.mesh.zp.shape,\
-    #        "Can't combine Functions of different mesh sizes"
-    #    out_arr.shape=self.mesh.zp.shape
-    #    return out_arr
-
-    def differentiate(self, fill_value=np.NaN):
-        pf = PointFunction(self.mesh,empty=np.array(self.T[0].shape))
-        pf.T[1:-1] = (np.diff(self,axis=-1) / self.mesh.dzm[1:-1]).T
-        pf.T[[0, -1]] = fill_value
-        return pf
-
-    def integrate(self, flipped=False):
-        # if output is None:
-        output = PointFunction(self.mesh, value=0.0)
-        np.cumsum(
-            self * self.mesh._dz if not flipped else np.flipud(-self * self.mesh._dz),
-            out=(output[1:] if not flipped else np.flipud(output[:-1])), axis=-1)
-        return output
+        :param submesh: the submesh on which this function is needed
+        :return: a Function of the same type, which shares, not copies, data with the original
+        """
+        if self.pos=='point':
+            return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T)
+        if self.pos=='mid':
+            return type(self)(submesh, pos='mid',value=self.T[submesh._slicem].T)
 
     def to_point_function(self, interp='z'):
+        r""" Ensure that a Function is defined on the point mesh.
+
+        :param interp: ``'z'`` for a linear interpolation which accounts for non-uniform point spacing (and boundaries
+            by extrapolation).
+            ``'unweighted'`` for a straightforward average of adjacent points (and boundaries are the boundaries
+            of the mid mesh).
+        :return: a point function (which is the original if its already a point function)
+        """
+        if self.pos=='point': return self
+
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]+=1
             arr = np.empty(newshape).T
             arr[1:-1] = (self.T[1:] + self.T[:-1]) / 2
-            arr[[0, -1]] = arr[[1, -2]]
+            arr[[0, -1]] = self[[0, -1]]
             arr=arr.T
         if interp == 'z':
             arr = interp1d(self.mesh.zm, self,
                            fill_value='extrapolate')(self.mesh.zp)
-        return PointFunction(self.mesh, arr)
+        return Function(self.mesh,pos='point',value=arr)
 
-    def restrict(self, submesh):
-        # doesn't check that submesh and mesh are compatible
-        return type(self)(submesh, self.T[submesh._slicem].T)
+def PointFunction(mesh,value=np.NaN,dtype='float',empty=False):
+    r""" Returns a function defined on the point mesh
 
+    This is a convenience equivalent to calling :py:func:`~pynitride.poissolve.mesh.Function` with ``pos='point'``.
+    All other arguments are the same.
+    """
+    return Function(mesh,pos='point',value=value,dtype=dtype,empty=empty)
+def MidFunction(mesh,value=np.NaN,dtype='float',empty=False):
+    r""" Returns a function defined on the mid mesh
 
-def ConstantFunction(mesh, val, dtype='float', pos='point'):
-    from numpy.lib.stride_tricks import as_strided
-    x = np.array(val, order='C', dtype=dtype)
-    newshape = list(x.shape) + [mesh.zp.shape[0] if pos == 'point' else mesh.zm.shape[0]]
-    newstrides = list(x.strides) + [0]
-    arr=as_strided(np.array(x), shape=newshape, strides=newstrides)
-    return {'point': PointFunction, 'mid': MidFunction}[pos](mesh,value=arr)
+    This is a convenience equivalent to calling :py:class:`~pynitride.poissolve.mesh.Function` with ``pos='mid'``.
+    All other arguments are the same.
+    """
+    return Function(mesh,pos='mid',value=value,dtype=dtype,empty=empty)
 
+def ConstantFunction(*args,**kwargs):
+    r""" Defines a function which is a single repeated constant.
+
+    At the moment, this is just a do-nothing wrapper around :py:func:`~PointFunction`, but in the future this will provide a
+    hook to implement operations which take advantage of the constancy.
+    """
+    return PointFunction(*args,**kwargs)
+    #raise NotImplementedError
 
 def MaterialFunction(mesh, prop, default=None,pos='mid'):
+    r""" Creates a Function by a piecewise-constant-over-materials definition.
+
+    :param mesh: the mesh on which the function is defined.
+    :param prop: either (1) a function which will be called separately for each layer with the relevant
+        :py:`pynitride.paramdb.Material` as the sole argument or (2) a property key which will be requested from each
+        dictionary eg `"electron.mdos"`.
+    :param default:
+    :param pos:
+    :return:
+    """
     # could make this more efficient by directly interpolating if Point case?
     # this function almost duplicates RegionFunction...
 
@@ -579,8 +660,17 @@ def RegionFunction(mesh, prop, pos='mid'):
         return out
 
 
-def DeltaFunction(mesh, z, height=1, i=None, pos='point'):
+def DeltaFunction(mesh, z, integral=1, i=None, pos='point'):
+    r""" A function which is only non-zero at a single location
+
+    :param mesh: the mesh on which this function is defined
+    :param z: the location of the delta function (index nearest this point will be used)
+    :param integral: the integrated value of this delta function (ie prefactor)
+    :param i: if specified, ``z`` will be ignored and ``i`` is the exact index where the delta will be placed
+    :param pos: build on a point mesh or mid mesh
+    :return: the delta function as a :py:class:`Function`
+    """
     func={'point': PointFunction, 'mid': MidFunction}[pos](mesh,0.0)
     i={'point': mesh.indexp, 'mid': mesh.indexp}[pos](z) if i is None else i
-    func[i]=height/{'point':mesh._dzp[i], 'mid':mesh.dzm[i]}[pos]
+    func[i]= integral / {'point':mesh._dzp[i], 'mid':mesh.dzm[i]}[pos]
     return func

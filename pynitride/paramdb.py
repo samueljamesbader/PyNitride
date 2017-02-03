@@ -7,6 +7,11 @@ import numbers
 import numpy as np
 
 class MultilevelDict():
+    r""" Hi
+
+    .. document private functions
+    .. automethod:: __call__
+    """
     def __init__(self,dictionary={}):
         if isinstance(dictionary,MultilevelDict):
             self._dict=dictionary._dict
@@ -80,6 +85,14 @@ class MultilevelDict():
 
 
     def __call__(self,key,default=Exception("Multilevel key {:s} not found"),extract=None,**constraints):
+        r""" Call example...
+
+        :param key:
+        :param default:
+        :param extract:
+        :param constraints:
+        :return:
+        """
         if isinstance(key,str): key=key.split(".")
         if extract is None: extract=self._extract
         v=self._subgetitem(self._dict,key,extract=extract,**constraints)
@@ -168,8 +181,12 @@ class Value():
         else:
             self.raw=val
             self.parsed=Value.parse(self.raw)
+
         self.neu=self.parsed.to_base_units().magnitude\
             if hasattr(self.parsed,'to_base_units')\
+            else self.parsed
+        self.si=self.parsed.to_root_units().magnitude \
+            if hasattr(self.parsed,'to_root_units') \
             else self.parsed
 
     @property
@@ -253,6 +270,8 @@ class ParamDB(MultilevelDict):
             self._extract='value'
         elif units=='neu':
             self._extract='neu'
+        elif units=='si':
+            self._extract='si'
 
     def clear(self):
         self._dict={}
@@ -344,6 +363,8 @@ class ParamDB(MultilevelDict):
             return [ParamDB._ureg(c) for c in constants.split(",")]
         elif self._units=='neu':
             return [ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")]
+        elif self._units=='si':
+            return [ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")]
 
 
 class Material():

@@ -73,8 +73,8 @@ def test_fd_timing(capfd):
        .format(numvalues,int(numvalues/2)),number=Nrepeat,globals=globals())/Nrepeat
     fd12p_timing=timeit('fd12p(x)','x=np.reshape(np.linspace(-10,10,{:d}),(2,{:d}))' \
         .format(numvalues,int(numvalues/2)),number=Nrepeat,globals=globals())/Nrepeat
-    assert fd12_timing  <5e-3, "Fermi-Dirac 1/2 integral is running slow..."
-    assert fd12p_timing <5e-3, "Fermi-Dirac -1/2 integral is running slow..."
+    assert fd12_timing  <6e-3, "Fermi-Dirac 1/2 integral is running slow..."
+    assert fd12p_timing <6e-3, "Fermi-Dirac -1/2 integral is running slow..."
     if 1:#with capfd.disabled():
         print("\n")
         print("fd12 computed {:d} values in {:.3e} s (average of {:d} runs)." \
@@ -119,3 +119,5 @@ def test_tdma_timing():
                        number=Nrepeat,globals=globals())/Nrepeat
     print("\ntdma computed {:d} values in {:.3e} s (average of {:d} runs)." \
           .format(numvalues,tdma_timing,Nrepeat))
+
+    # TODO: add assertion about tdma speed
