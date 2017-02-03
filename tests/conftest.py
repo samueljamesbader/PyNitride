@@ -33,3 +33,10 @@ def uniformmesh():
     epistack=EpiStack(['GaN',2.5],['AlN',5],['GaN',17],['AlN',30],surface='GenericMetal')
     m=Mesh(epistack,max_dz=.1)
     return m
+
+@pytest.fixture(scope='module')
+def trivialmesh():
+    from pynitride.poissolve.mesh import EpiStack, Mesh
+    epistack=EpiStack(['GaN',1],surface='GenericMetal')
+    m=Mesh(epistack,max_dz=.1)
+    return m
