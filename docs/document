@@ -6,3 +6,4 @@ fi
 cd docs
 sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct -f -e
 make html
+#make latexpdf

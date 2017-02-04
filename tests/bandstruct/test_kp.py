@@ -1,4 +1,4 @@
-from pynitride.bandstuct.kp import kp_bandstructure
+from pynitride.bandstuct.kp import kp_6x6
 from pynitride import ParamDB, Material
 import numpy as np
 pmdb=ParamDB(units='neu')
@@ -12,8 +12,8 @@ def test_kp_bandstructure():
     GaN=Material("GaN")
     ez=.01394
     et=-.02415
-    E0=kp_bandstructure(GaN,[[0,0,0]],[0,0,0],spin_orbit=False)[0]
-    Es=kp_bandstructure(GaN,[[0,0,0]],[et,et,ez],spin_orbit=False)[0]
+    E0=kp_6x6(GaN, [[0, 0, 0]], [0, 0, 0], spin_orbit=False)[0]
+    Es=kp_6x6(GaN, [[0, 0, 0]], [et, et, ez], spin_orbit=False)[0]
 
     # Without SO splitting, conduction band moves as ac1*ez+2*ac2*et, where ac1=a1+D1, ac2=a2+D2b
     CB_move=Es[6]-E0[6]

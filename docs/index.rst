@@ -20,12 +20,12 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
 
 
 .. toctree::
-   :maxdepth: 1
+    :maxdepth: 1
 
-        API Reference <pynitride>
         Math and Physics <_static/solve_schrodinger>
-        Units system <_static/units.rst>
         Parameter Database <_static/parameter_database.rst>
+        Units system <_static/units.rst>
+        API Reference <pynitride>
         Source code on Github <https://github.com/samueljamesbader/PyNitride>
 
 

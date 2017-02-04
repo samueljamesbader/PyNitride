@@ -1,12 +1,24 @@
+r""" Contains :math:`k\cdot p` models to generate band structures."""
+
 import numpy as np
 import scipy.linalg as la
+from pynitride.bandstuct.depends import varshni
 
-def varshni(material):
-    T=material._pmdb["T"]
-    return material["varshni.Eg0"]-material["varshni.alpha"]*T**2/(T+material["varshni.beta"])
+def kp_6x6(material, kvecs, strainvec, spin_orbit=True):
+    r""" Solves the 6x6 + 2x2 :math:`k\cdot p` Hamiltonian for a wurtzite crystal.
 
+    The Hamiltonian can be found in `(Ren et al 97) <http://dx.doi.org/10.1063/1.123461>`_.  This function adds one
+    extra constant term, which is the maximum of :math:`(\Delta_1 + \Delta_2,\Delta_1-\Delta_2,0)` which just shifts the
+    energies to ensure that the valence band maximum for the unstrained material is 0eV.  Then the conduction band
+    minimum for the unstrained material is :math:`E_g`, obtained from the Varshni model
 
-def kp_bandstructure(material,kvecs,strainvec, spin_orbit=True):
+    :param material: the :py:class:`~pynitride.paramdb.Material` under study
+    :param kvecs: an iterable of kvectors, each vector being a three-element sequence :math:`k_x,k_y,k_z`.  Typically,
+        this input comes from the output of a call to :py:func:`~pynitride.bandstruct.reciprocal.generate_path`.
+    :param strainvec: a vector of the :math:`e_x,e_y,e_z` strain components
+    :param spin_orbit: whether to include spin-orbit splitting (default True)
+    :return: a 2D Numpy array, each row being the eight band energies ordered ascending at a given ``kvec``
+    """
     assert material['crystal']=='wurtzite'
 
     # Get valence k.p band parameters
