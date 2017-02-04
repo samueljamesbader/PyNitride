@@ -1,0 +1,1 @@
+from pynitride.bandstuct.depends import varshni
