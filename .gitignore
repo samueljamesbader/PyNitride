@@ -26,5 +26,5 @@ docs/*.rst
 .cache/*
 
 # Other special files
-tests/crestats.txt
+tests/poissolve/crestats.txt
 parameters/1dp.txt

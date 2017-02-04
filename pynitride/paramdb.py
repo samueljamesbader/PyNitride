@@ -359,12 +359,17 @@ class ParamDB(MultilevelDict):
 
 
     def get_constants(self,constants):
+        unwrap=lambda x: x[0] if len(x)==1 else x
         if self._units=='Pint':
-            return [ParamDB._ureg(c) for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c) for c in constants.split(",")])
         elif self._units=='neu':
-            return [ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")])
         elif self._units=='si':
-            return [ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")])
+
+    def to_units(self,val,units):
+        assert self._units=='neu'
+        return val/ParamDB._ureg(units).to_base_units().magnitude
 
 
 class Material():
