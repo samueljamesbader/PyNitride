@@ -4,12 +4,12 @@ PyNitride v2
 
 material=GaN
     material type: 'binary'
-    conditions=relaxed # actually this is some mix of relaxed and strained to AlN...
-        Eg: 3.605 eV
+    conditions=strained_to_AlN
+        Eg: 3.617 eV
         surface=GenericMetal
             electronbarrier: 1 eV
         carrier=electron
-            DEc: 0 eV
+            DEc: 218 meV
             band=
                 g: 2
                 mzs: .2 m_e
@@ -19,24 +19,24 @@ material=GaN
         carrier=hole
             band=HH
                 g: 2
-                mzs: 1.1 m_e
-                mxys: 1.6 m_e
-                mdos: 1.5 m_e
+                mzs: .569 m_e
+                mxys: 1.887 m_e
+                mdos: 1.27 m_e
                 DE: 0 eV
             band=LH
                 g: 2
-                mzs: 1.1 m_e
-                mxys: .15 m_e
-                mdos: 1.5 m_e
-                DE: 0 eV
+                mzs:  .164 m_e
+                mxys: 1.872 m_e
+                mdos: .83 m_e
+                DE: 12 meV
             band=CH
                 g: 2
-                mzs: .15 m_e
-                mxys: 1.1 m_e
-                mdos: 1.5 m_e
-                DE: .02 eV
+                mzs: 1.983 m_e
+                mxys: .139 m_e
+                mdos:  .34 m_e
+                DE: 320 meV
         polarization
-            Ptot: .56 nm**-2
+            Ptot: 5.58e13 cm**-2
 
     conditions=
         dielectric
@@ -68,22 +68,22 @@ material=AlN
             DEv: .7
             band=HH
                 g: 2
-                mzs: 3.5 m_e
-                mxys: 10.4 m_e
-                mdos: 7.26 m_e
-                DE: 0 eV
+                mzs: .935 m_e
+                mxys: 3.571 m_e
+                mdos: 2.28 m_e
+                DE: -.163 eV
             band=LH
                 g: 2
-                mzs: 3.5 m_e
-                mxys: .24 m_e
-                mdos: .58 m_e
-                DE: 0 eV
+                mzs: .484 m_e
+                mxys: 3.449 m_e
+                mdos: 1.79 m_e
+                DE: -.176 eV
             band=CH
                 g: 2
-                mzs: .25 m_e
-                mxys: 3.81 m_e
-                mdos: 1.54 m_e
-                DE: .019 eV
+                mzs: 3.949 m_e
+                mxys: .26 m_e
+                mdos: .64 m_e
+                DE: 0 eV
         polarization
             Ptot: 0 cm**-2
     conditions=

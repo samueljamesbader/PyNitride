@@ -1,6 +1,11 @@
 import numpy as np
 import scipy.linalg as la
 
+def varshni(material):
+    T=material._pmdb["T"]
+    return material["varshni.Eg0"]-material["varshni.alpha"]*T**2/(T+material["varshni.beta"])
+
+
 def kp_bandstructure(material,kvecs,strainvec, spin_orbit=True):
     assert material['crystal']=='wurtzite'
 
@@ -9,8 +14,10 @@ def kp_bandstructure(material,kvecs,strainvec, spin_orbit=True):
         [material['kp.'+var] for var in \
          "A1,A2,A3,A4,A5,A6,A7,D1,D2,D3,D4,D5,D6,a1,a2,DeltaCR,DeltaSO".split(',')]
     mezs,mexys=[material['electron.'+var] for var in "mzs,mxys".split(',')]
-
     if not spin_orbit: DeltaSO=0
+
+    # Get unstrained gap
+    Eg=varshni(material)
 
     # a1/2 is movement of conduction band relative to CH
     # ac1/2 is absolute movement of conduction band
@@ -48,7 +55,7 @@ def kp_bandstructure(material,kvecs,strainvec, spin_orbit=True):
             [0, K, 0, I, 0, F]])
 
         # Shift so top of unstrained VB is zero
-        hmat-=(Delta1 + Delta2) * np.eye(6)
+        hmat-=max(Delta1 + Delta2,Delta1-Delta2,0) * np.eye(6)
 
         # Solve valence band
         VB=la.eigvalsh(hmat)
@@ -56,12 +63,12 @@ def kp_bandstructure(material,kvecs,strainvec, spin_orbit=True):
         # Combine with conduction band
         hbar=material._pmdb.get_constants("hbar")
         T=material._pmdb["T"]
-        CB=np.array([
+        CB=Eg+np.array([
             hbar ** 2 * (kx ** 2 + ky ** 2) / (2 * mexys)\
             + hbar ** 2 * kz ** 2 / (2 * mezs)\
             + acz * ezz + act * (exx + eyy)])
         return np.concatenate([VB,CB])
 
-    return [for_single_k(k) for k in kvecs]
+    return np.vstack([for_single_k(k) for k in kvecs])
 
 
