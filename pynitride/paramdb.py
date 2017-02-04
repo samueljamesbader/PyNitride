@@ -5,6 +5,7 @@ import re
 import scipy.constants as const
 import numbers
 import numpy as np
+from collections import OrderedDict
 
 class MultilevelDict():
     r""" Hi
@@ -12,7 +13,7 @@ class MultilevelDict():
     .. document private functions
     .. automethod:: __call__
     """
-    def __init__(self,dictionary={}):
+    def __init__(self,dictionary=None):
         if isinstance(dictionary,MultilevelDict):
             self._dict=dictionary._dict
             self._index=dictionary._index
@@ -20,6 +21,7 @@ class MultilevelDict():
             self._nodes=dictionary._nodes
             self._extract=dictionary._extract
         else:
+            if dictionary is None: dictionary=OrderedDict()
             self._dict=dictionary
             self._index=[]
             self._shortformindex=[]
@@ -197,7 +199,7 @@ class Value():
     def parse(raw):
         # Python code
         if raw.startswith('`'):
-            return eval(raw[1:-1])
+            return eval(raw[1:-1],np.__dict__)
 
         # string
         elif raw.startswith('"') or raw.startswith("'"):
@@ -242,7 +244,7 @@ class ParamDB(MultilevelDict):
         # Make sure a global database exists
         if not hasattr(ParamDB,'_global'):
             # avoid infinite loop by setting the _global attribute before recursing
-            ParamDB._global={}
+            ParamDB._global=OrderedDict()
             ParamDB._global=ParamDB()
 
             # Read in the default global parameter files
@@ -274,7 +276,7 @@ class ParamDB(MultilevelDict):
             self._extract='si'
 
     def clear(self):
-        self._dict={}
+        self._dict=OrderedDict()
 
     def read_file(self,filename, from_root=True, regenerate_index=True):
         if from_root:
@@ -346,11 +348,11 @@ class ParamDB(MultilevelDict):
                 # Normally, add line to subdict
                 if line!='.':
                     if line not in chain[-1][0]:
-                        chain[-1][0][line]={}
+                        chain[-1][0][line]=OrderedDict()
                     prev_dict=chain[-1][0][line]
                 # But if the key is '.', add as blank dict
                 else:
-                    prev_dict={}
+                    prev_dict=OrderedDict()
                     chain[-1][0]+=[prev_dict]
 
             prev_indent=indent
@@ -359,12 +361,17 @@ class ParamDB(MultilevelDict):
 
 
     def get_constants(self,constants):
+        unwrap=lambda x: x[0] if len(x)==1 else x
         if self._units=='Pint':
-            return [ParamDB._ureg(c) for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c) for c in constants.split(",")])
         elif self._units=='neu':
-            return [ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")])
         elif self._units=='si':
-            return [ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")]
+            return unwrap([ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")])
+
+    def to_units(self,val,units):
+        assert self._units=='neu'
+        return val/ParamDB._ureg(units).to_base_units().magnitude
 
 
 class Material():

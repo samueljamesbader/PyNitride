@@ -1,10 +1,11 @@
 import matplotlib.pyplot as mpl
 mpl.interactive(True)
-from pynitride.paramdb import nm, cm, eV
-from pynitride.poissolve.mesh import Mesh, EpiStack, DeltaFunction
-from pynitride.poissolve.mesh.functions import MaterialFunction,RegionFunction,DeltaFunction
-from pynitride import PointFunction, MaterialFunction, RegionFunction
+from pynitride import ParamDB, Material
+pmdb=ParamDB(units='neu')
+nm,cm,eV=pmdb.get_constants("nm,cm,eV")
 
+
+from pynitride.poissolve.mesh import Mesh, EpiStack, PointFunction,DeltaFunction,MaterialFunction,RegionFunction,DeltaFunction
 
 def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
 
@@ -27,8 +28,8 @@ def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
     return m
 
 def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False):
-    AlN="AlN"
-    GaN="GaN"
+    AlN=Material("AlN")
+    GaN=Material("GaN",conditions=['strained_to_AlN'])
     if snidermode:
         AlN="qAlN"
         GaN="qGaN"

@@ -16,10 +16,15 @@ from pynitride.paramdb import Material, ParamDB
 
 
 class Layer():
-    def __init__(self, name, matname, thickness, pmdb=ParamDB()):
+    def __init__(self, name, mat, thickness, pmdb=ParamDB()):
         self._name = name
-        self._matname = matname
-        self._mat = Material(matname,pmdb=pmdb)
+
+        if isinstance(mat,str):
+            self._matname = mat
+            self._mat = Material(mat,pmdb=pmdb)
+        elif isinstance(mat,Material):
+            self._matname=mat.matname
+            self._mat=mat
         self._thickness = thickness
 
     @property
@@ -235,7 +240,7 @@ class Mesh():
         mpl.figure(figsize=(8, 2))
 
         # Collect the z values at interfaces
-        ipoints = self._zp[[0] + [i[0] for i in self._interfaces] + [len(self._zp) - 1]]
+        ipoints = self._zp[[0] + [i[0] for i in self._interfacesp] + [len(self._zp) - 1]]
 
         # Draw a vertical line and label for each interface
         for ii, i in enumerate(ipoints):
