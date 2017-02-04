@@ -25,6 +25,9 @@ docs/*.rst
 # Other caches
 .cache/*
 
+# jupyter backups
+*/.ipynb_checkpoints/*
+
 # Other special files
 tests/poissolve/crestats.txt
 parameters/1dp.txt
