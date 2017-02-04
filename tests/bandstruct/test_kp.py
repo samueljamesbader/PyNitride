@@ -5,8 +5,7 @@ pmdb=ParamDB(units='neu')
 
 import pytest
 if __name__=="__main__":
-    #pytest.main([__file__])
-    pass
+    pytest.main([__file__,'-s'])
 
 def test_kp_bandstructure():
     GaN=Material("GaN")
