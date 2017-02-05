@@ -318,7 +318,7 @@ cdef class HyperFET:
                         i_prev=iarr[j]=i
                     else:
                         iarr[j]=np.NaN
-                        raise Exception("Solution not found")
+                        #raise Exception("Solution not found")
         return I
 
     def I_double(HyperFET self, VD, VG):
