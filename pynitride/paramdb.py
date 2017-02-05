@@ -187,9 +187,12 @@ class Value():
         self.neu=self.parsed.to_base_units().magnitude\
             if hasattr(self.parsed,'to_base_units')\
             else self.parsed
-        self.si=self.parsed.to_root_units().magnitude \
-            if hasattr(self.parsed,'to_root_units') \
+
+        ParamDB._ureg.default_system='mks'
+        self.si=self.parsed.to_base_units().magnitude \
+            if hasattr(self.parsed,'to_base_units') \
             else self.parsed
+        ParamDB._ureg.default_system='neu'
 
     @property
     def value(self):
@@ -367,7 +370,9 @@ class ParamDB(MultilevelDict):
         elif self._units=='neu':
             return unwrap([ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")])
         elif self._units=='si':
-            return unwrap([ParamDB._ureg(c).to_root_units().magnitude for c in constants.split(",")])
+            ParamDB._ureg.default_system='mks'
+            return unwrap([ParamDB._ureg(c).to_base_units().magnitude for c in constants.split(",")])
+            ParamDB._ureg.default_system='neu'
 
     def to_units(self,val,units):
         assert self._units=='neu'
