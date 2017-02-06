@@ -13,6 +13,7 @@ import numpy as np
 from libc.math cimport pow, exp
 from functools import wraps
 cnp.import_array()
+from pynitride.util.cython_loops cimport dimsimple
 
 ##########
 ### Tridiagonal matrix algorithm
@@ -98,7 +99,8 @@ for j in range(ORDER):
 
 
 # c-function to implement Fermi-Dirac 1/2.  See :py:func:`~pynitride.poissolve.maths.fd12` for more.
-cdef double fd12_scalar(double x):
+# args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
+cdef double fd12_scalar(double x,void* args):
 
     cdef:
         double partial_sum
@@ -129,7 +131,8 @@ cdef double fd12_scalar(double x):
 
 
 # c-function to implement Fermi-Dirac 1/2 Derivative.  See :py:func:`~pynitride.poissolve.maths.fd12p` for more.
-cdef double fd12p_scalar(double x):
+# args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
+cdef double fd12p_scalar(double x,void* args):
     cdef:
         double partial_sum
         long j
@@ -158,25 +161,25 @@ cdef double fd12p_scalar(double x):
             partial_sum+=cp[j]*pow(x,.5-2*j)
     return partial_sum
 
-cdef cnp.ndarray dimsimple(double (*func)(double),x):
-    r"""Broadcasts the scalar function func over the numpy array x.
-
-    :param func: a cdef function which takes a double and returns a double.
-    :param x: a numpy float array of arbitrary shape and dimensionality
-    :return: an array of the same shape as ``x``, with the values obtained by calling ``func`` element-wise
-    """
-    x=np.asarray(x,dtype='float')
-    out=np.empty(x.shape,np.float)
-    cdef double xi
-
-    # This is an older syntax... should rewrite in terms of nditer when I get the chance
-    # but at this point that's just a difference of taste inside of a blackboxed function...
-    it=cnp.PyArray_MultiIterNew(2,<cnp.PyObject*>x,<cnp.PyObject*>out)
-    while cnp.PyArray_MultiIter_NOTDONE(it):
-        xi=(<double*>(cnp.PyArray_MultiIter_DATA(it,0)))[0]
-        (<double*>cnp.PyArray_MultiIter_DATA(it,1))[0]=func(xi)
-        cnp.PyArray_MultiIter_NEXT(it)
-    return out
+# cdef cnp.ndarray dimsimple(double (*func)(double),x):
+#     r"""Broadcasts the scalar function func over the numpy array x.
+#
+#     :param func: a cdef function which takes a double and returns a double.
+#     :param x: a numpy float array of arbitrary shape and dimensionality
+#     :return: an array of the same shape as ``x``, with the values obtained by calling ``func`` element-wise
+#     """
+#     x=np.asarray(x,dtype='float')
+#     out=np.empty(x.shape,np.float)
+#     cdef double xi
+#
+#     # This is an older syntax... should rewrite in terms of nditer when I get the chance
+#     # but at this point that's just a difference of taste inside of a blackboxed function...
+#     it=cnp.PyArray_MultiIterNew(2,<cnp.PyObject*>x,<cnp.PyObject*>out)
+#     while cnp.PyArray_MultiIter_NOTDONE(it):
+#         xi=(<double*>(cnp.PyArray_MultiIter_DATA(it,0)))[0]
+#         (<double*>cnp.PyArray_MultiIter_DATA(it,1))[0]=func(xi)
+#         cnp.PyArray_MultiIter_NEXT(it)
+#     return out
 
 # Table 6 and Equations 24-26
 def fd12(x):
@@ -192,7 +195,8 @@ def fd12(x):
     :param x: the argument to the Fermi-Dirac 1/2 integral, as a numpy array.
     :returns: the evaluation, as a numpy array.
     """
-    return dimsimple(fd12_scalar,x)
+    #return dimsimple(fd12_scalar,x)
+    return dimsimple(np.asarray(x,dtype=np.double),fd12_scalar)
 
 def fd12p(x):
     r"""Implements the derivative of the :py:func:`~pynitride.poissolve.maths.fd12`.
@@ -203,4 +207,4 @@ def fd12p(x):
     :param x: the argument to the Fermi-Dirac -1/2 integral, as a numpy array.
     :returns: the evaluation, as a numpy array.
     """
-    return dimsimple(fd12p_scalar,x)
+    return dimsimple(np.asarray(x,dtype=np.double),fd12p_scalar)
