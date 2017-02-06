@@ -4,8 +4,12 @@ import numpy as np
 from scipy.optimize import minimize_scalar, brentq
 from libc.math cimport pow, exp, log, abs, log10
 from functools import wraps
+from scipy.special import lambertw as complex_lambertw
+def lambertw(x):
+    return np.real(complex_lambertw(x))
 cnp.import_array()
 
+from pynitride.util.cython_loops cimport dimsimple, gridinput
 from pynitride.paramdb import ParamDB
 cdef double k,e
 k,e=ParamDB(units="si").get_constants("k,e")
@@ -13,7 +17,7 @@ k,e=ParamDB(units="si").get_constants("k,e")
 
 cdef class GaNHEMT_iMVGS:
 
-    cdef double _Vth, W, Cinv_vxo, VT0, alpha, SS, delta, VDsats, beta, eta, Gleak, n, Rs, Rd
+    cdef public double _Vth, W, Cinv_vxo, VT0, alpha, SS, delta, VDsats, beta, eta, Gleak, n, Rs, Rd
 
     r""" intrinsic MVGS GaN HEMT
 
@@ -75,7 +79,9 @@ cdef class GaNHEMT_iMVGS:
 
     # Drain current
     @cython.cdivision(True)
-    cpdef double _ID(GaNHEMT_iMVGS self,double VDS, double VGS):
+    @staticmethod
+    cdef double _ID(double VDS, double VGS, void* args):
+        self=<GaNHEMT_iMVGS> args
 
         cdef double VGsi, VDSi, IDprev, ID
         VGSi=VGS
@@ -113,20 +119,7 @@ cdef class GaNHEMT_iMVGS:
         return ID
 
     def ID(GaNHEMT_iMVGS self, VD, VG):
-        cdef int j
-        cdef double[:] iarr, vdarr, vgarr
-        cdef double vg, vd
-
-        VDgrid,VGgrid=np.meshgrid(VD,VG)
-        I = np.empty_like(VDgrid)
-        it = np.nditer([VDgrid,VGgrid,I], flags=['external_loop','buffered'],
-                       op_flags=[['readwrite'], ['readwrite'], ['readwrite']])
-        for vdarr,vgarr,iarr in it:
-            for j in range(vdarr.shape[0]):
-                vd=vdarr[j]
-                vg=vgarr[j]
-                iarr[j]=self._ID(vdarr[j],vgarr[j])
-        return I
+        return gridinput(VD,VG,self._ID,args=<void*>self)
 
 
 cdef struct PiecewiseLinearVI:
@@ -164,53 +157,18 @@ cdef class VO2Res:
         self.VIs[<int> Direction.BACKWARD]=\
             PiecewiseLinearVI(I_trans=self.I_MIT,R_low=self.R_ins,R_high=self.R_met,V_off_high=self.V_met)
 
+    @staticmethod
+    cdef double _V(double i,void* args):
+        cdef PiecewiseLinearVI vi
+        vi=(<PiecewiseLinearVI*>args)[0]
+        if i<vi.I_trans:
+            return i*vi.R_low
+        else:
+            return i*vi.R_high+vi.V_off_high
+
     @cython.boundscheck(False)
     def V(VO2Res self, I, Direction direc):
-        cdef int j
-        cdef double[:] iarr, varr
-        cdef PiecewiseLinearVI vi
-
-        vi=self.VIs[<int>direc]
-        #print(vi)
-
-        V=np.empty_like(I)
-        it = np.nditer([I, V], flags=['external_loop','buffered'],
-                       op_flags=[['readwrite'], ['readwrite']],
-                       op_dtypes=['float64', 'float64'])
-        for iarr,varr in it:
-            for j in range(iarr.shape[0]):
-                i=iarr[j]
-                if i<vi.I_trans:
-                    varr[j]=i*vi.R_low
-                else:
-                    varr[j]=i*vi.R_high+vi.V_off_high
-        return V
-
-
-# cdef double bounded_newton(double (*f)(double,list),
-#                            double (*fp)(double,list),
-#                            double xmin, double xmax, double x0,
-#                            double xtol, double maxiter, double sor=0):
-#     cdef int i=0
-#     cdef double x=x0, y, s, dx
-#
-#     for i in range(maxiter):
-#         y=f(x)
-#         s=fp(x)
-#         dx=-y/s
-#
-#         x=x+sor*dx
-#
-#         if xi<xmin:
-#             xi=xmin
-#         if xi>xmax:
-#             xi=xmax
-#         if dx<xtol:
-#             return xi
-#
-#     return -1
-
-
+        return dimsimple(np.asarray(I,dtype='double'),VO2Res._V,<void*>&(self.VIs[<int>direc]))
 
 cdef class HyperFET:
 
@@ -232,7 +190,7 @@ cdef class HyperFET:
             cdef double i_try, v_r, i_calc
             i_try=exp(log_i_try)
             v_r=i_try*rVI.R_low
-            i_calc=self.hemt._ID(VD-v_r,VG-v_r)
+            i_calc=GaNHEMT_iMVGS._ID(VD-v_r,VG-v_r,<void*>(self.hemt))
             return log(i_calc)-log_i_try
 
         logimin=-50
@@ -249,6 +207,11 @@ cdef class HyperFET:
         else: return -1
 
     cdef double _I_high(HyperFET self, double VD, double VG, Direction direc):
+
+        # Just for debugging
+        #if direc==Direction.BACKWARD: return -1
+
+
         rVI=self.vo2.VIs[<int>direc]
 
         imin=rVI.I_trans
@@ -258,9 +221,10 @@ cdef class HyperFET:
             cdef double i_try, v_r
             i_try=exp(log_i_try)
             v_r=i_try*rVI.R_high+rVI.V_off_high
-            i_calc=self.hemt._ID(VD-v_r,VG-v_r)
+            i_calc=GaNHEMT_iMVGS._ID(VD-v_r,VG-v_r,<void*>(self.hemt))
             return log(i_calc)-log_i_try
 
+        # print(imin,imax)
         logimin=log(imin)
         logimax=log(imax)
         if(ierr(logimin,self,VD,VG)<0):
@@ -269,7 +233,21 @@ cdef class HyperFET:
             raise Exception("Max too low")
             return -1
 
-        x=brentq(ierr,logimin,logimax,args=(self,VD,VG),xtol=1e-5,rtol=1e-5)
+        # import matplotlib.pyplot as plt
+        # i=np.linspace(logimin,logimax)
+        # ie=[ierr(ix,self,VD,VG)
+        #     for ix in i]
+        # plt.figure()
+        # plt.plot(i,ie)
+        x,r=brentq(ierr,logimin,logimax,args=(self,VD,VG),xtol=1e-5,rtol=1e-5,full_output=True)
+
+        if abs(ierr(x,self,VD,VG))> .001:
+            if ierr(x,self,VD,VG)<0:
+                x,r=brentq(ierr,logimin,x,args=(self,VD,VG),xtol=1e-5,rtol=1e-5,full_output=True)
+
+        # print(r)
+        # plt.plot(x,0,'o')
+        # print(x)
         if abs(ierr(x,self,VD,VG))< .001:
             return exp(x)
         else: return -1
@@ -332,3 +310,31 @@ cdef class HyperFET:
         If=self.I(VD,VG,Direction.FORWARD)
         Ib=rev(self.I(rev(VD),rev(VG),Direction.BACKWARD))
         return If,Ib
+
+    def approx_I(self,VD,VG,region):
+        VD=np.array(VD)
+        VG=np.array(VG)
+        hemt=self.hemt
+        vo2=self.vo2
+        Vth=hemt._Vth
+        if region=="floor":
+            Goff=1/(vo2.R_ins+1/hemt.Gleak)
+            return Goff*VD+0*VG
+        if region=="lower":
+            return hemt.n*Vth/vo2.R_ins*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_ins/(1+hemt.Gleak*vo2.R_ins)\
+                *np.exp((VG-hemt.VT0-(hemt.Gleak*VD*vo2.R_ins)/(1+hemt.Gleak*vo2.R_ins))/(hemt.n*Vth)))\
+            +(hemt.Gleak*VD/(1+hemt.Gleak*vo2.R_ins))
+        if region=="lowernoleak":
+            return hemt.n*Vth/vo2.R_ins*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_ins*np.exp((VG-hemt.VT0)/(hemt.n*Vth)))
+        if region=="uppersub":
+            return hemt.n*Vth/vo2.R_met*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_met*np.exp((VG-vo2.V_met-hemt.VT0)/(hemt.n*Vth)))
+        if region=="saturation":
+            return hemt.W*hemt.Cinv_vxo*(VG-vo2.V_met-hemt.VT0)/(1+hemt.W*hemt.Cinv_vxo*vo2.R_met)
+
+    def approx_hyst(self,feature):
+        hemt=self.hemt
+        vo2=self.vo2
+        if feature=="Vleft":
+            return self.hemt.VT0+self.vo2.V_MIT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_MIT)
+        if feature=="Vright":
+            return self.hemt.VT0+self.vo2.V_IMT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_IMT)
