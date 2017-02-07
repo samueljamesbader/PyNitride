@@ -29,5 +29,5 @@ docs/*.rst
 */.ipynb_checkpoints/*
 
 # Other special files
-tests/poissolve/crestats.txt
+*stats.txt
 parameters/1dp.txt
