@@ -216,23 +216,23 @@ def parse(val):
     v=ParamDB._ureg(val)
     return v.to_base_units().magnitude
 
-def to_unit(val,unit):
-    r""" Convert a number from PyNitride's internal units to any other units.
-
-    Any number used in PyNitride or pulled from the parameter database is assumed to be in "nanoelectronic units", and
-    this function provides conversion to other units for outputing readable results to a user.
-    Note that this function does not and could not possibly ensure that your conversion is dimensionally valid, since
-    the val input is just a number.  The user is responsible for knowing what val is (eg a distance, or an energy etc)
-    and requesting sensible output dimensions.  The output dimensions are interpreted by Pint and a full list of allowed
-    values (including units such as ``meter``, prefixed units such as ``meV``, more complex units like ``cm**-2`` and
-    constants such as ``hbar``) is provided in the
-    `Pint docs <https://github.com/hgrecco/pint/blob/master/pint/default_en.txt>`_.
-
-    :param val: A numerical quantity which is in the internal unit system of PyNitride
-    :param unit: The desired units for the result as a string (eg "cm**-2")
-    :return: the number representing that quantity in the desired units.
-    """
-    return val/ParamDB._ureg(unit)
+# def to_unit(val,unit):
+#     r""" Convert a number from PyNitride's internal units to any other units.
+#
+#     Any number used in PyNitride or pulled from the parameter database is assumed to be in "nanoelectronic units", and
+#     this function provides conversion to other units for outputing readable results to a user.
+#     Note that this function does not and could not possibly ensure that your conversion is dimensionally valid, since
+#     the val input is just a number.  The user is responsible for knowing what val is (eg a distance, or an energy etc)
+#     and requesting sensible output dimensions.  The output dimensions are interpreted by Pint and a full list of allowed
+#     values (including units such as ``meter``, prefixed units such as ``meV``, more complex units like ``cm**-2`` and
+#     constants such as ``hbar``) is provided in the
+#     `Pint docs <https://github.com/hgrecco/pint/blob/master/pint/default_en.txt>`_.
+#
+#     :param val: A numerical quantity which is in the internal unit system of PyNitride
+#     :param unit: The desired units for the result as a string (eg "cm**-2")
+#     :return: the number representing that quantity in the desired units.
+#     """
+#     return val/ParamDB._ureg(unit).magnitude
 
 class ParamDB(MultilevelDict):
 
@@ -375,8 +375,16 @@ class ParamDB(MultilevelDict):
             ParamDB._ureg.default_system='neu'
 
     def to_units(self,val,units):
-        assert self._units=='neu'
-        return val/ParamDB._ureg(units).to_base_units().magnitude
+        if self._units=='neu':
+            return val/ParamDB._ureg(units).to_base_units().magnitude
+        elif self._units=='Pint':
+            return val.to(units).magnitude
+
+    def parse(self,val):
+        if self._units=='neu':
+            return ParamDB._ureg(val).to_base_units().magnitude
+        elif self._units=='Pint':
+            return ParamDB._ureg(val)
 
 
 class Material():

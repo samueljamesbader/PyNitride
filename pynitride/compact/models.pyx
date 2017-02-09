@@ -16,9 +16,10 @@ k,e=ParamDB(units="si").get_constants("k,e")
 #print(k)
 
 cdef class GaNHEMT_iMVSG:
-    r""" intrinsic MVG GaN HEMT
+    r""" intrinsic MVS-G-DC GaN HEMT
 
-    The intrinsic (ie no access resistance) model in :ref:`U. Radhakrishna's Thesis <http://www.mit.edu/~ujwal/MSthesis.pdf>`_
+    The intrinsic (ie no access resistance) model in
+    `U. Radhakrishna's Thesis <http://www.mit.edu/~ujwal/MSthesis.pdf>`_.
 
     :param T: temperature [Kelvin]
     :param W: device width [meters]
