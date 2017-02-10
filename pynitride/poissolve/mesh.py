@@ -423,7 +423,7 @@ class Function(np.ndarray):
     r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.
 
     These classes all subclass Numpy's
-    :ref:`ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>` so vectorized math should
+    `ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`_ so vectorized math should
     just work.  Functions are arbitrarily shaped/dimensioned ``ndarray``'s, with the constraint that the last dimension
     matches the length of the (point or mid) mesh on which it is defined.
 
@@ -440,7 +440,7 @@ class Function(np.ndarray):
     :param mesh: the :py:class:`~pynitride.poissolve.mesh.Mesh` on which this function is defined
     :param value: (see above) the default value to initialize this array with
     :param dtype: the Numpy data type of the array (See
-        :ref:`ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`.)
+        `ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`_.)
     :param empty: (see above) False to use ``value``, or shape tuple to construct an array.
 
     """
@@ -620,7 +620,7 @@ def MaterialFunction(mesh, prop, default=None,pos='mid'):
 
     :param mesh: the mesh on which the function is defined.
     :param prop: either (1) a function which will be called separately for each layer with the relevant
-        :py:`pynitride.paramdb.Material` as the sole argument or (2) a property key which will be requested from each
+        :py:class:`pynitride.paramdb.Material` as the sole argument or (2) a property key which will be requested from each
         dictionary eg `"electron.mdos"`.
     :param default:
     :param pos:

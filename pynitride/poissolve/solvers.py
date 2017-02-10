@@ -161,12 +161,12 @@ class PoissonSolver():
 
     The boundary conditions assumed are that the potential is zero at the first mesh point, and the electric field
     goes to zero at the last mesh point (or, to be more precise, at the next midpoint after the last meshpoint).
-    Two solve functions are available: :py:func:`~pynitride.poissolve.solvers_old.poisson.solve` and
-    :py:func:`~pynitride.poissolve.solvers_old.poisson.PoissonSolver.isolve`.  The former is a full, direct solution, which can be obtained
+    Two solve functions are available: :py:func:`~pynitride.poissolve.poisson.solve` and
+    :py:func:`~pynitride.poissolve.poisson.PoissonSolver.isolve`.  The former is a full, direct solution, which can be obtained
     directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
     iteration with a charge solver such as FermiDirac3D or Schrodinger.
 
-    :param mesh: the :py:class:`~pynitride.poissolve.mesh.structure.Mesh` on which to perform the solve
+    :param mesh: the :py:class:`~pynitride.poissolve.mesh.Mesh` on which to perform the solve
     """
     def __init__(self, mesh):
         self._mesh = mesh

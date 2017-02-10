@@ -18,7 +18,7 @@ k,e=ParamDB(units="si").get_constants("k,e")
 cdef class GaNHEMT_iMVSG:
     r""" intrinsic MVG GaN HEMT
 
-    The intrinsic (ie no access resistance) model in :ref:`U. Radhakrishna's Thesis <http://www.mit.edu/~ujwal/MSthesis.pdf>`_
+    The intrinsic (ie no access resistance) model in `U. Radhakrishna's Thesis <http://www.mit.edu/~ujwal/MSthesis.pdf>`_
 
     :param T: temperature [Kelvin]
     :param W: device width [meters]
@@ -485,6 +485,8 @@ cdef class HyperFET:
             - `"uppersub"` is the metallic branch, assuming subthreshold
             - `"inversion"` is the metallic branch, assuming strong inversion
         :return: the currents
+
+        .. _Sam_HyperFETApprox: http://sambader.net
         """
         VD,VG=np.meshgrid(VD,VG)
         hemt=self.hemt
