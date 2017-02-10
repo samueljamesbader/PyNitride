@@ -3,7 +3,33 @@ if [[ "$PWD" = *docs ]]; then
     echo "Run this script from main PyNitride directory"
     exit
 fi
+
+runapidoc=true
+runlatex=false
+for key in "$@"
+do
+    case $key in
+        --static)
+        runapidoc=false
+        shift
+        ;;
+        --latex)
+        runlatex=true
+        shift
+        ;;
+        *)
+
+        ;;
+    esac
+shift
+done
 cd docs
-sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct -f -e
+if $runapidoc ; then
+    sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct -f -e
+fi
+
 make html
-#make latexpdf
+
+if $runlatex ; then
+    make latexpdf
+fi
