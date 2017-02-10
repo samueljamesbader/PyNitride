@@ -25,7 +25,9 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
         Math and Physics <_static/solve_schrodinger>
         Parameter Database <_static/parameter_database.rst>
         Units system <_static/units.rst>
-        API Reference <pynitride>
+        .. API Reference <pynitride>
+
+        API Reference <modules>
         Source code on Github <https://github.com/samueljamesbader/PyNitride>
 
 
