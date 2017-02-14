@@ -37,24 +37,25 @@ class DataManager():
             config = ConfigParser(interpolation=BasicInterpolation())
             config.read(indexpath)
             config['DEFAULT']['DIR']=dirpath
+            fields=[f for f in config['_headers'] if f not in config['DEFAULT']]
             try:
-                headers=['filename','proj','mtype']+config['_headers']['optional'].split(',')+['data']
-            except:
-                raise Exception("Could not find [_headers] optional section in {}".format(indexpath))
+                headers=['filename','proj','mtype']+fields+['data']
+                evalers={f:eval(config['_headers'][f]) for f in fields}
+            except Exception as e:
+                print(e)
+                raise Exception("Could not interpret [_headers] section in {}".format(indexpath))
 
             # Get the further fields
             furthers=[]
             for further in (s for s in config if s.startswith("_")):
                 if further=="_headers":continue
-                furthers+=[[config[further]['if'],eval(config[further]['then'])]]
+                furthers+=[[config[further]['if'],config[further]['then']]]
 
             for mtype in config:
                 if mtype.startswith('_'): continue
                 if mtype=="DEFAULT": continue
 
-                regex=config[mtype]['nameregex']
-                nameparts=config[mtype]['nameparts'].split(',')
-                parttypes=config[mtype]['parttypes'].split(',')
+                regex=re.compile(config[mtype]['nameregex'])
                 reader=config[mtype]['reader'] if 'reader' in config[mtype] else mtype
                 reader=importlib.import_module("pynitride.omniscient.readers."+reader)
                 additional=eval(config[mtype]['additionalinfo']) if 'additionalinfo' in config[mtype] else {}
@@ -66,13 +67,13 @@ class DataManager():
                     if mo:
                         #data=holder(reader.read(os.path.join(subdir,dirpath,filename)))
                         data=reader.read(os.path.join(subdir,dirpath,filename))
-                        vals={n:{"string": str, "int": int, "float": float}[pt](x) for x,n,pt in zip(mo.groups(),nameparts,parttypes)}
+                        vals={name:evalers[name](mo.group(name)) for name in regex.groupindex.keys()}
                         vals.update(additional)
                         vals.update({'filename':os.path.join(dirpath,filename)[len(top)+1:] ,'proj':proj,'mtype':mtype, 'data': data})
 
                         for further in furthers:
                             if eval(further[0],vals):
-                                vals.update(further[1])
+                                vals.update(eval(further[1],vals))
                         vals=[vals.get(c,None) for c in headers]
                         pretable+=[vals]
                 pretable=dict(zip(headers,zip(*pretable)))
