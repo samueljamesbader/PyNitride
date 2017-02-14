@@ -71,7 +71,7 @@ cdef class GaNHEMT_iMVSG:
     cdef double Ff(GaNHEMT_iMVSG self, double VD, double VG):
         r""" Fermi inversion regime smoothing function
 
-        Equation 4.5 of Ujwal's masters thesis.  If ``self.alpha`` is 0, ``Fsat`` is just 0, no inversion VT shifts.
+        Equation 4.5 of Ujwal's masters thesis.  If ``self.alpha`` is 0, ``Ff`` is just 0, no inversion VT shifts.
 
         :param VD: (double) drain voltage
         :param VG: (double) gate voltage
@@ -517,3 +517,9 @@ cdef class HyperFET:
             return self.hemt.VT0+self.vo2.V_MIT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_MIT)
         if feature=="Vright":
             return self.hemt.VT0+self.vo2.V_IMT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_IMT)
+
+    @staticmethod
+    def approx_shift(hemt,vo2):
+        Ioff=hemt.n*hemt.W*hemt.Cinv_vxo*hemt._Vth*exp(-hemt.VT0/(hemt.n*hemt._Vth))
+        DeltaVT=-Ioff*vo2.R_ins
+        return DeltaVT

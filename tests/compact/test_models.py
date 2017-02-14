@@ -6,7 +6,8 @@ import pytest
 import cProfile
 
 if __name__=="__main__":
-    pytest.main(args=[__file__,"-s","--plots"])
+    pass
+    #pytest.main(args=[__file__,"-s","--plots"])
 
 
 def test_ganhemt():
@@ -46,6 +47,37 @@ def test_HyperFET():
     plt.plot(VG,If)
     plt.plot(VG,Ib)
     plt.show()
+    plt.gcf().canvas.set_window_title("HyperFET")
+
+    plt.yscale('log')
+
+def test_HyperFET_shift():
+    VT0=.35
+
+    vo2=VO2Res(R_met=1e-8, V_MIT=.05, I_IMT=.005e-3)
+    hemt=GaNHEMT_iMVSG(VT0=VT0, alpha=0, delta=0, eta=0, Gleak=0)
+    print("shift ",HyperFET.approx_shift(hemt,vo2))
+    hemtshifted=GaNHEMT_iMVSG(VT0=(VT0+HyperFET.approx_shift(hemt,vo2)), alpha=0, delta=0, eta=0, Gleak=0)
+    hf=HyperFET(hemtshifted,vo2)
+
+    from numpy import exp
+    Ioff=hemt.n*hemt.W*hemt.Cinv_vxo*hemt._Vth*exp(-hemt.VT0/(hemt.n*hemt._Vth))
+
+    VD=np.array(100.0)
+    VG=np.linspace(0,VT0+5,500)
+
+    If,Ib=hf.I_double(VD=VD,VG=VG)
+    Ifa=hf.approx_I(VD=VD,VG=VG,region="lowernoleak")
+    #assert not(np.any(np.isnan(If)) or np.any(np.isnan(Ib))), "NaNs!"
+
+    plt.figure()
+    plt.plot(VG,hemt.ID(VD,VG))
+    plt.plot(VG,If)
+    plt.plot(VG,Ib)
+    plt.plot(VG,Ioff+0*VG)
+    plt.plot(VG,Ifa,'--')
+    plt.show()
+    plt.gcf().canvas.set_window_title("HyperFET Shift Test")
 
     plt.yscale('log')
 
@@ -107,3 +139,6 @@ def test_HyperFET_timing():
     print("\nHyperFET computed {:d} values in {:.3e} s (average of {:d} runs)." \
           .format(numvalues,hf_timing,Nrepeat))
 
+if __name__=="__main__":
+    test_HyperFET_shift()
+    #pytest.main(args=[__file__,"-s","--plots"])
