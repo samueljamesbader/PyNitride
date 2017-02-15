@@ -12,6 +12,7 @@ Install the various Python dependencies of this project.  If you have `miniconda
     conda install numpy scipy cython anaconda matplotlib pytest
 
     conda install --channel https://conda.anaconda.org/acellera pint
+    conda install --channel https://conda.anaconda.org/samjbader xrayutilities
 
 
 Then download this project via `github`

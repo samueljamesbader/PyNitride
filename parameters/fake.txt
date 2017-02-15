@@ -49,7 +49,9 @@ material=GaN
             type: 'Acceptor'
             E: 230 meV
             g: 4
-
+    conditions=relaxed
+        lattice
+            u: .376
 material=AlN
     material type: 'binary'
     conditions=relaxed
@@ -97,6 +99,9 @@ material=AlN
             type: 'Acceptor'
             E: 4 eV
             g: 4
+    conditions=relaxed
+        lattice
+            u: .380
 
 material=GaAs
     material type: 'binary'
