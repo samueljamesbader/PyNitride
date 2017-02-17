@@ -6,7 +6,7 @@ from pynitride.poissolve.solvers import PoissonSolver
 if __name__=='__main__':
     #pytest.main(args=[__file__])
     pytest.main(args=[__file__,'--plots'])
-from tests.runtests import plots
+from tests.dirty.runtests import plots
 
 @plots
 def test_poisson(nonuniformmesh):
