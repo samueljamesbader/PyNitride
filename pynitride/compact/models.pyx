@@ -492,6 +492,8 @@ cdef class HyperFET:
             - `"uppersub"` is the metallic branch, assuming subthreshold
             - `"inversion"` is the metallic branch, assuming strong inversion
         :return: the currents
+
+        .. _Sam_HyperFETApprox: http://sambader.net
         """
         VD,VG=np.meshgrid(VD,VG)
         hemt=self.hemt

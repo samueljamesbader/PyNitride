@@ -12,7 +12,7 @@ from pynitride.poissolve.mesh import EpiStack, Mesh, Layer
 if __name__=='__main__':
     pytest.main(args=[__file__])
     #pytest.main(args=[__file__,'--plots'])
-from tests.runtests import plots
+from tests.dirty.runtests import plots
 
 def test_layer():
     l=Layer('layer1','GaN',10)
