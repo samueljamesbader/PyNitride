@@ -40,8 +40,7 @@ cdef class GaNHEMT_iMVSG:
     def __init__(GaNHEMT_iMVSG self, double T=300,
                  double W=1000e-6, double Cinv_vxo=.11e3,
                  double VT0=-4.2, double alpha=3.5, double SS=90e-3, double delta=0,
-                 double VDsats=4, double beta=2, double eta=.1, double Gleak=1e-14,
-                 double Rs=0, double Rd=0):
+                 double VDsats=4, double beta=2, double eta=.1, double Gleak=1e-14):
 
         self._Vth=k*T/e
         self.W=W
@@ -154,6 +153,13 @@ cdef class GaNHEMT_iMVSG:
         :return: 2-D numpy double array drain current
         """
         return gridinput(np.asarray(VD,dtype='double'),np.asarray(VG,dtype='double'),self._ID,args=<void*>self)
+
+    def shifted(GaNHEMT_iMVSG self, VT0_shift):
+        return GaNHEMT_iMVSG(T=e*self._Vth/k,
+                 W=self.W, Cinv_vxo=self.Cinv_vxo,
+                 VT0=self.VT0+VT0_shift, alpha=self.alpha, SS=self.SS, delta=self.delta,
+                 VDsats=self.VDsats, beta=self.beta, eta=self.eta, Gleak=self.Gleak)
+
 
 
 r""" Represents a piecewise linear current-controlled i-v (potentially non-unique in V)

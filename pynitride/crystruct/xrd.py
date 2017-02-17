@@ -38,6 +38,8 @@ def _make_materials():
                                             AlN['stiffness.C33'].to('pascal').magnitude,
                                             AlN['stiffness.C44'].to('pascal').magnitude))
 
+    # http://materials.springer.com/isp/crystallographic/docs/sd_0526903
+    # http://www.ioffe.ru/SVA/NSM/Semicond/SiC/mechanic.html
     SiC_6H = xu.materials.Crystal(
         "SiC(6H)",xu.materials.SGLattice(186, 3.0810, 15.1248,
                                          atoms=[Si,C,Si,C,Si,C], pos=[('2b',0.20796),
