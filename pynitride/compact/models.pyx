@@ -34,7 +34,7 @@ cdef class GaNHEMT_iMVSG:
     :param Gleak: Leakage conductance [Siemens]
     """
 
-    cdef public double _Vth, W, Cinv_vxo, VT0, alpha, SS, delta, VDsats, beta, eta, Gleak, n
+    cdef public double _Vth, W, Cinv_vxo, VT0, alpha, SS, delta, VDsats, beta, eta, Gleak, n, k
 
     @cython.cdivision(True)
     def __init__(GaNHEMT_iMVSG self, double T=300,
@@ -54,16 +54,18 @@ cdef class GaNHEMT_iMVSG:
         self.eta=eta
         self.Gleak=Gleak
         self.n=SS/(self._Vth*log(10))
+        self.k=W*Cinv_vxo
 
-    cdef double VT(GaNHEMT_iMVSG self, double VD):
-        r""" Threshold voltage accounting for DIBL
+    cdef double VT(GaNHEMT_iMVSG self, double VD, double VG):
+        r""" Threshold voltage accounting for DIBL and strong/weak inversion shift
 
         Equation 4.4 of Ujwal's masters thesis.
 
         :param VD: (double) drain voltage
+        :param VG: (double) gate voltage
         :return: (double) the threshold voltage
         """
-        return self.VT0-self.delta*VD
+        return self.VT0-self.delta*VD-self.alpha*self._Vth*self.Ff(VD,VG)
 
     # Eq 4.5
     @cython.cdivision(True)
@@ -85,7 +87,7 @@ cdef class GaNHEMT_iMVSG:
         # alpha!=0
         else:
             # the argument that will go into the exponential
-            exparg=(VG-(self.VT(VD)-self.alpha*self._Vth/2))/(self.alpha*self._Vth)
+            exparg=(VG-(self.VT0-self.delta*VD-self.alpha*self._Vth/2))/(self.alpha*self._Vth)
 
             # If the argument is large in magnitude, avoid overflow by just taking the limit
             if exparg>15: return 0
@@ -127,7 +129,7 @@ cdef class GaNHEMT_iMVSG:
         self=<GaNHEMT_iMVSG> args
 
         # what will go inside the exponential
-        exparg=(VG-(self.VT(VD)-self.alpha*self._Vth*self.Ff(VD,VG)))/(self.n*self._Vth)
+        exparg=(VG-(self.VT(VD,VG)))/(self.n*self._Vth)
 
         # if the argument is not too large, evaluate normally
         if exparg<15:
@@ -252,10 +254,18 @@ cdef class HyperFET:
 
     cdef GaNHEMT_iMVSG hemt
     cdef VO2Res vo2
+    cdef double VDD,VTp,VTm,R_insp,R_metp,_approx_Ioff
 
-    def __init__(HyperFET self, GaNHEMT_iMVSG hemt, VO2Res vo2):
+    def __init__(HyperFET self, GaNHEMT_iMVSG hemt, VO2Res vo2, double VDD):
         self.hemt=hemt
         self.vo2=vo2
+
+        self.VDD=VDD
+        self.VTp=hemt.VT0-hemt.delta*VDD
+        self.VTm=self.VTp-hemt.alpha*hemt._Vth
+        self.R_insp=vo2.R_ins*(1+hemt.delta)
+        self.R_metp=vo2.R_met*(1+hemt.delta)
+        self._approx_Ioff=hemt.n*hemt.k*hemt._Vth*exp(-self.VTm/(hemt.n*hemt._Vth))
 
     cdef double _I_low(HyperFET self, double VD, double VG, Direction direc) except -2:
         r""" Returns the solution current along the lower (insulating) branch if one exists at this ``VD,VG``.
@@ -503,15 +513,15 @@ cdef class HyperFET:
             Goff=1/(vo2.R_ins+1/hemt.Gleak)
             return Goff*VD+0*VG
         if region=="lower":
-            return hemt.n*Vth/vo2.R_ins*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_ins/(1+hemt.Gleak*vo2.R_ins)\
-                *np.exp((VG-hemt.VT0-(hemt.Gleak*VD*vo2.R_ins)/(1+hemt.Gleak*vo2.R_ins))/(hemt.n*Vth)))\
+            return hemt.n*Vth/self.R_insp*lambertw(hemt.k*self.R_insp/(1+hemt.Gleak*vo2.R_ins)\
+                *np.exp((VG-self.VTm-(hemt.Gleak*VD*vo2.R_ins)/(1+hemt.Gleak*vo2.R_ins))/(hemt.n*Vth)))\
             +(hemt.Gleak*VD/(1+hemt.Gleak*vo2.R_ins))
         if region=="lowernoleak":
-            return hemt.n*Vth/vo2.R_ins*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_ins*np.exp((VG-hemt.VT0)/(hemt.n*Vth)))
+            return hemt.n*Vth/self.R_insp*lambertw(hemt.k*self.R_insp*np.exp((VG-self.VTm)/(hemt.n*Vth)))
         if region=="uppersub":
-            return hemt.n*Vth/vo2.R_met*lambertw(hemt.W*hemt.Cinv_vxo*vo2.R_met*np.exp((VG-vo2.V_met-hemt.VT0)/(hemt.n*Vth)))
+            return hemt.n*Vth/self.R_metp*lambertw(hemt.k*self.R_metp*np.exp((VG-vo2.V_met-self.VTm)/(hemt.n*Vth)))
         if region=="inversion":
-            return hemt.W*hemt.Cinv_vxo*(VG-vo2.V_met-hemt.VT0)/(1+hemt.W*hemt.Cinv_vxo*vo2.R_met)
+            return hemt.k*(VG-vo2.V_met-self.VTp)/(1+hemt.k*self.R_metp)
 
     def approx_hyst(self,feature):
         r""" Return the subthreshold-approximation results for the left and right ends of the hysteris
@@ -522,12 +532,15 @@ cdef class HyperFET:
         hemt=self.hemt
         vo2=self.vo2
         if feature=="Vleft":
-            return self.hemt.VT0+self.vo2.V_MIT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_MIT)
+            Vleft0=self.VTm+(1+hemt.delta)*self.vo2.V_MIT-hemt.n*hemt._Vth*log(hemt.n*hemt.k*hemt._Vth/vo2.I_MIT)
+            return Vleft0-hemt.alpha*hemt._Vth*hemt.Ff(self.VDD-vo2.V_MIT,Vleft0-vo2.V_MIT)
         if feature=="Vright":
-            return self.hemt.VT0+self.vo2.V_IMT-hemt.n*hemt._Vth*log(hemt.n*hemt.Cinv_vxo*hemt.W*hemt._Vth/vo2.I_IMT)
+            return self.VTm+(1+hemt.delta)*self.vo2.V_IMT-hemt.n*hemt._Vth*log(hemt.n*hemt.k*hemt._Vth/vo2.I_IMT)
 
-    @staticmethod
-    def approx_shift(hemt,vo2):
-        Ioff=hemt.n*hemt.W*hemt.Cinv_vxo*hemt._Vth*exp(-hemt.VT0/(hemt.n*hemt._Vth))
-        DeltaVT=-Ioff*vo2.R_ins
-        return DeltaVT
+    def approx_shift(self):
+        return -self._approx_Ioff*self.R_insp
+    def approx_shiftedgain(self):
+        return (1+(self._approx_Ioff*self.R_insp-self.vo2.V_met)/(self.VDD-self.VTp))/(1+self.hemt.k*self.R_metp)
+    def approx_shiftedsr(self):
+        return (self.VDD-self.VTp)*self.hemt.k*self.R_metp+self.vo2.V_met-self._approx_Ioff*self.R_insp
+

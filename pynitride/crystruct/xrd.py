@@ -1,5 +1,7 @@
 import xrayutilities as xu
+from xrayutilities.simpack import Layer
 from pynitride import ParamDB, Material
+import numpy as np
 
 def _make_materials():
     pmdb=ParamDB(units='Pint')
@@ -11,6 +13,7 @@ def _make_materials():
     Al=xu.materials.elements.Al
     Si = xu.materials.elements.Si
     C = xu.materials.elements.C
+    O = xu.materials.elements.O
 
     a_GaN=GaN['lattice.a'].to('angstrom').magnitude
     c_GaN=GaN['lattice.c'].to('angstrom').magnitude
@@ -49,9 +52,16 @@ def _make_materials():
                                                                       ('2a',0.00000),
                                                                       ('2a',0.37473)]),
         xu.materials.HexagonalElasticTensor(501e9,111e9,52e9,553e9,163e9))
-    return GaN_WZ, AlN_WZ, SiC_6H
-GaN_WZ,AlN_WZ,SiC_6H=_make_materials()
+
+    Sapphire = xu.materials.Crystal(
+        "Sapphire",xu.materials.SGLattice('167:H',4.759026,12.990840,
+                                          atoms=[O,Al], pos=[('18e',0.30618),
+                                                             ('12c',0.14783)]))
+
+
+    return GaN_WZ, AlN_WZ, SiC_6H,Sapphire
+GaN_WZ,AlN_WZ,SiC_6H,Sapphire=_make_materials()
 
 def PseudomorphicStack0001(name,*args):
     return xu.simpack.PseudomorphicStack001(name,*args)
-Layer=xu.simpack.Layer
+

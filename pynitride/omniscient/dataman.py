@@ -9,6 +9,8 @@ from configparser import ConfigParser, BasicInterpolation
 import re
 import pandas
 import importlib
+from functools import reduce
+from datetime import date
 
 from pynitride import config
 
@@ -22,7 +24,7 @@ class DataManager():
         top=dirs[0]
         return [d[len(top)+1:] for d in dirs[1:]]
 
-    def load_subproject(self,proj):
+    def load_subproject(self,proj, expand=None, index='filename', extra={}):
         subdir=os.path.join(self._datadir,proj)
         assert os.path.isdir(subdir), "Subproject folder does not exist."
         top=None
@@ -39,7 +41,7 @@ class DataManager():
             config['DEFAULT']['DIR']=dirpath
             fields=[f for f in config['_headers'] if f not in config['DEFAULT']]
             try:
-                headers=['filename','proj','mtype']+fields+['data']
+                headers=['filename','proj','mtype']+fields+['data']+list(extra.keys())
                 evalers={f:eval(config['_headers'][f]) for f in fields}
             except Exception as e:
                 print(e)
@@ -70,6 +72,7 @@ class DataManager():
                         vals={name:evalers[name](mo.group(name)) for name in regex.groupindex.keys()}
                         vals.update(additional)
                         vals.update({'filename':os.path.join(dirpath,filename)[len(top)+1:] ,'proj':proj,'mtype':mtype, 'data': data})
+                        vals.update(extra)
 
                         for further in furthers:
                             if eval(further[0],vals):
@@ -77,13 +80,62 @@ class DataManager():
                         vals=[vals.get(c,None) for c in headers]
                         pretable+=[vals]
                 pretable=dict(zip(headers,zip(*pretable)))
-                self._datatable=pandas.concat([self._datatable,pandas.DataFrame(pretable).set_index('filename')])
+                temptable=pandas.DataFrame(pretable).set_index(index)
+                dropdata=False
+                if expand==True:
+                    expand=list(reduce(set.union,(set(r.data.keys()) for r in temptable.itertuples())))
+                    dropdata=True
+                if isinstance(expand,list):
+                    for c in expand:
+                        temptable[c]=[r.data[c] for r in temptable.itertuples()]
+                if dropdata:
+                    del temptable['data']
+                self._datatable=pandas.concat([self._datatable,temptable])
+
 
     @property
     def table(self):
         return self._datatable
-    
-        
+
+    def __getitem__(self,key):
+        return self._datatable.ix[key]
+
+    def drop(self,*keys):
+        for k in keys:
+            del self._datatable[k]
+
+    def copy(self,deep=True):
+        dm=DataManager(self._datadir)
+        dm._datatable=self._datatable.copy(deep=deep)
+        return dm
+
+    def expand_samplename(self, col='sample'):
+        dates=[]
+        if col in self._datatable:
+            samp=self._datatable[col]
+        elif self._datatable.index.name==col:
+            samp=self._datatable.index
+        else:
+            raise Exception("Could not find "+str(col))
+        for d in samp:
+            try:
+                y=2000+int(d[:2])
+                m=int(d[2:4])
+                d=int(d[4:6])
+                dates+=[date(y,m,d)]
+            except:
+                dates+=[None]
+        self._datatable['date']=dates
+
+    def query(self,expr,inplace=False,**kwargs):
+        if inplace:
+            self._datatable.query(expr,inplace,**kwargs)
+            return self
+        else:
+            dm=self.copy(deep=False)
+            dm.query(expr,True,**kwargs)
+            return dm
+
 if __name__=="__main__":
     dm=DataManager("/home/sam/My_All/Cornell/Jena/ALL_DATA/")
     print(dm.get_projects())
