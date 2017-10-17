@@ -27,9 +27,9 @@ def gan_pn(xp,xn,Nd,Na,Ndspike=0,surface='GenericMetal'):
 
     return m
 
-def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False):
-    AlN=Material("AlN")
-    GaN=Material("GaN",conditions=['strained_to_AlN'])
+def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False,pmdb=ParamDB()):
+    AlN=Material("AlN",pmdb=pmdb)
+    GaN=Material("GaN",conditions=['strained_to_AlN'],pmdb=pmdb)
     if snidermode:
         AlN="qAlN"
         GaN="qGaN"
@@ -39,9 +39,31 @@ def gan_qwhemt(xc,xb,xw,xs,Ndef,surface='GenericMetal',snidermode=False):
         epistack=EpiStack(['barrier',AlN,xb],['well',GaN,xw],['subs',AlN,xs],surface=surface)
     else:
         epistack=EpiStack(['cap',GaN,xc],['barrier',AlN,xb],['well',GaN,xw],['subs',AlN,xs],surface=surface)
-    m=Mesh(epistack,max_dz=10,refinements=[[xc+xb,.02,1.2],[xc+xb+xw,.02,1.3]])
+    m=Mesh(epistack,max_dz=10,refinements=[[xc,.01,1.2],[xc+xb,.01,1.2],[xc+xb+xw,.01,1.3]])
 
-    sm=m.submesh([xc,xc+xb+xw+xw/3])
+    sm=m.submesh([0,xc+xb+xw+xw/3])
+
+    # Substrate impurities
+    m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
+    m['DeepAcceptorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')
+
+
+    P=MaterialFunction(m,['polarization','Ptot'])
+    m['rho_pol']=P.differentiate(fill_value=0.0)
+    return m,sm
+
+def gan_pqwhemt(xw,xs,Ndef,surface='GenericMetal',snidermode=False,pmdb=ParamDB()):
+    AlN=Material("AlN",pmdb=pmdb)
+    GaN=Material("GaN",conditions=['strained_to_AlN'],pmdb=pmdb)
+    if snidermode:
+        AlN="qAlN"
+        GaN="qGaN"
+
+    # Build device
+    epistack=EpiStack(['well',GaN,xw],['subs',AlN,xs],surface=surface)
+    m=Mesh(epistack,max_dz=10,refinements=[[xw,.01,1.3]])
+
+    sm=m.submesh([0,xw+xw/3])
 
     # Substrate impurities
     m['DeepDonorActiveConc']=RegionFunction(m,lambda name: (name=="subs")*Ndef, pos='point')

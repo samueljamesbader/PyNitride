@@ -1,0 +1,13 @@
+material=GaN
+    material type: 'binary'
+    conditions=
+        kp
+            A1:  -5.947  hbar**2/(2*m_e)
+            A2:  -0.528  hbar**2/(2*m_e)
+            A3:   5.414  hbar**2/(2*m_e)
+            A4:  -2.512  hbar**2/(2*m_e)
+            A5:  -2.510  hbar**2/(2*m_e)
+            A6:  -3.202  hbar**2/(2*m_e)
+            A7:   0.046  meV angstrom
+            Epc:  17.292 eV
+            Ept:  16.265 eV

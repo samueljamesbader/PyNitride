@@ -3,8 +3,11 @@ from pynitride.paramdb import ParamDB
 cm,MV,k,hbar,q,eV=ParamDB().quantity("cm,MV,k,hbar,e,eV")
 import numpy as np
 
-def plot_QFV(mesh):
-    mpl.figure()
+def plot_QFV(mesh,fig=None):
+    if fig is None:
+        mpl.figure()
+    else:
+        mpl.figure(fig.number)
     ax1=mpl.subplot(311)
     mpl.plot(mesh.zp, (mesh['rho'] - mesh['rho_pol']) / (q / cm ** 3))
     mpl.ylabel("Free charge [$|e|/\\mathrm{cm}^3$]")
@@ -23,8 +26,11 @@ def plot_QFV(mesh):
     mpl.ylabel("Bands [$\\mathrm{eV}$]")
     mpl.show()
 
-def plot_carrierFV(mesh):
-    mpl.figure()
+def plot_carrierFV(mesh,fig=None):
+    if fig is None:
+        mpl.figure()
+    else:
+        mpl.figure(fig.number)
     ax1=mpl.subplot(311)
     mpl.plot(mesh.zp, mesh['n'] / (1 / cm ** 3), 'b')
     mpl.plot(mesh.zp, mesh['p'] / (1 / cm ** 3), 'g')
@@ -42,10 +48,11 @@ def plot_carrierFV(mesh):
     mpl.plot(mesh.zp, mesh['Ev'] / eV)
     mpl.plot(mesh.zp, mesh['EF'] / eV)
     mpl.ylabel("Bands [$\\mathrm{eV}$]")
-    mpl.show()
+    if fig is None:
+        mpl.show()
 #plot_QFV(pn._mesh)
 
-def plot_wavefunctions(mesh,bands=['e_Gamma']):
+def plot_wavefunctions(mesh,bands=['e_'],n=3):
     m=mesh
     z=mesh.zp
     #mpl.plot(z,m['Ec'],'-')
@@ -55,7 +62,7 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
     for b in bands:
         E=m['Energies'+'_'+b][:,0]
         wf=np.min(np.diff(E))/np.max(np.abs(m['Psi'+'_'+b]))
-        for i,Ei in enumerate(E[:1]):
+        for i,Ei in enumerate(E[:n]):
             l=mpl.plot(z,Ei+0*(z),'--')[0]
             mpl.plot(z,m['Psi'+'_'+b][i,:]*wf+Ei,color=l.get_color())
 
@@ -64,9 +71,9 @@ def plot_wavefunctions(mesh,bands=['e_Gamma']):
 
     mpl.twinx()
     if b[0][0]=='e':
-        mpl.plot(z,m['n'],'.-k')
+        mpl.plot(z,m['n'],'-k')
     else:
-        mpl.plot(z,m['p'],'.-k')
+        mpl.plot(z,m['p'],'-k')
     #mpl.plot(z,m['nderiv']*kT,'.-r')
     #mpl.yscale('log')
     mpl.yticks([])

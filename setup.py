@@ -22,6 +22,6 @@ setup(
         "pynitride/util/cython_loops.pyx",
         "tests/util/ctest_cython_loops.pyx",
         ], **ext_options),
-    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython', 'pint'],
+    requires=['numpy', 'matplotlib', 'scipy', 'pytest', 'cython', 'pint', 'peakutils'],
     include_dirs=[numpy.get_include(),ROOT_DIR]
 )

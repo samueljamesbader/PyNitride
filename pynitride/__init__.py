@@ -1,7 +1,7 @@
 import os.path
 import configparser
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
-config = configparser.ConfigParser()
+config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
 config.read(os.path.join(ROOT_DIR,"config.ini"))
 
 from pynitride.paramdb import ParamDB, Material, Value
