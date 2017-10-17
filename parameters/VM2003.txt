@@ -86,3 +86,42 @@ material=AlN
             Eg0: 6.25    eV
             alpha: 1.799 meV/K
             beta: 1462   K
+
+material=InN
+    material type: 'binary'
+    conditions=
+        stiffness
+            C11:  223   GPa
+            C12:  115   GPa
+            C13:   92   GPa
+            C33:  224   GPa
+            C44:   48   GPa
+       # kp
+       #     A1:         hbar**2/(2*m_e)
+       #     A2:         hbar**2/(2*m_e)
+       #     A3:         hbar**2/(2*m_e)
+       #     A4:         hbar**2/(2*m_e)
+       #     A5:         hbar**2/(2*m_e)
+       #     A6:         hbar**2/(2*m_e)
+       #     A7:         meV angstrom
+
+       #     a1:         eV
+       #     a2:         eV
+
+       #     D1:         eV
+       #     D2:         eV
+       #     D3:         eV
+       #     D4:         eV
+       #     D5:         eV
+       #     D6:         eV
+
+       #     DeltaCR:  meV
+       #     DeltaSO:  meV
+    conditions=relaxed
+        lattice
+            a:  3.545 angstrom
+            c:  5.703 angstrom
+        #varshni
+        #    Eg0:     eV
+        #    alpha:  meV/K
+        #    beta:    K

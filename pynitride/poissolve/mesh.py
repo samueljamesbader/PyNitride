@@ -540,7 +540,7 @@ class Function(np.ndarray):
         """
         if self.pos=='point':
             if definite:
-                np.sum(self * self.mesh.dzm,axis=-1)
+                return np.sum(self * self.mesh.dzm,axis=-1)
             else:
                 return Function(self.mesh,pos='mid',value=np.cumsum(
                     (self * self.mesh.dzm).T[:-1].T
@@ -549,7 +549,7 @@ class Function(np.ndarray):
                     axis=-1))#.view(Function)
         if self.pos=="mid":
             if definite:
-                np.sum(self * self.mesh._dz, axis=-1)
+                return np.sum(self * self.mesh._dz, axis=-1)
             else:
                 output = Function(self.mesh,pos='point', value=0.0)
                 np.cumsum(

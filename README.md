@@ -13,8 +13,8 @@ Install the various Python dependencies of this project.  If you have `miniconda
 
     conda install --channel https://conda.anaconda.org/acellera pint
     conda install --channel https://conda.anaconda.org/samjbader xrayutilities
-
-
+    conda install --channel https://conda.anaconda.org/cbetters peakutils
+    pip install sk-video
 Then download this project via `github`
 
     cd DIRECTORY_WHERE_I_WANT_TO_INSTALL

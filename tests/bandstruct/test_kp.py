@@ -1,4 +1,4 @@
-from pynitride.bandstuct.kp import kp_6x6
+from pynitride.bandstruct.kp import kp_6x6
 from pynitride import ParamDB, Material
 import numpy as np
 pmdb=ParamDB(units='neu')

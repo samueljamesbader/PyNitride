@@ -1,0 +1,1 @@
+from pynitride.nn3wrap.nn3wrap import NN3Input

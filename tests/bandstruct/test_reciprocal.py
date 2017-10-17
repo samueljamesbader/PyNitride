@@ -1,5 +1,5 @@
 #from pynitride.bandstuct.kp import kp_6x6
-from pynitride.bandstuct.reciprocal import get_symmetry_point
+from pynitride.bandstruct.reciprocal import get_symmetry_point
 from pynitride import ParamDB, Material
 import numpy as np
 pmdb=ParamDB(units='neu')
