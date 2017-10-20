@@ -209,7 +209,10 @@ class Value():
 
         # numerical expression to parse
         else:
-            return ParamDB._ureg(raw)
+            try:
+                return ParamDB._ureg(raw)
+            except:
+                print(raw)
 
 def parse(val):
     v=ParamDB._ureg(val)

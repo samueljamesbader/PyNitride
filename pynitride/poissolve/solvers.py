@@ -3,12 +3,14 @@ import numbers
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from pynitride.poissolve.maths import tdma, fd12, fd12p
+from pynitride.poissolve.maths import tdma, fd12, fd12p, idd,iddd
 from pynitride import ParamDB, MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 from collections import OrderedDict
+from operator import mul
+from functools import reduce, lru_cache
 
 pmdb=ParamDB(units='neu')
-k,hbar,q=pmdb.quantity("k,hbar,e")
+k,hbar,q,m_e=pmdb.quantity("k,hbar,e,m_e")
 
 class SchrodingerSolver():
     def __init__(self,mesh,carriers=['electron','hole']):
@@ -165,128 +167,376 @@ class KPSolver():
         :param carriers: list of carriers (elements may be 'electron' or 'hole') to quantize
        """
         self._mesh=m=mesh
+        self._dopants=FermiDirac3D.identifydopants(mesh)
         for k in ['n','p','nderiv','pderiv']:
             if k not in m:
                 m[k]=PointFunction(m,empty=())
 
+        # See examples GenerateHwurt
+        Hwurt=np.array([
+           [ 'kx*L1*kx+ky*M1*ky+kz*M2*kz+kx*U*kx+ky*U*ky+kz*U*kz+Delta1+l1*exx+m1*eyy+m2*ezz',
+            'kx*N1p*ky+ky*N1m*kx++-i*Delta2+n1*exy',
+            'kx*N2p*kz+kz*N2m*kx+++n2*exz', '++', '++', '+Delta3+'],
+           ['ky*N1p*kx+kx*N1m*ky++i*Delta2+n1*exy',
+            'kx*M1*kx+ky*L1*ky+kz*M2*kz+kx*U*kx+ky*U*ky+kz*U*kz+Delta1+m1*exx+l1*eyy+m2*ezz',
+            'ky*N2p*kz+kz*N2m*ky+++n2*eyz', '++', '++', '+-i*Delta3+'],
+           ['kz*N2p*kx+kx*N2m*kz+++n2*exz', 'kz*N2p*ky+ky*N2m*kz+++n2*eyz',
+            'kx*M3*kx+ky*M3*ky+kz*L2*kz+kx*U*kx+ky*U*ky+kz*U*kz++m3*exx+m3*eyy+l2*ezz',
+            '+-1*Delta3+', '+i*Delta3+', '++'],
+           ['++', '++', '+-1*Delta3+',
+            'kx*L1*kx+ky*M1*ky+kz*M2*kz+kx*U*kx+ky*U*ky+kz*U*kz+Delta1+l1*exx+m1*eyy+m2*ezz',
+            'kx*N1p*ky+ky*N1m*kx++i*Delta2+n1*exy',
+            'kx*N2p*kz+kz*N2m*kx+++n2*exz'],
+           ['++', '++', '+-i*Delta3+', 'ky*N1p*kx+kx*N1m*ky++-i*Delta2+n1*exy',
+            'kx*M1*kx+ky*L1*ky+kz*M2*kz+kx*U*kx+ky*U*ky+kz*U*kz+Delta1+m1*exx+l1*eyy+m2*ezz',
+            'ky*N2p*kz+kz*N2m*ky+++n2*eyz'],
+           ['+Delta3+', '+i*Delta3+', '++', 'kz*N2p*kx+kx*N2m*kz+++n2*exz',
+            'kz*N2p*ky+ky*N2m*kz+++n2*eyz',
+            'kx*M3*kx+ky*M3*ky+kz*L2*kz+kx*U*kx+ky*U*ky+kz*U*kz++m3*exx+m3*eyy+l2*ezz']],
+          dtype='<U78')
+        self._C2w,self._Clw,self._Crw,self._C0w=KPSolver.break_hamiltonian(Hwurt)
+        a0=MaterialFunction(mesh,'conditions=relaxed.lattice.a')
+        #c0=MaterialFunction(mesh,'conditions=relaxed.lattice.c')
+        C13=MaterialFunction(mesh,'stiffness.C13')
+        C33=MaterialFunction(mesh,'stiffness.C33')
+        a=a0[-1]
+        #c=c0[-1]
+        exx=eyy=(a-a0)/a0
+        ezz=-2*C13/C33*exx
+        A1=MaterialFunction(mesh,'kp.A1')
+        A2=MaterialFunction(mesh,'kp.A2')
+        A3=MaterialFunction(mesh,'kp.A3')
+        A4=MaterialFunction(mesh,'kp.A4')
+        A5=MaterialFunction(mesh,'kp.A5')
+        A6=MaterialFunction(mesh,'kp.A6')
+        D1=MaterialFunction(mesh,'kp.D1')
+        D2=MaterialFunction(mesh,'kp.D2')
+        D3=MaterialFunction(mesh,'kp.D3')
+        D4=MaterialFunction(mesh,'kp.D4')
+        D5=MaterialFunction(mesh,'kp.D5')
+        D6=MaterialFunction(mesh,'kp.D6')
+        mesh['Delta1']=Delta1=MaterialFunction(mesh,'kp.DeltaCR')
+        mesh['Delta2']=Delta2=Delta3=1/3*MaterialFunction(mesh,'kp.DeltaSO')
+        U=hbar**2/(2*m_e)
+        Atwid=A2+A4-U
+        Ahat=A1+A3-U
+        L1=A5+Atwid
+        L2=A1-U
+        M1=-A5+Atwid
+        M2=Ahat
+        M3=A2-U
+        N1p=3*A5-Atwid
+        N1m=-A5+Atwid
+        N2p=np.sqrt(2)*A6-Ahat
+        N2m=Ahat
+        l1=D2+D4+D5
+        l2=D1
+        m1=D2+D4-D5
+        m2=D1+D3
+        m3=D2
+        n1=-2*D5
+        n2=np.sqrt(2)*D6
+        @lru_cache(maxsize=10000)
+        def kppar_m(i):
+            return {
+                'L1':L1[i],
+                'L2':L2[i],
+                'M1':M1[i],
+                'M2':M2[i],
+                'M3':M3[i],
+                'N1p':N1p[i],
+                'N1m':N1m[i],
+                'N2p':N2p[i],
+                'N2m':N2m[i],
+                'Delta1':Delta1[i],
+                'Delta2':Delta2[i],
+                'Delta3':Delta3[i],
+                'l1':l1[i],
+                'l2':l2[i],
+                'm1':m1[i],
+                'm2':m2[i],
+                'm3':m3[i],
+                'n1':n1[i],
+                'n2':n2[i],
+                'exx':exx[i],
+                'eyy':eyy[i],
+                'ezz':ezz[i],
+                'exy':0,
+                'exz':0,
+                'eyz':0,
+            }
+        self._kppar_m=kppar_m
+        @lru_cache(maxsize=10000)
+        def kppar_p(i):
+            return {
+                'L1':L1.to_point_function()[i],
+                'L2':L2.to_point_function()[i],
+                'M1':M1.to_point_function()[i],
+                'M2':M2.to_point_function()[i],
+                'M3':M3.to_point_function()[i],
+                'N1p':N1p.to_point_function()[i],
+                'N1m':N1m.to_point_function()[i],
+                'N2p':N2p.to_point_function()[i],
+                'N2m':N2m.to_point_function()[i],
+                'Delta1':Delta1.to_point_function()[i],
+                'Delta2':Delta2.to_point_function()[i],
+                'Delta3':Delta3.to_point_function()[i],
+                'l1':l1.to_point_function()[i],
+                'l2':l2.to_point_function()[i],
+                'm1':m1.to_point_function()[i],
+                'm2':m2.to_point_function()[i],
+                'm3':m3.to_point_function()[i],
+                'n1':n1.to_point_function()[i],
+                'n2':n2.to_point_function()[i],
+                'exx':exx.to_point_function()[i],
+                'eyy':eyy.to_point_function()[i],
+                'ezz':ezz.to_point_function()[i],
+                'exy':0,
+                'exz':0,
+                'eyz':0,
+            }
+        self._kppar_p=kppar_p
+
+        self._ss=SchrodingerSolver(mesh,carriers=['electron'])
+
     @staticmethod
-    def z_kinetic_term(mesh,mz=None):
-        r""" Generates the symmetrized *z* kinetic energy term for use in a Schrodinger solution.
+    def break_hamiltonian(H):
+        C2_terms=[[[] for j in range(H.shape[1])] for i in range(H.shape[0])]
+        Cl_terms=[[[] for j in range(H.shape[1])] for i in range(H.shape[0])]
+        Cr_terms=[[[] for j in range(H.shape[1])] for i in range(H.shape[0])]
+        C0_terms=[[[] for j in range(H.shape[1])] for i in range(H.shape[0])]
 
-        This tridiagonal matrix is the discrete, symmetrized representation of
-        :math:`\frac{-\hbar^2}{2m_z}\frac{\partial^2\psi}{\partial z^2}`.
-        See :ref:`Solving the Schrodinger Equation <solve_schrodinger__1d>` for details on the discrete form.
+        for i in range(H.shape[0]):
+            for j in range(H.shape[1]):
+                terms=H[i,j].split("+")
+                for t in terms:
+                    if t=="": continue
+                    factors=t.split("*")
+                    #print(factors)
+                    if len(factors)>2 and factors[0]=='kz' and factors[2]=='kz':
+                        C2_terms[i][j]+=[[factors[1]]]
+                    elif len(factors)>2 and factors[2]=='kz':
+                        Cl_terms[i][j]+=[[factors[1],factors[0]]]
+                    elif len(factors)>1 and factors[0]=='kz':
+                        Cr_terms[i][j]+=[[factors[1],factors[2]]]
+                    else:
+                        C0_terms[i][j]+=[factors]
+        #return C2_terms,Cl_terms,Cr_terms,C0_terms
+        #print(C0_terms[1][1])
+        def get(f,**kwargs):
+            if f=="U":
+                return hbar**2/(2*m_e)
+            if f in kwargs:
+                return kwargs[f]
+            elif f=='i': return 1j
+            elif f=='-i': return -1j
+            elif f=='1': return 1
+            elif f=='-1': return -1
+
+        @lru_cache(maxsize=64)
+        def C2(**kwargs):
+            return np.array( \
+            [[sum(reduce(mul,(get(f,**kwargs) for f in t)) for t in e) for e in r] for r in C2_terms])
+        @lru_cache(maxsize=64)
+        def Cl(**kwargs):
+            return np.array( \
+            [[sum(reduce(mul,(get(f,**kwargs) for f in t)) for t in e) for e in r] for r in Cl_terms])
+        @lru_cache(maxsize=64)
+        def Cr(**kwargs):
+            return np.array( \
+            [[sum(reduce(mul,(get(f,**kwargs) for f in t)) for t in e) for e in r] for r in Cr_terms])
+        @lru_cache(maxsize=64)
+        def C0(**kwargs):
+            return np.array( \
+            [[sum(reduce(mul,(get(f,**kwargs) for f in t)) for t in e) for e in r] for r in C0_terms])
+        return C2,Cl,Cr,C0
+
+    #@staticmethod
+    #def z_kinetic_term(mesh,mz=None):
+    #    r""" Generates the *z* kinetic energy term for use in a Schrodinger KP solution.
+
+    #    This tridiagonal matrix is the discrete, symmetrized representation of
+    #    :math:`\frac{-\hbar^2}{2m_z}\frac{\partial^2\psi}{\partial z^2}`.
+    #    See :ref:`Solving the Schrodinger Equation <solve_schrodinger__1d>` for details on the discrete form.
 
 
-        :param mesh: the :py:class:`~poissolve.mesh.structure.Mesh` on which the Schrodinger problem is defined
-        :param mz: MidFunction of the effective mass along *z*
-        :return: the *z* kinetic term as a sparse (CSC) matrix
-        """
-        diagonal=(hbar**2/(mz*mesh._dzp)).to_point_function(interp='unweighted')/mesh._dzm
-        offdiagonal=-(hbar**2/(2*mz*mesh._dzp *np.sqrt(mesh._dzm[:-1]*mesh._dzm[1:])))
-        T=diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
-        return T
+    #    :param mesh: the :py:class:`~poissolve.mesh.structure.Mesh` on which the Schrodinger problem is defined
+    #    :param mz: MidFunction of the effective mass along *z*
+    #    :return: the *z* kinetic term as a sparse (CSC) matrix
+    #    """
+    #    diagonal=(hbar**2/(mz*mesh._dzp)).to_point_function(interp='unweighted')/mesh._dzm
+    #    offdiagonal=-(hbar**2/(2*mz*mesh._dzp *np.sqrt(mesh._dzm[:-1]*mesh._dzm[1:])))
+    #    T=diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
+    #    return T
 
-    @staticmethod
-    def kinetic_term(mesh,kx,ky,H):
-        r""" Generates the lateral kinetic term for use in a Schrodinger solution.
-
-        This diagonal matrix is the discrete version  of :math:`\frac{\hbar^2k_\perp^2}{2m}`.
-        See :ref:`Solving the Schrodinger Equation <solve_schrodinger>` for details on the discrete form.
-
-        :param mesh: the Mesh on which the Schrodinger problem is defined
-        :param kperp: norm of the lateral wavevector
-        :param mxy: MidFunction of the lateral effective mass
-        :return: the lateral kinetic term as a sparse (CSC) matrix
-        """
+    @lru_cache(maxsize=500)
+    def assemble(self,kx,ky):
+        r""" Generates the lateral kinetic term for use in a Schrodinger solution."""
         #diagonal=(hbar**2*kperp**2/(2*mxy)).to_point_function(interp='unweighted')
         #T=diags(diagonal,format='csc')
         #return T
-        pass
+        print("Assembling: kx,ky=",kx,ky)
+        mesh=self._mesh
+        from scipy.sparse import lil_matrix
+        T=lil_matrix((6*len(mesh.zp),6*len(mesh.zp)),dtype='complex')
 
-    @staticmethod
-    def solve_schrodinger_problem(mesh,z_kinetic_term,potential,lateral_kinetic_term=0,
-                                  num_eigenvalues=8,psi_out=None):
-        if not psi_out: psi_out=PointFunction(mesh,empty=(num_eigenvalues,))
+        # Gotta get these memoized
+        print("fill")
+        for i in range(len(mesh.zp)):
+            T[6*i:6*i+6, 6*i:6*i+6]=\
+                self._C0w(kx=kx,ky=ky,**self._kppar_p(i))\
+                +(self._C2w(kx=kx,ky=ky,**self._kppar_m(i-1))/mesh._dzp[i-1]/mesh.dzm[i] if i>0 else 0)\
+                +(self._C2w(kx=kx,ky=ky,**self._kppar_m(i))/mesh._dzp[i]/mesh.dzm[i] if i<len(mesh._dzp) else 0)
+        for i in range(len(mesh.zm)):
+            T[6*i:6*i+6, 6*i+6:6*i+12]=\
+                -self._C2w(kx=kx,ky=ky,**self._kppar_m(i))/mesh._dzp[i]/np.sqrt(mesh._dzm[i]*mesh._dzm[i+1]) \
+                +1j*(self._Clw(kx=kx,ky=ky,**self._kppar_p(i))+self._Crw(kx=kx,ky=ky,**self._kppar_p(i+1)))\
+                    /(2*np.sqrt(mesh._dzm[i]*mesh._dzm[i+1]))
+        for i in range(1,len(mesh.zm)+1):
+            T[6*i:6*i+6, 6*i-6:6*i]= \
+                -self._C2w(kx=kx,ky=ky,**self._kppar_m(i-1))/mesh._dzp[i-1]/np.sqrt(mesh._dzm[i]*mesh._dzm[i-1]) \
+                -1j*(self._Clw(kx=kx,ky=ky,**self._kppar_p(i))+self._Crw(kx=kx,ky=ky,**self._kppar_p(i-1))) \
+                 /(2*np.sqrt(mesh._dzm[i]*mesh._dzm[i-1]))
+        print("convert")
+        return T.asformat('csr')
 
-        H=z_kinetic_term+diags(potential)+lateral_kinetic_term
-        energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(potential))
-        psi_out[:,:]=(1/np.sqrt(mesh._dzm))*eigenvectors.T
+    def solve(self,num_eigenvalues=25,activation=1):
+        assert activation==1
+        self._ss.solve()
+        mesh=self._mesh
+        nm=1
+        kT=k*mesh.pmdb['T']
+        ens=[]
+        uens=[]
+        normsqs=[]
+        weights=[]
+        kt=np.linspace(0,1/nm,10)
+        for kxi in kt:
+            psi_out=PointFunction(self._mesh,empty=(num_eigenvalues,6))
+            kyi=0
+            Hw=-self.assemble(kxi,kyi)
+            shift=np.maximum(np.maximum((mesh['Delta1'] + mesh['Delta2']).to_point_function(),(mesh['Delta1']-mesh['Delta2']).to_point_function()),0)
+            pot=np.reshape(np.reshape(np.tile(-self._mesh['Ev']+shift,6),(6,len(self._mesh.zp))).transpose(),(6*len(self._mesh.zp)))
+            H=Hw+diags(pot)
+            print('about to eigsh ',np.min(pot))
+            energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(pot),which='LM')
+            indarr=np.argsort(energies)
+            energies=-energies[indarr]
+            eigenvectors=eigenvectors[:,indarr]
+            # first axis = position, second axis = eigenvector, third axis = component
+            eigenvectors=np.rollaxis(np.reshape(eigenvectors,(len(mesh._zp),6,num_eigenvalues)),2,1)
+            print('done eigsh')
+            # first axis = position, second axis = eigenvector, value = normsq
+            normsq=(np.sum(abs(eigenvectors)**2,axis=2).T/self._mesh._dzm).T
+            # first axis = component, second axis = eigenvector, value = normsq
+            weight=np.sum((abs(eigenvectors)**2).T,axis=2)
+            #psi_out[:,:]=(1/np.sqrt(self._mesh._dzm))*eigenvectors.T
+            ens+=[sorted(energies)]
+            uens+=[energies]
+            #psis+=[psi_out]
+            normsqs+=[normsq]
+            weights+=[weight]
+        uens,normsqs,weights=np.array(uens), np.array(normsqs), np.array(weights)
+        E_i=ConstantFunction(mesh,np.tile(np.atleast_3d(uens),len(mesh.zp)))
+        print( "WHY AM I ONLY LOOKING AT K=0 ^^^")
+        eta=np.rollaxis((E_i-mesh['EF'])/kT,2,1)
+        mesh['p']=np.sum(1/(2*np.pi)*np.trapz(kt*(normsqs/(1+np.exp(-eta))).T,x=kt),axis=0)
+        mesh['pderiv']=np.sum(1/(2*np.pi*kT)*np.trapz(kt*(normsqs*(np.exp(eta))/(1+np.exp(eta))**2).T,x=kt),axis=0)
+        print("not blending")
 
-        return energies, psi_out
-
-    @staticmethod
-    def carrier_density(psi,g,mxys,eta,kT,summed=True):
-        return (g/(2*np.pi)*kT/hbar**2)* \
-              np.sum(mxys*(psi**2*(np.log(1+np.exp(eta)))).T,axis=1)
-
-
-    # (kT)**-1 * d(carrier_density)/d(eta)
-    @staticmethod
-    def carrier_density_deriv(psi,g,mxys,eta):
-        return (-g/(2*np.pi)/hbar**2)* \
-               np.sum(mxys*(psi**2*(1+np.exp(-eta))**-1).T,axis=1)
-
-    def solve(self,activation=1, eff_mass_average=True):
-        m=self._mesh
+        m=mesh
         EF=m['EF']
-        kT=k*m.pmdb['T']
-
-        for carrier,bands in self._props.items():
-            electron,hole=(carrier=="electron"),(carrier=="hole")
-            conc=0
-            deriv=0
-            for i,(b, bandparms) in enumerate(bands.items()):
-                abbrev="_"+carrier[0]+"_"+b
-
-                if electron: U=(m['Ec']+bandparms['DE'])
-                elif hole:   U=-(m['Ev']-bandparms['DE'])
-
-                E,Psi=self.solve_schrodinger_problem(m,bandparms['T'],U)
-                if hole: E=-E
-
-                m['Psi'+abbrev]=Psi
-                m['Energies'+abbrev]=E_i=ConstantFunction(m,E)
-
-                assert eff_mass_average, "Solving with full k-integral is not supported."
-                meff=1/((Psi**2/bandparms['mxys']).integrate()[:,-1])
-
-                if electron: eta=(m['EF']-E_i)/kT
-                elif hole:   eta=(E_i-m['EF'])/kT
-                conc+=self.carrier_density(Psi,bandparms['g'],meff,eta,kT)
-                deriv+=self.carrier_density_deriv(Psi,bandparms['g'],meff,eta)
-
-                if electron: np.maximum(E_i[-1],m['Ec'],out=m['Ec_eff'][i,:])
-                elif hole:   np.minimum(E_i[-1],m['Ev'],out=m['Ev_eff'][i,:])
-            if hole: deriv=-deriv
-            m[{'electron':'n','hole':'p'}[carrier]]=conc
-            m[{'electron':'nderiv','hole':'pderiv'}[carrier]]=deriv
-        carriers=self._props.keys()
-        if 'hole' not in carriers:
-            m['p']=0
-            m['pderiv']=0
-        if 'electron' not in carriers:
-            m['n']=0
-            m['nderiv']=0
-        for key,v in zip(['n','p','nderiv','pderiv'],
-                FermiDirac3D.carrier_density(EF,
-                    Ec=m['Ec_eff'] if 'electron' in carriers else m['Ec'],
-                    Ev=m['Ev_eff'] if 'hole' in carriers else m['Ev'],
-                    Nc=self._Nc,Nv=self._Nv,kT=kT,
-                    conduction_band_shifts=0 if 'electron' in carriers else self._cDE,
-                    valence_band_shifts=0 if 'hole' in carriers else self._vDE,
-                    compute_derivs=True)):
-            m[key]+=v
-
         m['Ndp'],m['Nam'],m['Ndpderiv'],m['Namderiv']= \
             FermiDirac3D.ionized_donor_density(m,EF,m['Ec'],m['Ev'],kT,self._dopants,compute_derivs=True)
-
-        if activation!=1:
-            for key in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
-                m[key]*=activation
-
-        m['rho']=activation*m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
+        m['rho']=m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
         m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
+
+        return kt,uens,normsqs,weights
+
+
+#    @staticmethod
+#    def solve_schrodinger_problem(mesh,z_kinetic_term,potential,lateral_kinetic_term=0,
+#                                  num_eigenvalues=8,psi_out=None):
+#        if not psi_out: psi_out=PointFunction(mesh,empty=(num_eigenvalues,))
+#
+#        H=z_kinetic_term+diags(potential)+lateral_kinetic_term
+#        energies,eigenvectors=eigsh(H,k=num_eigenvalues,sigma=np.min(potential))
+#        psi_out[:,:]=(1/np.sqrt(mesh._dzm))*eigenvectors.T
+#
+#        return energies, psi_out
+#
+#    @staticmethod
+#    def carrier_density(psi,g,mxys,eta,kT,summed=True):
+#        return (g/(2*np.pi)*kT/hbar**2)* \
+#              np.sum(mxys*(psi**2*(np.log(1+np.exp(eta)))).T,axis=1)
+#
+#
+#    # (kT)**-1 * d(carrier_density)/d(eta)
+#    @staticmethod
+#    def carrier_density_deriv(psi,g,mxys,eta):
+#        return (-g/(2*np.pi)/hbar**2)* \
+#               np.sum(mxys*(psi**2*(1+np.exp(-eta))**-1).T,axis=1)
+#
+#    def solve(self,activation=1, eff_mass_average=True):
+#        m=self._mesh
+#        EF=m['EF']
+#        kT=k*m.pmdb['T']
+#
+#        for carrier,bands in self._props.items():
+#            electron,hole=(carrier=="electron"),(carrier=="hole")
+#            conc=0
+#            deriv=0
+#            for i,(b, bandparms) in enumerate(bands.items()):
+#                abbrev="_"+carrier[0]+"_"+b
+#
+#                if electron: U=(m['Ec']+bandparms['DE'])
+#                elif hole:   U=-(m['Ev']-bandparms['DE'])
+#
+#                E,Psi=self.solve_schrodinger_problem(m,bandparms['T'],U)
+#                if hole: E=-E
+#
+#                m['Psi'+abbrev]=Psi
+#                m['Energies'+abbrev]=E_i=ConstantFunction(m,E)
+#
+#                assert eff_mass_average, "Solving with full k-integral is not supported."
+#                meff=1/((Psi**2/bandparms['mxys']).integrate()[:,-1])
+#
+#                if electron: eta=(m['EF']-E_i)/kT
+#                elif hole:   eta=(E_i-m['EF'])/kT
+#                conc+=self.carrier_density(Psi,bandparms['g'],meff,eta,kT)
+#                deriv+=self.carrier_density_deriv(Psi,bandparms['g'],meff,eta)
+#
+#                if electron: np.maximum(E_i[-1],m['Ec'],out=m['Ec_eff'][i,:])
+#                elif hole:   np.minimum(E_i[-1],m['Ev'],out=m['Ev_eff'][i,:])
+#            if hole: deriv=-deriv
+#            m[{'electron':'n','hole':'p'}[carrier]]=conc
+#            m[{'electron':'nderiv','hole':'pderiv'}[carrier]]=deriv
+#        carriers=self._props.keys()
+#        if 'hole' not in carriers:
+#            m['p']=0
+#            m['pderiv']=0
+#        if 'electron' not in carriers:
+#            m['n']=0
+#            m['nderiv']=0
+#        for key,v in zip(['n','p','nderiv','pderiv'],
+#                FermiDirac3D.carrier_density(EF,
+#                    Ec=m['Ec_eff'] if 'electron' in carriers else m['Ec'],
+#                    Ev=m['Ev_eff'] if 'hole' in carriers else m['Ev'],
+#                    Nc=self._Nc,Nv=self._Nv,kT=kT,
+#                    conduction_band_shifts=0 if 'electron' in carriers else self._cDE,
+#                    valence_band_shifts=0 if 'hole' in carriers else self._vDE,
+#                    compute_derivs=True)):
+#            m[key]+=v
+#
+#        m['Ndp'],m['Nam'],m['Ndpderiv'],m['Namderiv']= \
+#            FermiDirac3D.ionized_donor_density(m,EF,m['Ec'],m['Ev'],kT,self._dopants,compute_derivs=True)
+#
+#        if activation!=1:
+#            for key in ['n','p','nderiv','pderiv','Ndp','Nam','Ndpderiv','Namderiv']:
+#                m[key]*=activation
+#
+#        m['rho']=activation*m['rho_pol']+q*(m['p']+m['Ndp']-m['n']-m['Nam'])
+#        m['rhoderiv']= q*(m['pderiv']+m['Ndpderiv']-m['nderiv']-m['Namderiv'])
 
 
 class PoissonSolver():
@@ -430,6 +680,10 @@ class FermiDirac3D():
             for d,v in dopants[doptype].items():
                 v['E']=MaterialFunction(mesh,d+'.E',pos='point')
                 v['g']=MaterialFunction(mesh,d+'.g',pos='point')
+                if doptype=="donor":
+                    assert np.all(v['g'][~np.isnan(v['g'])]==2)
+                if doptype=="acceptor":
+                    assert np.all(v['g'][~np.isnan(v['g'])]==4)
         mesh['Nd']=np.sum(d['conc'] for d in dopants['Donor'].values())\
             if len(dopants['Donor']) else ConstantFunction(mesh,0)
         mesh['Na']=np.sum(d['conc'] for d in dopants['Acceptor'].values()) \
@@ -476,17 +730,32 @@ class FermiDirac3D():
 
         # Tiwari Compound Semiconductor Devices pg31-32
 
-        Ndp=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
+        #Ndp=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((EF-Ec+d["E"])/kT)))
+        #                                             for d in dopants['Donor'].values())))
+        #Nam=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
+        #                                             for d in dopants['Acceptor'].values())))
+
+        Ndp=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*idd((EF-Ec+d["E"])/kT,2)
            for d in dopants['Donor'].values())))
-        Nam=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*(1/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT)))
+        Nam=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*idd((Ev+d["E"]-EF)/kT,4)
            for d in dopants['Acceptor'].values())))
 
+        #if compute_derivs:
+        #    Ndpderiv=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']* \
+        #                                                      (d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/(1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2
+        #                                                      for d in dopants['Donor'].values())))
+        #    Namderiv=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']* \
+        #                                                      (-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
+        #                                                      for d in dopants['Acceptor'].values())))
+        #    return Ndp,Nam,Ndpderiv,Namderiv
+        #else:
+        #    return Ndp,Nam
+
+
         if compute_derivs:
-            Ndpderiv=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*\
-                    (d['g']/kT)*np.exp((EF-Ec+d["E"])/kT)/(1+d['g']*np.exp((EF-Ec+d["E"])/kT))**2
+            Ndpderiv=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']/kT*iddd((EF-Ec+d["E"])/kT,2)\
                 for d in dopants['Donor'].values())))
-            Namderiv=PointFunction(mesh,np.nan_to_num(np.sum( d['conc']*\
-                    (-d['g']/kT)*np.exp((Ev+d["E"]-EF)/kT)/(1+d['g']*np.exp((Ev+d["E"]-EF)/kT))**2
+            Namderiv=PointFunction(mesh,np.nan_to_num(np.sum( -d['conc']/kT*iddd((Ev+d["E"]-EF)/kT,4)\
                 for d in dopants['Acceptor'].values())))
             return Ndp,Nam,Ndpderiv,Namderiv
         else:
@@ -621,6 +890,121 @@ class Coupled_Schrodinger_Poisson():
         for i in range(max_iter):
             for s in self._quantum_charge_solvers:
                 if isinstance(s,SchrodingerSolver):
+                    s.solve(activation=1)
+                elif isinstance(s,FermiDirac3D):
+                    s.solve(activation=1,quantum_band_shift=True)
+            err=self._ps.isolve(visual=False)
+            if callback(): return
+            if err<tol:
+                print("Full success (max err={:.2g}) after {:d} refinement iterations".format(err,i-1))
+                break
+        assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ##########################################################################
+        ######################################################################
+
+class Coupled_KP_Poisson():
+
+    def __init__(self,mesh, carriers=['electron','hole'],schrodinger=None):
+        m=mesh
+        # Set some stuff
+        m['EF']=PointFunction(m,0.0)
+        if 'rho_pol' not in m:
+            m['rho_pol']=PointFunction(m,0.0)
+        if 'rho' not in m:
+            m['rho']=PointFunction(m,0.0)
+        if 'arho2' not in m:
+            m['arho2']=PointFunction(m,0.0) # is this necessary?
+        self._classical_charge_solvers=[FermiDirac3D(m)]
+
+
+        schrofull=(schrodinger is None)
+        if schrofull: schrodinger=m
+        self._quantum_charge_solvers=[SchrodingerSolver(schrodinger)]
+        if not schrofull:
+            if schrodinger._slicep.start is not None and schrodinger._slicep.start>0:
+                fd_sm=SubMesh(m,None,schrodinger._slicep.start)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers+=[fd]
+            if schrodinger._slicep.stop is not None and schrodinger._slicep.stop<len(m.zp):
+                fd_sm=SubMesh(m,schrodinger._slicep.stop,None)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers+=[fd]
+
+        schrofull=(schrodinger is None)
+        if schrofull: schrodinger=m
+        self._quantum_charge_solvers2=[KPSolver(schrodinger)]
+        if not schrofull:
+            if schrodinger._slicep.start is not None and schrodinger._slicep.start>0:
+                fd_sm=SubMesh(m,None,schrodinger._slicep.start)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers2+=[fd]
+            if schrodinger._slicep.stop is not None and schrodinger._slicep.stop<len(m.zp):
+                fd_sm=SubMesh(m,schrodinger._slicep.stop,None)
+                fd=FermiDirac3D(fd_sm)
+                self._quantum_charge_solvers2+=[fd]
+
+        # Prep solvers_old
+        self._ps=PoissonSolver(m)
+
+    def solve(self, low_act=4, rise=500, tol=1e-10, max_iter=100, callback=lambda *args: None, skip_classical=False):
+        self._ps.solve()
+        #if callback(): return
+        if not skip_classical:
+            for activation in np.logspace(-low_act,-0.,rise):
+                #self._fd.solve(activation=activation)
+                for s in self._classical_charge_solvers: s.solve(activation)
+                err=self._ps.isolve(visual=False)
+                if callback(): return
+            for i in range(max_iter):
+                for s in self._classical_charge_solvers: s.solve(activation=1)
+                err=self._ps.isolve(visual=False)
+                if callback(): return
+                if err<tol:
+                    print("Semi-classical success (max err={:.2g}) after {:d} refinement iterations".format(err,i-1))
+                    break
+            assert err<tol, "Stopped because reached max_iter with err ({:.2g}) > tol ({:.2g}).".format(err,tol)
+        for i in range(max_iter):
+            for s in self._quantum_charge_solvers:
+                if isinstance(s,SchrodingerSolver):
+                    s.solve(activation=1)
+                elif isinstance(s,FermiDirac3D):
+                    s.solve(activation=1,quantum_band_shift=True)
+            err=self._ps.isolve(visual=False)
+            if callback(): return
+            if err<tol:
+                print("Full success (max err={:.2g}) after {:d} refinement iterations".format(err,i-1))
+                break
+        for i in range(max_iter):
+            for s in self._quantum_charge_solvers2:
+                if isinstance(s,KPSolver):
                     s.solve(activation=1)
                 elif isinstance(s,FermiDirac3D):
                     s.solve(activation=1,quantum_band_shift=True)
