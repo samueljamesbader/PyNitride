@@ -98,7 +98,7 @@ for j in range(ORDER):
     cp[j] =(1.5-2*j)*c[j]
 
 
-# c-function to implement Fermi-Dirac 1/2.  See :py:func:`~pynitride.poissolve.maths.fd12` for more.
+# c-function to implement Fermi-Dirac 1/2 integral.  See :py:func:`~pynitride.poissolve.maths.fd12` for more.
 # args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
 cdef double fd12_scalar(double x,void* args):
 
@@ -130,7 +130,7 @@ cdef double fd12_scalar(double x,void* args):
     return partial_sum
 
 
-# c-function to implement Fermi-Dirac 1/2 Derivative.  See :py:func:`~pynitride.poissolve.maths.fd12p` for more.
+# c-function to implement Fermi-Dirac 1/2 Integral Derivative.  See :py:func:`~pynitride.poissolve.maths.fd12p` for more.
 # args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
 cdef double fd12p_scalar(double x,void* args):
     cdef:
@@ -208,3 +208,38 @@ def fd12p(x):
     :returns: the evaluation, as a numpy array.
     """
     return dimsimple(np.asarray(x,dtype=np.double),fd12p_scalar)
+
+
+
+# c-function to implement ionized dopant density
+# args should be scalar double g
+cdef double idd_scalar(double eta, void* args):
+    cdef:
+        double g
+    g=(<double*> args)[0]
+    if eta>500:
+        return 0
+    else:
+        return 1/(1+g*exp(eta))
+
+def idd(eta,g):
+    cdef double g2
+    g2=g
+    return dimsimple(np.asarray(eta,dtype=np.double),idd_scalar,&g2)
+
+
+# c-function to implement ionized dopant density derivative
+# args should be scalar double g
+cdef double iddd_scalar(double eta, void* args):
+    cdef:
+        double g
+    g=(<double*> args)[0]
+    if eta>500:
+        return 0
+    else:
+        return g*exp(eta)/(1+g*exp(eta))**2
+
+def iddd(eta,g):
+    cdef double g2
+    g2=g
+    return dimsimple(np.asarray(eta,dtype=np.double),iddd_scalar,&g2)
