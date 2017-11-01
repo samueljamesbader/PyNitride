@@ -8,71 +8,42 @@ import matplotlib.pyplot as mpl
 import numpy as np
 from matplotlib import pyplot as mpl
 from scipy.interpolate import interp1d
-import pickle
 from math import gcd,ceil
 from functools import reduce
-
-from pynitride.paramdb import Material, ParamDB
-
+from pynitride.visual import log
 
 class Layer():
-    def __init__(self, name, mat, thickness, pmdb=ParamDB()):
+    def __init__(self, name, thickness):
         self._name = name
-
-        if isinstance(mat,str):
-            self._matname = mat
-            self._mat = Material(mat,pmdb=pmdb)
-        elif isinstance(mat,Material):
-            self._matname=mat.matname
-            self._mat=mat
         self._thickness = thickness
+    def place(self,mesh):
+        self._mesh=mesh
 
     @property
     def name(self):
         return self._name
 
     @property
-    def material(self):
-        return self._mat
-
-    @property
     def thickness(self):
         return self._thickness
 
-    # if not found and default=... is passed, will return that instead of error
-    def get(self, key, default=None):
-        return self._mat(key,default=default)
+    @property
+    def mesh(self):
+        return self._mesh
+
+class UniformLayer(Layer):
+    def __init__(self, name, thickness, **kwargs):
+        super().__init__(name,thickness)
+        self._setproperties=kwargs
+
+    def place(self,mesh):
+        super().place(mesh)
+        for k,v in self._setproperties.items():
+            mesh[k]=MidFunction(mesh,value=v)
 
     def __getitem__(self, key):
-        return self._mat[key]
+        return self._mesh[key]
 
-
-class EpiStack():
-    def __init__(self,*args,surface=None,pmdb=ParamDB()):
-        if isinstance(args[0],Layer):
-            self._layers=args
-        else:
-            self._layers=[Layer(l[0], l[1], l[2],pmdb=pmdb) if len(l) == 3 else Layer(l[0], l[0], l[1],pmdb=pmdb) for l in args]
-        self._surface=surface
-        self._pmdb=pmdb
-
-    @property
-    def layers(self):
-        return self._layers
-
-    def __iter__(self):
-        return iter(self._layers)
-
-    def __getitem__(self, item):
-        return self._layers[item]
-
-    @property
-    def materials(self):
-        return set(l.material for l in self._layers)
-
-    @property
-    def surface(self):
-        return self._surface
 
 class Mesh():
     r""" Generates and manages a dual, potentially non-uniform mesh and functions defined on it.
@@ -106,7 +77,16 @@ class Mesh():
         refinement with `dz^p_0` tighter than ``max_dz`` is included.
     """
 
-    def __init__(self, stack, max_dz, refinements=[], uniform=False):
+    def __init__(self, stack, matsys, max_dz, refinements=[], uniform=False, subs=None, boundary=["GenericMetal","thick"]):
+        self._matsys=matsys
+        self._boundary=boundary
+        self.ztrans=-1
+        if subs is None:
+            assert isinstance(stack[-1],UniformLayer),\
+                "If no substrate explicitly specified, bottom layer must be uniform"
+            self._subs=stack[-1]
+        else:
+            self._subs=matsys.bulk(**subs)
 
         # Make a uniform mesh
         if uniform:
@@ -208,14 +188,20 @@ class Mesh():
         # interpolate the zp -> index mapping
         self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
-        # This is the whole world
-        self._supermesh = None
-        self._submeshes = []
-
         # Store functions which live on this mesh
         self._functions = {}
+        self._submeshes= []
+        for k,v in matsys._defaults.items():
+            self[k]=MidFunction(self,v)
 
-        self.pmdb=stack._pmdb
+        # This is the whole world
+        self._supermesh = None
+        for i,layer in enumerate(stack):
+            l=([0]+interface_indices.tolist())[i]
+            r=(interface_indices.tolist()+[self._zp[-1]])[i]
+            self._submeshes += [SubMesh(self, l, r+1)]
+            layer.place(self._submeshes[-1])
+
 
     def indexp(self, zp):
         r""" Finds the index of the point mesh location nearest to ``zp``.
@@ -275,9 +261,32 @@ class Mesh():
         mpl.title('Total mesh points: {:d}'.format(len(self._zp)))
         mpl.tight_layout()
 
+    def expand_function(self, func, default=None):
+        log("Expanding function "+func,level="debug")
+        for sm in self._submeshes:
+            if func in sm:
+                sfunc=sm[func]
+                pos=sfunc.pos
+                if default is not None:
+                    self._functions[func]=Function(self,sfunc.pos,value=default,dtype=sfunc.dtype)
+                else:
+                    self._functions[func]=Function(self,sfunc.pos,dtype=sfunc.dtype,empty=sfunc.shape[:-1])
+                break
+        for sm in self._submeshes:
+            if func in sm:
+                if pos=='point':
+                    self[func][sm._slicep]=sm[func]
+                else:
+                    self[func][sm._slicem]=sm[func]
+                sm._functions[func]=self[func].restrict(sm)
+        return self[func]
+
+
+
+
     def __contains__(self,key):
         r""" True iff there is a function ``key`` defined on this mesh."""
-        return key in self._functions
+        return (key in self._functions) or bool(sum([key in sm for sm in self._submeshes]))
 
     def __iter__(self):
         r""" Iterate through functions defined on this mesh."""
@@ -285,7 +294,14 @@ class Mesh():
 
     def __getitem__(self, key):
         r""" Get by name a function defined on this mesh."""
-        return self._functions[key]
+        if key in self._functions:
+            return self._functions[key]
+        elif sum([key in sm for sm in self._submeshes]):
+            return self.expand_function(key)
+        elif key in self._matsys:
+            return self._matsys.get(self,key)
+        else:
+            raise Exception("{} not found in mesh".format(key))
 
     def __setitem__(self, key, value):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
@@ -296,6 +312,13 @@ class Mesh():
             self._functions[key] = value
             for sm in self._submeshes:
                 sm._functions[key]=value.restrict(sm)
+
+    def __getattr__(self,item):
+        return self.__getitem__(item)
+
+    @property
+    def subs(self):
+        return self._subs
 
     @property
     def zp(self):
@@ -343,6 +366,13 @@ class Mesh():
         :return: a :py:class:`~pynitride.poissolve.mesh.SubMesh` which views this mesh in the desired range
         """
         return SubMesh(self, self.indexp(zbounds[0]), self.indexp(zbounds[1]) + 1)
+
+    def submesh_cover(self,zpoints):
+        inds=[0]+self.indexp(zpoints).tolist()+[len(self.zp)-1]
+        sms=[]
+        for il,ir in zip(inds[:-1],inds[1:]):
+            sms+=[SubMesh(self,il,ir+1)]
+        return sms
 
     # Finish making and testing save and load
     #def save(self,filename):
@@ -401,9 +431,9 @@ class SubMesh(Mesh):
         self._interfacesp = [(i - start, ll, lr) for i, ll, lr in mesh.interfaces_point if (i > start and i < stop - 1)]
         # THIS IS A HORRIBLE HACK.  I'M SORRY, FUTURE SAM.
         if len(self.interfaces_point):
-            self._layers = EpiStack(*[ll for i, ll, lr in self.interfaces_point] + [self.interfaces_point[-1][2]])
+            self._layers = [ll for i, ll, lr in self.interfaces_point] + [self.interfaces_point[-1][2]]
         else:
-            self._layers=EpiStack(next(ll for i,ll,lr in (mesh.interfaces_point+[[start+1,mesh._layers[-1],None]]) if i > start))
+            self._layers=[next(ll for i,ll,lr in (mesh.interfaces_point+[[start+1,mesh._layers[-1],None]]) if i > start)]
 
         self._functions = { k: f.restrict(self) for k, f in mesh._functions.items()}
 
@@ -417,7 +447,8 @@ class SubMesh(Mesh):
         # interpolate the zm -> index mapping
         self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
-        self.pmdb=mesh.pmdb
+        self._matsys=mesh._matsys
+
 
 class Function(np.ndarray):
     r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.
@@ -549,7 +580,7 @@ class Function(np.ndarray):
                     axis=-1))#.view(Function)
         if self.pos=="mid":
             if definite:
-                return np.sum(self * self.mesh._dz, axis=-1)
+                return np.sum(self * self.mesh._dzp, axis=-1)
             else:
                 output = Function(self.mesh,pos='point', value=0.0)
                 np.cumsum(
@@ -568,7 +599,7 @@ class Function(np.ndarray):
         if self.pos=='mid':
             return type(self)(submesh, pos='mid',value=self.T[submesh._slicem].T)
 
-    def to_point_function(self, interp='z'):
+    def tpf(self, interp='z'):
         r""" Ensure that a Function is defined on the point mesh.
 
         :param interp: ``'z'`` for a linear interpolation which accounts for non-uniform point spacing (and boundaries
@@ -589,7 +620,29 @@ class Function(np.ndarray):
         if interp == 'z':
             arr = interp1d(self.mesh.zm, self,
                            fill_value='extrapolate')(self.mesh.zp)
-        return Function(self.mesh,pos='point',value=arr)
+        return Function(self.mesh,pos='point',value=arr,dtype=arr.dtype)
+
+    def tmf(self, interp='z'):
+        r""" Ensure that a Function is defined on the point mesh.
+
+        :param interp: ``'z'`` for a linear interpolation which accounts for non-uniform point spacing (and boundaries
+            by extrapolation).
+            ``'unweighted'`` for a straightforward average of adjacent points (and boundaries are the boundaries
+            of the mid mesh).
+        :return: a point function (which is the original if its already a point function)
+        """
+        if self.pos=='mid': return self
+
+        if interp == 'unweighted':
+            newshape=list(self.shape)
+            newshape[-1]-=1
+            arr = np.empty(newshape).T
+            arr = (self.T[1:] + self.T[:-1]) / 2
+            arr=arr.T
+        if interp == 'z':
+            arr = interp1d(self.mesh.zp, self,
+                           fill_value='extrapolate')(self.mesh.zm)
+        return Function(self.mesh,pos='mid',value=arr)
 
 def PointFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the point mesh
@@ -641,7 +694,7 @@ def MaterialFunction(mesh, prop, default=None,pos='mid'):
 
     out = MidFunction(mesh, np.array(arr).T)
     if pos == "point":
-        return out.to_point_function()
+        return out.tpf()
     else:
         return out
 
@@ -660,7 +713,7 @@ def RegionFunction(mesh, prop, pos='mid'):
 
     out = MidFunction(mesh, arr)
     if pos == "point":
-        return out.to_point_function()
+        return out.tpf()
     else:
         return out
 
