@@ -1,7 +1,4 @@
-from os.path import expanduser, join
-from pynitride import ROOT_DIR, MaterialFunction
-from pynitride.paramdb import ParamDB, Value
-from pynitride.poissolve.snider import import_1dp_input, import_1dp_output, convert_1dpmat_to_PyNitride
+from pynitride.paramdb import ParamDB
 from pynitride.poissolve.solvers import Coupled_Schrodinger_Poisson, KPSolver
 from pynitride.poissolve.visual import plot_carrierFV, plot_wavefunctions
 

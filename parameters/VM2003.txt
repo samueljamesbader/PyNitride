@@ -1,4 +1,5 @@
-PyNitride v2
+Omniscient v1
+#PyNitride v2
 # Vurgaftman, I. & Meyer, J. R. Band parameters for nitrogen-containing semiconductors. J. Appl. Phys. 94, 3675–3696 (2003).
 
 material=GaN

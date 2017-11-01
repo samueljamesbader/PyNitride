@@ -1,0 +1,22 @@
+Omniscient v1
+
+material=GaN
+    conditions=
+        polarization
+            Psp:    -.034   C/m^2
+            e33:     .67    C/m^2
+            e31:    -.34    C/m^2
+
+material=AlN
+    conditions=
+        polarization
+            Psp:    -.090   C/m^2
+            e33:    1.50    C/m^2
+            e31:    -.53    C/m^2
+
+material=InN
+    conditions=
+        polarization
+            Psp:    -.042   C/m^2
+            e33:     .81    C/m^2
+            e31:    -.41    C/m^2
