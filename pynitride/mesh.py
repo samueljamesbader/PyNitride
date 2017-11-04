@@ -202,6 +202,9 @@ class Mesh():
             self._submeshes += [SubMesh(self, l, r+1)]
             layer.place(self._submeshes[-1])
 
+        self.Np=len(self._zp)
+        self.Nm=len(self._zm)
+
 
     def indexp(self, zp):
         r""" Finds the index of the point mesh location nearest to ``zp``.
@@ -448,6 +451,7 @@ class SubMesh(Mesh):
         self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
         self._matsys=mesh._matsys
+        self.ztrans=mesh.ztrans
 
 
 class Function(np.ndarray):
@@ -547,9 +551,9 @@ class Function(np.ndarray):
         :return: a Function representing the derivative.
         """
         if self.pos=='point':
-            return Function(self.mesh, 'mid',np.diff(self, axis=-1) / self.mesh.dzp)
+            return Function(self.mesh, 'mid',np.diff(self, axis=-1) / self.mesh.dzp, dtype=self.dtype)
         if self.pos=='mid':
-            pf = Function(self.mesh,'point',empty=np.array(self.T[0].shape))
+            pf = Function(self.mesh,'point',empty=np.array(self.T[0].shape),dtype=self.dtype)
             pf.T[1:-1] = (np.diff(self,axis=-1) / self.mesh.dzm[1:-1]).T
             pf.T[[0, -1]] = fill_value
             return pf
@@ -595,9 +599,9 @@ class Function(np.ndarray):
         :return: a Function of the same type, which shares, not copies, data with the original
         """
         if self.pos=='point':
-            return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T)
+            return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T,dtype=self.dtype)
         if self.pos=='mid':
-            return type(self)(submesh, pos='mid',value=self.T[submesh._slicem].T)
+            return type(self)(submesh, pos='mid',value=self.T[submesh._slicem].T,dtype=self.dtype)
 
     def tpf(self, interp='z'):
         r""" Ensure that a Function is defined on the point mesh.

@@ -303,6 +303,19 @@ class AlGaN(Wurtzite):
         })
         self.append_dopants(['Si','Mg'])
 
+class SamGaN(Wurtzite):
+    def __init__(self):
+        self._vergardbasis={
+            'x': 'Sam',
+            None: 'GaN',
+        }
+
+        super().__init__()
+
+        self._defaults.update({
+            'x': 0
+        })
+        self.append_dopants(['Si','Mg'])
 
 if __name__=="__main__":
     GaN=AlGaN.bulk(x=0,y=0)
