@@ -22,7 +22,7 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
 .. toctree::
     :maxdepth: 1
 
-        Math and Physics <_static/solve_schrodinger>
+        Math and Physics <_static/math_and_physics.rst>
         Parameter Database <_static/parameter_database.rst>
         Units system <_static/units.rst>
         .. API Reference <pynitride>

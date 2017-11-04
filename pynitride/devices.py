@@ -62,7 +62,7 @@ def gan_pfet(xw,xs,Ndef,surface='GenericMetal'):
         max_dz=10,refinements=[[xw,.03,1.6]],
         boundary=[surface,"thick"])
 
-    return m,m.submesh_cover([xw+2*nm])
+    return m,m.submesh_cover([xw+10*nm])
 
 #def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 #    # Build device

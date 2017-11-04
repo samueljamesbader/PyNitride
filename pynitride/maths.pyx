@@ -292,7 +292,7 @@ DEF n=6
 cpdef assemble6x6(
         cnp.ndarray[cnp.complex128_t,ndim=3] C0, cnp.ndarray[cnp.complex128_t,ndim=3] Cl,
         cnp.ndarray[cnp.complex128_t,ndim=3] Cr, cnp.ndarray[cnp.complex128_t,ndim=3] C2,
-        cnp.ndarray[cnp.float64_t   ,ndim=1] dzm,cnp.ndarray[cnp.float64_t      ,ndim=1] dzp,
+        cnp.ndarray[cnp.float64_t   ,ndim=1] dzm,cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
         bool periodic=False):
     assert not periodic, "Periodic not written yet"
     cdef:
@@ -313,7 +313,7 @@ cpdef assemble6x6(
                 for j in range(n):
                     tmp[j]=\
                        -C2[i,j,z-1]/dzp[z-1]/sqrt(dzm[z]*dzm[z-1])\
-                       -1j*(Cl[i,j,z]+Cr[i,j,z-1])/sqrt(dzm[z]*dzm[z-1])
+                       +.5j*(Cl[i,j,z]+Cr[i,j,z-1])/sqrt(dzm[z]*dzm[z-1])
                 rdata+=[t for t in tmp]
 
             #put in diag
@@ -331,6 +331,6 @@ cpdef assemble6x6(
                 for j in range(n):
                     tmp[j]=\
                         -C2[i,j,z]/dzp[z]/sqrt(dzm[z]*dzm[z+1])\
-                        -1j*(Cl[i,j,z]+Cr[i,j,z+1])/sqrt(dzm[z]*dzm[z+1])
+                        -.5j*(Cl[i,j,z]+Cr[i,j,z+1])/sqrt(dzm[z]*dzm[z+1])
                 rdata+=[t for t in tmp]
-    return lil.asformat('csr')
+    return lil.asformat('csc')
