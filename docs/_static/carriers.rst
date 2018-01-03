@@ -61,14 +61,14 @@ These can be discretized and transformed into a discrete Hermitian eigenvalue pr
 
 .. math::
     \begin{align}
-      M_{\sigma,\ \sigma}&=\frac{-b\hbar^2}{2dz_\sigma}\left( \frac{1}{m^l_{z\sigma+.5}dz_{\sigma+.5}}+\frac{1}{m^l_{z\sigma-.5}dz_{\sigma-.5}} \right)+U_{\sigma}\\
+      M_{\sigma,\ \sigma}&=\frac{-b\hbar^2}{2dz_\sigma}\left( \frac{1}{m^l_{z\sigma+.5}dz_{\sigma+.5}}+\frac{1}{m^l_{z\sigma-.5}dz_{\sigma-.5}} \right)-b\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}+U_{\sigma}\\
       M_{\sigma,\ \sigma+1}&=\frac{b\hbar^2}{2m^l_{z\sigma+.5}\sqrt{dz_{\sigma}dz_{\sigma+1}} dz_{\sigma+.5}}\\
       M_{\sigma,\ \sigma-1}&=\frac{b\hbar^2}{2m^l_{z\sigma-.5}\sqrt{dz_\sigma dz_{\sigma-1}} dz_{\sigma-.5}}
       \label{}
     \end{align}
 
-where for electrons :math:`b=-1,\ U_\sigma=E_C+\Delta E_{Ci}+\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}` and
-for holes :math:`b=+1,\ U_\sigma=E_V-\Delta E_{Vi}-\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}`.  These levels are occupied as
+where for electrons :math:`b=-1,\ U_\sigma=E_C+\Delta E_{Ci}` and
+for holes :math:`b=+1,\ U_\sigma=E_V-\Delta E_{Vi}`.  These levels are occupied as
 
 .. math::
     \begin{align}
@@ -112,7 +112,32 @@ and the derivatives
 
 .. math::
     \begin{align}
-      \left\{n'/p'\right\}(z)=g_sg_vb\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}kT}{2\pi\hbar^2}\frac{\exp\left\{\eta^l_{i, n/p}\right\}}{1+\exp\left\{\eta^l_{i, n/p}\right\}}\\
+      \left\{n'/p'\right\}(z)=g_sg_vb\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}}{2\pi\hbar^2}\frac{\exp\left\{\eta^l_{i, n/p}\right\}}{1+\exp\left\{\eta^l_{i, n/p}\right\}}\\
     \end{align}
 
 with :math:`b` as above.
+
+Boundary conditions
+.......................
+
+Dirichelet
+,,,,,,,,,,,,,,,,,,
+
+Supposing :math:`\sigma` is the last index of the point mesh, then the Dirichlet boundary condition that :math:`\psi_{\sigma+1}=0` is given by
+
+.. math::
+    \begin{align}
+          M_{\sigma,\ \sigma}&=\frac{-b\hbar^2}{2dz_\sigma}\left( \frac{1}{m^l_{z\sigma+.5}dz_{\sigma+.5}}+\frac{1}{m^l_{z\sigma-.5}dz_{\sigma-.5}} \right)-b\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}+U_{\sigma}\\
+          M_{\sigma,\ \sigma-1}&=\frac{b\hbar^2}{2m^l_{z\sigma-.5}\sqrt{dz_\sigma dz_{\sigma-1}} dz_{\sigma-.5}}
+          \label{}
+        \end{align}
+
+where any information required at :math:`\sigma+.5` is given by that at :math:`\sigma`.
+
+Decay
+,,,,,,,,,,,,,,,,,,
+The "decay into a constant infinite barrier" boundary condition is given in continuous language by :math:`\psi'=\pm\sqrt{\frac{2m_z(U+E_\mathrm{trans}-E)}{\hbar^2}}\psi`
+with the negative sign for the last "rightmost" index and positive sign for the corresponding "leftmost" first-index expression.
+(:math:`U+E_\mathrm{trans}` corresponds to the discrete expressions above for the potential :math:`U_\sigma` and transverse kinetic terms.)
+
+
