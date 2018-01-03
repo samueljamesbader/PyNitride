@@ -3,7 +3,7 @@ import numbers
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from pynitride.paramdb import k,hbar,q,m_e
+from pynitride.paramdb import k,hbar,q,m_e, cm, pi
 from pynitride.maths import tdma, fd12, fd12p, idd,iddd
 from pynitride.mesh import MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 from collections import OrderedDict
@@ -46,14 +46,17 @@ class PoissonSolver():
         m['Ndpderiv']=PointFunction(m,0)
         m['Namderiv']=PointFunction(m,0)
 
-        self._left=np.empty(len(mesh.zp))
-        self._right=np.empty(len(mesh.zp))
+        if len(mesh.zm)>1:
+            self._left=np.empty(len(mesh.zp))
+            self._right=np.empty(len(mesh.zp))
         self.update_epsfactor(epsfactor=epsfactor)
         self._update_others(PointFunction(mesh, 0.0))
+        self.ionized_dopants(gotzloop=False)
 
     def update_epsfactor(self,epsfactor):
         self._eps=epsfactor*self._mesh.eps
-        self.assemble_fixed()
+        if len(self._mesh.zm)>1:
+            self.assemble_fixed()
 
     def assemble_fixed(self):
         m=self._mesh
@@ -69,26 +72,54 @@ class PoissonSolver():
         self._center[1:-1]*=2
 
 
-    def ionized_dopants(self):
+    def ionized_dopants(self,gotzloop=True):
         # Tiwari Compound Semiconductor Devices pg31-32
         m=self._mesh
         kT=k*m.T
 
-        Ndp=m['Ndp']=0
-        Nam=m['Nam']=0
-        Ndpderiv=m['Ndpderiv']=0
-        Namderiv=m['Namderiv']=0
-
+        m['Ndp']=0
+        m['Ndpderiv']=0
         for d in self._donors:
+            g=m[d+"g"][0]
             conc=m[d+"Conc"]
-            eta=(m.EF-m.Ec+m[d+"E"])/kT
-            Ndp+=conc*idd(eta,m[d+"g"])
-            Ndpderiv+=conc/kT*iddd(eta,m[d+"g"])
+            eta=((m.EF-m.Ec).tmf()+m[d+"E"])/kT
+            m['Ndp']+=(conc*idd(eta,g)).tpf()
+            m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tpf()
 
-            conc=m[d+"Conc"]
-            eta=(m.Ev+m[d+"E"]-m.EF)/kT
-            Nam+=conc*idd(eta,m[d+"g"])
-            Namderiv-=conc/kT*iddd(eta,m[d+"g"])
+        if gotzloop is False:
+        #if 1:
+            #m['Nam']=0
+            Nam=PointFunction(m,value=0)
+            m['Namderiv']=0
+            for d in self._acceptors:
+                g=m[d+"g"][0]
+                conc=m[d+"Conc"]
+                eta=((m.Ev-m.EF).tmf()+m[d+"E"])/kT
+                #m['Nam']+=(conc*idd(eta,g)).tpf()
+                Nam+=(conc*idd(eta,g)).tpf()
+                m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
+
+            m['Nam']=Nam
+        else:
+            while True:
+                Nam=PointFunction(m,value=0)
+                m['Namderiv']=0
+                for d in self._acceptors:
+                    g=m[d+"g"][0]
+                    conc=m[d+"Conc"]
+                    f=2.1828
+                    gotz=m[d+'gotzshift']=-m.gotz*f*(q**2)/(4*pi*m.eps)*(m.Nam.tmf())**(1/3)
+                    #gotz=0
+                    eta=((m.Ev-m.EF).tmf()+m[d+"E"]+gotz)/kT
+                    Nam+=(conc*idd(eta,g)).tpf()
+                    m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
+                    #log("Gotz max {:.6f}".format(float(np.max(np.abs(gotz)))),'debug')
+                    #log("Namdiffmax {:.2e}".format(float(np.max(np.abs((Nam-m.Nam))))),'debug')
+                if np.max(np.abs((Nam-m.Nam)))<1e16/cm**3:
+                    m['Nam']=Nam
+                    break
+                m['Nam']=Nam
+
 
 
     def solve(self):
@@ -110,9 +141,15 @@ class PoissonSolver():
 
         qrho=q*m.rho
         qrho[0]=0
+        print("lcr")
+        print(sum(self._left))
+        print(sum(self._center))
+        print(sum(self._right))
         mqV=PointFunction(m,tdma(self._left,self._center,self._right,qrho))
+        err=np.max(np.abs(m.phi+mqV))
         m['phi']=-mqV
         self._update_others(mqV)
+        return err
 
     def _update_others(self, mqV):
         m=self._mesh
@@ -200,8 +237,40 @@ class PoissonSolver():
 class Equilibrium():
 
     def __init__(self,mesh):
-        m=self._mesh=mesh
-        m['EF']=PointFunction(m,0)
+        self._mesh=mesh
+        self._mesh['EF']=PointFunction(self._mesh,0)
+    def solve(self):
+        self._mesh['EF']=PointFunction(self._mesh,0)
+
+class ChargeNeutral():
+
+    def __init__(self,mesh,carriersolvers=[],resolve_carriers=False):
+        self._mesh=mesh
+        self._mesh.ensure_function_exists('EF',value=0)
+        #self._mesh.ensure_function_exists('phi',0)
+        self._cs=carriersolvers
+        self._ps=PoissonSolver(mesh)
+        if resolve_carriers:
+            for cs in self._cs: cs.solve()
+
+    def solve(self, check='integrated', tol=None):
+        with sublog("Neutralizing charge","debug"):
+            m=self._mesh
+            if tol is None:
+                tol={'integrated':1e6/cm**2,'mean':1e9/cm**3}[check]
+            if check=='mean':
+                tol*=m.thickness
+            kT=k*np.max(m.T)
+            while True:
+                for cs in self._cs:
+                    cs.repopulate()
+                self._ps.ionized_dopants()
+                rho=(m.p-m.n+m.Ndp-m.Nam+m.DP).integrate(definite=True)
+                if abs(rho)<tol: break
+                rhoderiv=(m.pderiv-m.nderiv+m.Ndpderiv-m.Namderiv).integrate(definite=True)
+                log("Rho: {:.2e}        Rho' {:.2e}".format(float(rho),float(rhoderiv)),"debug")
+                dEF=np.sign(rho)*min(np.abs(rho/rhoderiv),kT)
+                m['EF']+=dEF
 
 
 class Linear_Fermi():
@@ -228,10 +297,10 @@ class SelfConsistentLoop():
 
     def isolve_fields(self, activation=1):
         return sum(fs.isolve(activation=activation) for fs in self._fs)
-    def solve_fields(self, activation=1):
-        return sum(fs.solve(activation=activation) for fs in self._fs)
+    def solve_fields(self):
+        return sum(fs.solve() for fs in self._fs)
     def solve_carriers(self):
-        [cs.solve() for cs in self._cs]
+        [cs.solve_and_repopulate() for cs in self._cs]
 
     def loop(self, tol=1e-10, max_iter=100, min_activation=.1):
         adec=2
@@ -261,7 +330,7 @@ class SelfConsistentLoop():
             #self.solve_fields()
             log("Loop finished in {:2d} iterations with err={:g}".format(i,err))
 
-    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5, dlefmin=.05, max_iter=10, tol=1e-6):
+    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5, dlefmin=.05, max_iter=10, tol=1e-6, min_activation=.1):
         with sublog("Starting eps factor ramp from {:g} to {:g}".format(start,stop)):
             lefstart=np.log10(start)
             lefstop=np.log10(stop)
@@ -278,7 +347,7 @@ class SelfConsistentLoop():
                     fs.update_epsfactor(ef)
                     self.isolve_fields()
                 try:
-                    self.loop(max_iter=max_iter, tol=tol)
+                    self.loop(max_iter=max_iter, tol=tol, min_activation=min_activation)
                     if (lef-lefstop)<1e-9:
                         break
 

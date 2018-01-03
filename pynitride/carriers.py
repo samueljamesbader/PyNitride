@@ -6,7 +6,7 @@ from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
-
+from operator import iadd,setitem
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -14,6 +14,11 @@ class CarrierModel():
     A carrier model implements a :func:`solve()` function and a :func:`repopulate` function, which together define how
     to get from previously-solved bands to the induced carrier densities.
     """
+
+    def __init__(self, mesh):
+        """ Prep the mesh for any carrier model.
+        """
+        self._mesh=mesh
 
     def solve(self):
         """ Performs any prep work needed (e.g. solving for wavefunctions) before the mesh can be populated.
@@ -42,6 +47,9 @@ class CarrierModel():
         """
         raise NotImplementedError
 
+    def solve_and_repopulate(self):
+        return (self.solve(),self.repopulate())
+
 class Semiclassical(CarrierModel):
     """ Implements a semiclassical carrier model.
 
@@ -55,7 +63,8 @@ class Semiclassical(CarrierModel):
         eg ``["electron"]``, ``["hole"]``, or ``["electron","hole"]``
     """
     def __init__(self,mesh,carriers=['electron','hole']):
-        m=self._mesh=mesh
+        super().__init__(mesh)
+        m=mesh
         self._carriers=carriers
 
         # Compute the effective density of states
@@ -68,35 +77,43 @@ class Semiclassical(CarrierModel):
         """ Does nothing."""
         pass
 
-    def repopulate(self,Ec_eff=None, Ev_eff=None):
+    def repopulate(self,Ec_eff=None, Ev_eff=None, addon=False):
         """ Populate carriers semi-classically into the mesh.  See :func:`CarrierModel.solve` for conditions,
         and see :ref:`Carrier Models <carriers_semiclassical>` for the physics.
 
         Accepts effective condition and valence bands as optional arguments to use in place of the mesh Ec and Ev.
         For use as a stand-alone model, these should not be supplied, but they are convenient when this model is called
         by other models which may populate some levels quantum mechanically and then use this function to fill in the
-        rest of the band semiclassically.
+        rest of the band semiclassically.  In this case, the addon option, which adds the computed density to whatever
+        is on the mesh, rather than replacing it, may also come in handy.
 
         Arguments:
             Ec_eff (Point :class:`.mesh.Function`): Effective conduction band level, optional.
 
             Ev_eff (Point :class:`.mesh.Function`): Effective valence band level, optional.
+
+            addon (bool): Whether to add (True) the computed density to current mesh values or simply replace the
+            current values (False).  Default False.
         """
         m=self._mesh
+        for func in ['n','p','nderiv','pderiv']:
+            m.ensure_function_exists(func=func,value=0)
 
         # Use effective band edges if provided, otherwise take from mesh
-        Ec_eff = Ec_eff if Ec_eff is not None else m.Ec
-        Ev_eff = Ev_eff if Ev_eff is not None else m.Ev
+        Ec_eff = Ec_eff if (Ec_eff is not None) else m.Ec
+        Ev_eff = Ev_eff if (Ev_eff is not None) else m.Ev
+
+        assign= (lambda x,y: iadd(x,y)) if addon else (lambda x,y: setitem(x,slice(None),y))
 
         # Compute the carrier density and its derivative
         if 'electron' in self._carriers:
             eta=((m.EF - Ec_eff).tmf() - m.cDE) / (k * m.T)
-            m['n']=     np.sum(m.Nc * fd12(eta), axis=0).tpf()
-            m['nderiv']=np.sum(-(m.Nc/(k*m.T)) * fd12p(eta), axis=0).tpf()
+            assign(m['n'],     np.sum(m.Nc * fd12(eta), axis=0).tpf())
+            assign(m['nderiv'],np.sum(-(m.Nc/(k*m.T)) * fd12p(eta), axis=0).tpf())
         if 'hole' in self._carriers:
             eta=((Ev_eff - m.EF).tmf() - m.vDE) / (k * m.T)
-            m['p']=     np.sum(m.Nv * fd12(eta), axis=0).tpf()
-            m['pderiv']=np.sum((m.Nv/(k*m.T)) * fd12p(eta), axis=0).tpf()
+            assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tpf())
+            assign(m['pderiv'],np.sum((m.Nv/(k*m.T)) * fd12p(eta), axis=0).tpf())
 
 class Schrodinger(CarrierModel):
     """ Implements a Schrodinger envelope function carrier model.
@@ -118,9 +135,10 @@ class Schrodinger(CarrierModel):
     def __init__(self,mesh,carriers=['electron','hole'],
                  num_eigenvalues=8,blend=True,transverse="parabolic",
                  boundary=["Dirichlet","Dirichlet"]):
+        super().__init__(mesh)
+        m=mesh
 
         # Store values
-        m=self._mesh=mesh
         self._blend=blend
         if transverse != "parabolic":
             raise NotImplementedError
@@ -129,83 +147,96 @@ class Schrodinger(CarrierModel):
         self._neig=num_eigenvalues
         self._boundary=boundary
 
+        self._subbands=[]
+        self._zkinetic=[]
+        self._lkineticfactor=[]
         if 'electron' in carriers:
-            self._ezkinetic=[]
-            self._elkineticfactor=[]
-            self._ebands=m.mez.shape[0]
-            m['een']=PointFunction(m,empty=(self._ebands,self._neig))
-            m['epsi']=PointFunction(m,empty=(self._ebands,self._neig))
-            for b in range(self._ebands):
-                print("WHAT IS THIS BC")
-                diagonal=(hbar**2/(m.mez[b,:]*m._dzp)).tpf(interp='unweighted')/m._dzm+m.cDE[b,:].tpf()
-                offdiagonal=-(hbar**2/(2*m.mez[b,:]*m._dzp *np.sqrt(m._dzm[:-1]*m._dzm[1:])))
-                self._ezkinetic+=[
-                    diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')]
-                self._elkineticfactor+=[
-                    diags((hbar**2/(2*m.mexy[b,:])).tpf(interp='unweighted'),format='csc')]   #*kperp**2
-
-
-            if blend:
-                self._sce=Semiclassical(m,carriers=['electron'])
+            self._nebands=m.mez.shape[0]
+            m['een']=PointFunction(m, empty=(self._nebands, self._neig))
+            m['epsi']=PointFunction(m, empty=(self._nebands, self._neig))
+            if blend: self._sce=Semiclassical(m,carriers=['electron'])
+            self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
         if 'hole' in carriers:
-            self._hzkinetic=[]
-            self._hlkineticfactor=[]
-            self._hbands=m.mhz.shape[0]
-            for b in range(self._hbands):
-                diagonal=-(hbar**2/(m.mhz[b,:]*m._dzp)).tpf(interp='unweighted')/m._dzm-m.vDE[b,:].tpf()
-                offdiagonal=(hbar**2/(2*m.mhz[b,:]*m._dzp *np.sqrt(m._dzm[:-1]*m._dzm[1:])))
-                self._hzkinetic+=[
-                    diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')]
-                self._hlkineticfactor+=[
-                    -diags((hbar**2/(2*m.mhxy[b,:])).tpf(interp='unweighted'),format='csc')]   #*kperp**2
-            m['hen']=PointFunction(m,empty=(self._hbands,self._neig))
-            m['hpsi']=PointFunction(m,empty=(self._hbands,self._neig))
-            if blend:
-                self._sch=Semiclassical(m,carriers=['hole'])
+            self._nhbands=m.mhz.shape[0]
+            m['hen']=PointFunction(m, empty=(self._nhbands, self._neig))
+            m['hpsi']=PointFunction(m, empty=(self._nhbands, self._neig))
+            if blend: self._sch=Semiclassical(m,carriers=['hole'])
+            self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
+
+        for sb in self._subbands:
+            elec,l=(sb['carrier']=='electron'),sb['subband']
+            b= -1 if elec else 1
+            mz=(m.mez if elec else m.mhz)[l,:]
+            mxy=(m.mexy if elec else m.mhxy)[l,:]
+            diagonal=-b*(hbar**2/(mz*m._dzp)).tpf(interp='unweighted')/m._dzm
+            offdiagonal=b*(hbar**2/(2*mz*m._dzp *np.sqrt(m._dzm[:-1]*m._dzm[1:])))
+            sb['zkinetic']=\
+                diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
+            sb['lkinetic']=\
+                diags(-b*(hbar**2/(2*mxy)).tpf(interp='unweighted'),format='csc')
+            sb['energies']=m['een'] if elec else m['hen']
+            sb['psi']=m['epsi'] if elec else m['hpsi']
 
     def solve(self):
         kperp=0
         m=self._mesh
-        log("Using averaged effective mass to parabolically populate schrodinger bands",level='TODO')
+
+        for sb in self._subbands:
+            elec,l=(sb['carrier']=='electron'), sb['subband']
+            U= (m.Ec+m.cDE[l,:].tpf()) if elec else (m.Ev-m.vDE[l,:].tpf())
+            valley=np.min(U) if elec else np.max(U)
+            H=sb['zkinetic']+diags(U)+sb['lkinetic']*kperp**2
+            #sb['H']=H
+            #sb['valley']=valley
+            #sb['U']=U
+            #print("l: ",l," elec: ",elec)
+            #print('eigs0',eigsh(-H,k=self._neig+self._blend,sigma=-valley)[0])
+            if elec:
+                energies,eigenvectors=eigsh(H, k=self._neig+self._blend,sigma= valley)
+            else:
+                energies,eigenvectors=eigsh(-H,k=self._neig+self._blend,sigma=-valley)
+                energies=-energies
+                #print("EN: ", energies)
+                #print("V: ",valley)
+                #print("H:\n",H[:10,:10].todense())
+                #print(eigsh(-H,k=self._neig+self._blend,sigma=-valley)[0])
+            sb['energies'][l,:,:]=np.atleast_2d(energies[:self._neig]).T
+            sb['psi'][l,:,:]=(1/np.sqrt(m._dzm))*eigenvectors[:,:self._neig].T
+
+    def repopulate(self):
+        m=self._mesh
+
+        for f in ['n','p','nderiv','pderiv']: m.ensure_function_exists(f)
         if 'electron' in self._carriers:
-            for b in range(self._ebands):
-                H=self._ezkinetic[b]+diags(m.Ec)+self._elkineticfactor[b]*kperp**2
-                energies,eigenvectors=eigsh(H,k=self._neig+self._blend,sigma=np.min(m.Ec))
-                m['een'][b,:,:]=np.atleast_2d(energies[:-1]).T
-                m['epsi'][b,:,:]=(1/np.sqrt(m._dzm))*eigenvectors[:,:-1].T
-            eta=np.rollaxis((m.EF-m.een).tmf()/(k*m.T),1,0)
-            psisq=np.rollaxis(abs(m.epsi.tmf())**2,1,0)
-            mmean=np.atleast_3d((m.mexy*psisq).integrate(definite=True))
-            if self._blend: self._sce.solve(Ec_eff=np.maximum(energies[-1],m.Ec))
-            else: m['n']=m['nderiv']=0
-            m['n']+=np.sum(np.sum(
-                (m.eg*mmean*k*m.T)/(2*pi*hbar**2)*psisq*np.log(1+np.exp(eta)),
-                axis=0),axis=0).tpf()
-            m['nderiv']+=np.sum(np.sum(
-                -(m.eg*mmean)/(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),
-                axis=0),axis=0).tpf()
+            m['n']=m['nderiv']=0
         if 'hole' in self._carriers:
-            for b in range(self._hbands):
-                H=self._hzkinetic[b]+diags(m.Ev)+self._hlkineticfactor[b]*kperp**2
-                energies,eigenvectors=eigsh(-H,k=self._neig+self._blend,sigma=np.min(-m.Ev))
-                print(energies)
-                m['hen'][b,:,:]=np.atleast_2d(-energies[:-1]).T
-                m['hpsi'][b,:,:]=(1/np.sqrt(m._dzm))*eigenvectors[:,:-1].T
-            eta=np.rollaxis((m.hen-m.EF).tmf()/(k*m.T),1,0)
-            psisq=np.rollaxis(abs(m.hpsi.tmf())**2,1,0)
-            mmean=np.atleast_3d((m.mhxy*psisq).integrate(definite=True))
-            if self._blend: self._sch.solve(Ev_eff=np.minimum(-energies[-1],m.Ev))
-            else: m['n']=m['nderiv']=0
-            m['p']+=np.sum(np.sum(
-                (m.hg*mmean*k*m.T)/(2*pi*hbar**2)*psisq*np.log(1+np.exp(eta)),
-                axis=0),axis=0).tpf()
-            m['pderiv']+=np.sum(np.sum(
-                (m.hg*mmean)/(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),
-                axis=0),axis=0).tpf()
+            m['p']=m['pderiv']=0
+
+        for sb in self._subbands:
+            elec,l=(sb['carrier']=='electron'), sb['subband']
+            b,mxy,g,dens,deriv= (-1,m.mexy[l],m.eg[l],m.n,m.nderiv) if elec else (1,m.mhxy[l],m.hg[l],m.p,m.pderiv)
+            en=sb['energies'][l,:,:]
+            psi=sb['psi'][l,:,:]
+
+            eta=b*(en-m.EF).tmf()/(k*m.T)
+            psisq=abs(psi.tmf())**2
+            mmean=np.atleast_2d((mxy*psisq).integrate(definite=True)).T
+            #print("dens ",dens[10])
+            dens+= np.sum(  (g*mmean*k*m.T)/(2*pi*hbar**2)*psisq*np.log(1+np.exp(eta)),      axis=0).tpf()
+            deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tpf()
+            #print("dens ",dens[10])
+
+        if self._blend:
+            if 'electron' in self._carriers:
+                self._sce.repopulate(Ec_eff=np.maximum(m.een[:,-1,:],m.Ec),addon=True)
+            if 'hole' in self._carriers:
+                self._sch.repopulate(Ev_eff=np.minimum(m.hen[:,-1,:],m.Ev),addon=True)
 
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25):
-        m=self._mesh=mesh
+        super().__init__(mesh)
+        m=mesh
+
         self._neig=num_eigenvalues
         m['kppsi']=PointFunction(m,dtype='complex',empty=(num_kpoints,num_eigenvalues,6,))
         m['kpen']=PointFunction(m,dtype='float',empty=(num_kpoints,num_eigenvalues,))
@@ -251,69 +282,5 @@ class MultibandKP(CarrierModel):
         #m['hpsi']=eigenvectors.T/np.sqrt(self._mesh.dzm)
         #return kt,uens,normsqs,weights
 
-
-if __name__=="__main__":
-    from pynitride.mesh import UniformLayer, Mesh, PointFunction
-    from pynitride.material import AlGaN
-    #m=Mesh([UniformLayer("Main", 100, x=0)],AlGaN(),max_dz=.1)
-    m=Mesh([UniformLayer("l", 25, x=.75),UniformLayer("m", 4, x=0),UniformLayer("r", 25, x=.75)],AlGaN(),max_dz=.1,subs={'x':0})
-    #m.plot_mesh()
-
-    m['EF']= PointFunction(m,1.7)
-    def initialize_potential(m):
-        m['phi']=PointFunction(m,empty=())
-        m['Ec']= PointFunction(m,empty=())
-        m['Ev']= PointFunction(m,empty=())
-        update_potential(m,0)
-
-    def update_potential(m,phi):
-        m['phi']=phi
-        m['Ev']=-m.phi+(m.DE-m['E0-Ev']).tpf()
-        m['Ec']=-m.phi+(m.DE+m['Ec-E0']).tpf()
-
-    initialize_potential(m)
-
-    import matplotlib.pyplot as plt
-    from pynitride.paramdb import cm
-
-    #Semiclassical(m).solve()
-    #plt.figure()
-    #plt.plot(m.zp,m.Ec,linewidth=2)
-    #plt.plot(m.zp,m.Ev,linewidth=2)
-    #plt.plot(m.zp,m.EF,'--',linewidth=2)
-    #plt.twinx()
-    #plt.plot(m.zp,m.n *cm**3)
-    #plt.plot(m.zp,m.p *cm**3)
-
-    #Schrodinger(m).solve()
-    #plt.figure()
-    #plt.plot(m.zp,m.Ec,linewidth=2)
-    #plt.plot(m.zp,m.Ev,linewidth=2)
-    #plt.plot(m.zp,m.EF,'--',linewidth=2)
-    ##plt.plot(m.zp,m.een[0,:,:].T,'--')
-    ##plt.plot(m.zp,m.epsi[0,:3,:].T,'--')
-    #plt.plot(m.zp,m.hpsi[:3,0,:].T,'--')
-    #plt.twinx()
-    #plt.plot(m.zp,m.n *cm**3)
-    #plt.plot(m.zp,m.p *cm**3)
-    ##plt.yscale('log')
-
-    kt,uens,normsqs,weights=\
-    MultibandKP(m).solve()
-    print("Done solve")
-    #plt.figure()
-    #plt.plot(m.zp,m.Ec,linewidth=2)
-    #plt.plot(m.zp,m.Ev,linewidth=2)
-    #plt.plot(m.zp,m.EF,'--',linewidth=2)
-    ##plt.plot(m.zp,m.een[0,:,:].T,'--')
-    ##plt.plot(m.zp,m.epsi[0,:3,:].T,'--')
-    #plt.plot(m.zp,m.hpsi[:3,0,:].T,'--')
-    #plt.twinx()
-    #plt.plot(m.zp,m.n *cm**3)
-    #plt.plot(m.zp,m.p *cm**3)
-    ##plt.yscale('log')
-
-
-
-
-
+    def repopulate(self):
+        pass

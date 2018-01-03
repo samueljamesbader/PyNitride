@@ -91,6 +91,45 @@ material=AlN
 
 
 
+material=InN
+    material type: 'binary'
+    conditions=
+        stiffness
+            C11:  223   GPa
+            C12:  115   GPa
+            C13:   92   GPa
+            C33:  224   GPa
+            C44:   48   GPa
+        kp
+            A1:  -8.21  hbar**2/(2*m_e)
+            A2:  -0.68  hbar**2/(2*m_e)
+            A3:   7.57  hbar**2/(2*m_e)
+            A4:  -5.23  hbar**2/(2*m_e)
+            A5:  -5.11  hbar**2/(2*m_e)
+            A6:  -5.96  hbar**2/(2*m_e)
+            A7:   0     meV angstrom
+
+            a1:  -3.5   eV
+            a2:  -3.5   eV
+
+            D1:  -3.7   eV
+            D2:   4.5   eV
+            D3:   8.2   eV
+            D4:  -4.1   eV
+            D5:  -4.0   eV
+            D6:  -5.5   eV
+
+            DeltaCR:  .04  meV
+            DeltaSO:  .005 meV
+    conditions=relaxed
+        lattice
+            a:  3.545 angstrom
+            c:  5.703 angstrom
+        varshni
+            Eg0:    .78  eV
+            alpha:  .245 meV/K
+            beta:   624  K
+
 
 material=Sam
     material type: 'binary'
@@ -138,56 +177,3 @@ material=Sam
             alpha: .909 meV/K
             beta: 830 K
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-material=InN
-    material type: 'binary'
-    conditions=
-        stiffness
-            C11:  223   GPa
-            C12:  115   GPa
-            C13:   92   GPa
-            C33:  224   GPa
-            C44:   48   GPa
-       # kp
-       #     A1:         hbar**2/(2*m_e)
-       #     A2:         hbar**2/(2*m_e)
-       #     A3:         hbar**2/(2*m_e)
-       #     A4:         hbar**2/(2*m_e)
-       #     A5:         hbar**2/(2*m_e)
-       #     A6:         hbar**2/(2*m_e)
-       #     A7:         meV angstrom
-
-       #     a1:         eV
-       #     a2:         eV
-
-       #     D1:         eV
-       #     D2:         eV
-       #     D3:         eV
-       #     D4:         eV
-       #     D5:         eV
-       #     D6:         eV
-
-       #     DeltaCR:  meV
-       #     DeltaSO:  meV
-    conditions=relaxed
-        lattice
-            a:  3.545 angstrom
-            c:  5.703 angstrom
-        #varshni
-        #    Eg0:     eV
-        #    alpha:  meV/K
-        #    beta:    K

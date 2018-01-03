@@ -39,7 +39,11 @@ class UniformLayer(Layer):
     def place(self,mesh):
         super().place(mesh)
         for k,v in self._setproperties.items():
-            mesh[k]=MidFunction(mesh,value=v)
+            if type(v) is bool:
+                dtype='bool'
+            else:
+                dtype='float'
+            mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
 
     def __getitem__(self, key):
         return self._mesh[key]
@@ -105,7 +109,7 @@ class Mesh():
             dz=tgcd/ceil(tgcd/max_dz)
 
             # Figure out how many points this is, then use linspace to create the mesh
-            totthick=sum([l.thickness for l in stack])
+            totthick=self.thickness=sum([l.thickness for l in stack])
             N=rint(totthick/dz)+1
             fixed_positions=np.linspace(0,totthick,num=N,endpoint=True)
 
@@ -179,14 +183,15 @@ class Mesh():
 
         # Also keep the z's in-between mesh points
         self._zm = (self._zp[:-1] + self._zp[1:]) / 2
-        self._dzm = np.array([0.] * len(self._zp))
+        self._dzm = np.array([self._dzp[0]] * len(self._zp))
         self._dzm[1:-1] = np.diff(self._zm)
         self._dzm[[0, -1]] = self._dzm[[1, -2]]
 
-        # interpolate the z -> index mapping
-        self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
-        # interpolate the zp -> index mapping
-        self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
+        if len(self._zm)>1:
+            # interpolate the z -> index mapping
+            self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
+            # interpolate the zp -> index mapping
+            self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
         # Store functions which live on this mesh
         self._functions = {}
@@ -221,7 +226,7 @@ class Mesh():
         """
         return np.rint(self._zm2i_interp(zm)).astype(int)
 
-    def plot_mesh(self):
+    def plot_mesh(self,xlim=None):
         """ Plots a 1-D representation of the mesh for visual inspection.
         """
 
@@ -237,18 +242,21 @@ class Mesh():
                 mpl.vlines(i, -.5, .25, linestyles='dashed')
             else:
                 mpl.vlines(i, -.5, .25)
-            mpl.text(i, .25, "{:.3g}".format(i),
+            mpl.text(i, .25, "{:.3g}".format(i), clip_on=True,
                      horizontalalignment='center', verticalalignment='bottom')
 
         # Draw a material label over each region
         for i, m in zip((ipoints[1:] + ipoints[:-1]) / 2, [l.name for l in self._layers]):
-            mpl.text(i, .1, m, horizontalalignment='center')
+            mpl.text(i, .1, m, clip_on=True, horizontalalignment='center')
 
         # Draw a small vertical line for each mesh point
         mpl.vlines(self._zp, -.05, .05)
 
         # Fit the xlimits to the mesh
-        mpl.xlim(self._zp[0], self._zp[-1] + .1)
+        if xlim is None:
+            mpl.xlim(self._zp[0], self._zp[-1] + .1)
+        else:
+            mpl.xlim(xlim)
 
         # Fit the ylimits to the drawn lines
         mpl.ylim(-.05, .5)
@@ -278,11 +286,22 @@ class Mesh():
         for sm in self._submeshes:
             if func in sm:
                 if pos=='point':
-                    self[func][sm._slicep]=sm[func]
+                    self[func][...,sm._slicep]=sm[func]
                 else:
-                    self[func][sm._slicem]=sm[func]
+                    self[func][...,sm._slicem]=sm[func]
                 sm._functions[func]=self[func].restrict(sm)
         return self[func]
+
+    def ensure_function_exists(self,func,dim=(),pos='point',dtype='float',value=np.NaN):
+        if self.__contains__(func):
+            if not list(self[func].shape[:-1])==list(dim):
+                raise Exception(func+" is the wrong shape: "+\
+                    str(dim)+" requested "+str(self[func].shape[:-1])+" present.")
+            if not self[func].pos==pos:
+                raise Exception(func+" is the wrong mesh-type: "+\
+                    pos + " requested "+str(self[func].pos+" present."))
+        else:
+            self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
 
 
 
@@ -445,10 +464,11 @@ class SubMesh(Mesh):
         if self not in mesh._submeshes:
             mesh._submeshes += [self]
 
-        # interpolate the zp -> index mapping
-        self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
-        # interpolate the zm -> index mapping
-        self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
+        if len(self._zm)>1:
+            # interpolate the zp -> index mapping
+            self._zp2i_interp = interp1d(self._zp, np.arange(len(self._zp)))
+            # interpolate the zm -> index mapping
+            self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
         self._matsys=mesh._matsys
         self.ztrans=mesh.ztrans
@@ -614,6 +634,7 @@ class Function(np.ndarray):
         """
         if self.pos=='point': return self
 
+        if len(self)==1: interp='unweighted'
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]+=1

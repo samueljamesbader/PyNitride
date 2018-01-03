@@ -13,7 +13,7 @@ material=GaN
         g: 2
     dopant=Mg
         type: 'Acceptor'
-        E: 200 meV
+        E: 185 meV
         g: 4
     dopant=DeepDonor
         type: 'Donor'
@@ -52,6 +52,50 @@ material=GaN
             DE: 320 meV
     surface=GenericMetal
         electronbarrier: 1 eV
+material=InN
+    DE: .19   eV
+    dielectric
+        eps: 11.6 epsilon_0
+    dopant=Si
+        type: 'Donor'
+        E: 15 meV
+        g: 2
+    dopant=Mg
+        type: 'Acceptor'
+        E: -100 meV
+        g: 4
+    surface=GenericMetal
+        electronbarrier: .2 eV
+
+    ############ THESE ARE GAN VALUES
+    carrier=electron
+        DEc: 218 meV
+        band=
+            g: 2
+            mzs: .2 m_e
+            mxys: .2 m_e
+            mdos: .2 m_e
+            DE: 0 eV
+    carrier=hole
+        band=HH
+            g: 2
+            mzs: .569 m_e
+            mxys: 1.887 m_e
+            mdos: 1.27 m_e
+            DE: 0 eV
+        band=LH
+            g: 2
+            mzs:  .164 m_e
+            mxys: 1.872 m_e
+            mdos: .83 m_e
+            DE: 12 meV
+        band=CH
+            g: 2
+            mzs: 1.983 m_e
+            mxys: .139 m_e
+            mdos:  .34 m_e
+            DE: 320 meV
+
 material=AlN
     DE: .37 eV  #.67 would make more sense but .37 closer to nextnano
     dielectric

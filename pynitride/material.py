@@ -1,5 +1,6 @@
 from pynitride.paramdb import pmdb, K, hbar, m_e, nm
 from pynitride.mesh import MidFunction, PointFunction, Function, SubMesh
+from pynitride.visual import log
 import numpy as np
 
 class MaterialSystem():
@@ -35,14 +36,15 @@ class MaterialSystem():
         raise NotImplementedError
 
     def append_dopants(self,dopants):
+        if not hasattr(self,'_dopants'): self._dopants=[]
         for dn in dopants:
             types=[pmdb['material='+mat+'.dopant='+dn+'.type'] for mat in self._vergardbasis.values()]
             assert len(set(types))==1,\
                 "Only one type (Donor/Acceptor) allowed for a dopant ("+dn+") in a material system."
+            self._dopants+=[dn+types[0]]
         for prop in ['E','g']:
-            self._attrs.update({dn+'.'+prop: self.vergard(dn+'.'+prop) for dn in dopants})
-        self._dopants=[d+types[0] for d in dopants]
-        self._defaults.update({d:0 for d in self._dopants})
+            self._attrs.update({d+prop: self.vergard(dn+'.'+prop) for d,dn in zip(self._dopants,dopants)})
+        self._defaults.update({d+"Conc":0 for d in self._dopants})
 
     def get(self,mesh,item):
         if item in self._attrs:
@@ -55,7 +57,8 @@ class MaterialSystem():
             def __init__(self,**kwargs):
                 self._matsys=matsys
                 self.mesh=self
-                self._funcs={k:np.array([v]) for k,v in kwargs.items()}
+                self._funcs=matsys._defaults.copy()
+                self._funcs.update({k:np.array([v]) for k,v in kwargs.items()})
                 if 'exx' not in self._funcs:
                     self._funcs['exx']=0
                 if 'eyy' not in self._funcs:
@@ -151,7 +154,7 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
     def smcls_band_params(self,m,key):
-        print("Using explicit masses from file")
+        log("Using explicit masses from file",'TODO')
         m['eg']=MidFunction(m,2)
         m['hg']=MidFunction(m,2)
         m['medos']=np.atleast_2d(
@@ -273,21 +276,24 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
 
-#class AlGaInN(Wurtzite):
-#    def __init__(self):
-#
-#        self._vergardbasis={
-#            'x': 'AlN',
-#            'y': 'InN',
-#            None: 'GaN',
-#        }
-#
-#        super().__init__()
-#
-#        self._defaults.update({
-#            'x': 0
-#            'y': 0
-#        })
+class AlGaInN(Wurtzite):
+    def __init__(self):
+        self._vergardbasis={
+            'x': 'AlN',
+            'y': 'InN',
+            None: 'GaN',
+        }
+
+        super().__init__()
+
+        self._defaults.update({
+            'x': 0,
+            'y': 0,
+            'gotz': True
+        })
+        self.append_dopants(['Si','Mg'])
+
+        self._attrs['MgAcceptorE']
 
 class AlGaN(Wurtzite):
     def __init__(self):
