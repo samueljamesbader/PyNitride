@@ -45,6 +45,8 @@ class PoissonSolver():
         m['Nam']=PointFunction(m,0)
         m['Ndpderiv']=PointFunction(m,0)
         m['Namderiv']=PointFunction(m,0)
+        if 'fc' not in m:
+            m['fc']=PointFunction(m,0)
 
         if len(mesh.zm)>1:
             self._left=np.empty(len(mesh.zp))
@@ -72,7 +74,7 @@ class PoissonSolver():
         self._center[1:-1]*=2
 
 
-    def ionized_dopants(self,gotzloop=True):
+    def ionized_dopants(self,gotzloop=False):
         # Tiwari Compound Semiconductor Devices pg31-32
         m=self._mesh
         kT=k*m.T
@@ -135,7 +137,7 @@ class PoissonSolver():
             nderiv=m.nderiv
         else:
             n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP
+        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fc
         m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
 
 
@@ -181,7 +183,7 @@ class PoissonSolver():
             nderiv=m.nderiv
         else:
             n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP
+        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fc
         m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
         qrho=q*m['rho']
         qrho[0]=0

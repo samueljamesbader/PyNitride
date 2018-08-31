@@ -2,7 +2,7 @@ import matplotlib.pyplot as mpl
 mpl.interactive(True)
 from pynitride.mesh import UniformLayer, Mesh
 from pynitride.paramdb import nm,cm,eV
-from pynitride.material import AlGaN
+from pynitride.material import AlGaN, AlGaN_SiO2
 
 
 from pynitride.mesh import Mesh, PointFunction,DeltaFunction,MaterialFunction,RegionFunction,DeltaFunction
@@ -57,12 +57,25 @@ def gan_pfet(xw,xs,Ndef,surface='GenericMetal'):
     # Build device
     m=Mesh([
         UniformLayer('well',xw,x=0),
-        UniformLayer('subs',xs,x=1)],
+        UniformLayer('subs',xs,x=1,SiConc=Ndef)],
         matsys=AlGaN(),
         max_dz=10,refinements=[[xw,.03,1.6]],
         boundary=[surface,"thick"])
 
     return m,m.submesh_cover([xw+10*nm])
+
+def gan_pfet_SiO2(xd,xw,xs,Ndef,surface='GenericMetal'):
+
+    # Build device
+    m=Mesh([
+        UniformLayer('diel',xd,SiO2=1),
+        UniformLayer('well',xw,x=0),
+        UniformLayer('subs',xs,x=1,SiDonorConc=Ndef)],
+        matsys=AlGaN_SiO2(),
+        max_dz=10,refinements=[[xd,.01,2],[xd+xw,.02,1.6]],
+        boundary=[surface,"thick"])
+
+    return m,m.submesh_cover([xd+.1,xd+xw+10*nm])
 
 #def gan_hemt(xc,xb,xs,Ndef,surface='GenericMetal'):
 #    # Build device

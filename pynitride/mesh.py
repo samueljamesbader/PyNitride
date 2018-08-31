@@ -273,22 +273,40 @@ class Mesh():
         mpl.tight_layout()
 
     def expand_function(self, func, default=None):
+        """ Finds the function `func` on submeshes and expands it to a function on the full mesh, ensuring that
+        the functions on submeshes are just restricted views of the full mesh function (no longer independent).
+
+        If the function is defined on multiple submeshes in incompatible ways (ie different shapes) or a `default` is
+        supplied which is incompatible with the way this function is defined on some submesh, the results are not
+        defined and errors may be raised.
+
+        :param func: (str) the function name to look for
+        :param default: a default value to fill into the function where not defined on a submesh
+        :return: the function
+        """
         log("Expanding function "+func,level="debug")
+
+        # Find the first submesh to have this function and copy out the position/shape/dtype to full mesh
         for sm in self._submeshes:
             if func in sm:
                 sfunc=sm[func]
-                pos=sfunc.pos
+
+                # Get the shape from the default if supplied
                 if default is not None:
                     self._functions[func]=Function(self,sfunc.pos,value=default,dtype=sfunc.dtype)
                 else:
                     self._functions[func]=Function(self,sfunc.pos,dtype=sfunc.dtype,empty=sfunc.shape[:-1])
                 break
+
+        # Fill the function on the entire mesh from anywhere it appears in submeshes
         for sm in self._submeshes:
             if func in sm:
-                if pos=='point':
+                if sfunc.pos=='point':
                     self[func][...,sm._slicep]=sm[func]
                 else:
                     self[func][...,sm._slicem]=sm[func]
+
+                # Make submeshes a restricted view of the full mesh
                 sm._functions[func]=self[func].restrict(sm)
         return self[func]
 
@@ -500,7 +518,6 @@ class Function(np.ndarray):
 
     """
     def __new__(cls, mesh, pos, value=np.NaN, dtype='float', empty=False):
-
         if pos=='point': z=mesh.zp
         if pos=='mid': z=mesh.zm
 
@@ -518,7 +535,7 @@ class Function(np.ndarray):
         vshape=list(value.shape)
 
         # If the shape matches up to the mesh already, go ahead and just view that value as the PointFunction
-        if len(value.shape) and value.shape[-1]==z.shape[0]:
+        if hasattr(z,'shape') and len(value.shape) and value.shape[-1]==z.shape[0]:
             obj=value.view(cls)
             obj.mesh = mesh
             obj.z=z
@@ -532,7 +549,11 @@ class Function(np.ndarray):
 
         # Try to form a full array by repeating this element len(z) times.
         try:
-            obj = np.full(vshape + list(z.shape), value, dtype=dtype).view(cls)
+
+            if not hasattr(z,'shape'):
+                obj=value.view(cls)
+            else:
+                obj = np.full(vshape + list(z.shape), value, dtype=dtype).view(cls)
             obj.mesh = mesh
             obj.z=z
             obj.pos=pos
@@ -633,6 +654,7 @@ class Function(np.ndarray):
         :return: a point function (which is the original if its already a point function)
         """
         if self.pos=='point': return self
+        if not hasattr(self.z,"shape"): return Function(self.mesh,pos='point',value=self,dtype=self.dtype)
 
         if len(self)==1: interp='unweighted'
         if interp == 'unweighted':
