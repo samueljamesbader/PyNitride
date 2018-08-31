@@ -255,9 +255,10 @@ class MultibandKP(CarrierModel):
         kt=self._kt
         pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
         #print('about to eigsh ',np.min(pot))
+        m.tests=[]
         for i,(kx,H) in enumerate(zip(kt,self._H)):
             Htot=-H+diags(pot)
-            energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM')
+            energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2)
 
             # Sort by energy
             indarr=np.argsort(energies)
@@ -271,6 +272,9 @@ class MultibandKP(CarrierModel):
                 /np.sqrt(m._dzm)
             # kt, eig, z
             self._normsqs[i,:,:]=np.sum(abs(m.kppsi[i])**2,axis=1)
+
+            # delete this
+            m.tests+=[[-Htot,eigenvectors[:,indarr],-energies[indarr]]]
 
         # kt, eig, z
         eta=(m.kpen-m.EF)/kT.tpf()

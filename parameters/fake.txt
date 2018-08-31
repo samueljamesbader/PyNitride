@@ -97,7 +97,7 @@ material=InN
             DE: 320 meV
 
 material=AlN
-    DE: .37 eV  #.67 would make more sense but .37 closer to nextnano
+    DE: .64 eV  #.67 would make more sense but .37 closer to nextnano
     dielectric
         eps: 8.6 epsilon_0
     dopant=Si
@@ -420,6 +420,106 @@ material=Sam
         electronbarrier: 50 eV
 
 material=Sam
+    conditions=
+        polarization
+            Psp:    -.034   C/m^2
+            e33:     .67    C/m^2
+            e31:    -.34    C/m^2
+
+# MOST VALUES COPIED FROM GAN DO NOT TRUST
+material=SiO2
+    material type: 'binary'
+    DE: .4   eV
+    dielectric
+        eps: 3.9 epsilon_0
+    dopant=Si
+        type: 'Donor'
+        E: 15 meV
+        g: 2
+    dopant=Mg
+        type: 'Acceptor'
+        E: 185 meV
+        g: 4
+    dopant=DeepDonor
+        type: 'Donor'
+        E: 2 eV     #fake
+        g: 2
+    dopant=DeepAcceptor
+        type: 'Acceptor'
+        E: 2 eV     #fake
+        g: 4
+    carrier=electron
+        DEc: 218 meV
+        band=
+            g: 2
+            mzs: .2 m_e
+            mxys: .2 m_e
+            mdos: .2 m_e
+            DE: 0 eV
+    carrier=hole
+        band=HH
+            g: 2
+            mzs: .569 m_e
+            mxys: 1.887 m_e
+            mdos: 1.27 m_e
+            DE: 0 eV
+        band=LH
+            g: 2
+            mzs:  .164 m_e
+            mxys: 1.872 m_e
+            mdos: .83 m_e
+            DE: 12 meV
+        band=CH
+            g: 2
+            mzs: 1.983 m_e
+            mxys: .139 m_e
+            mdos:  .34 m_e
+            DE: 320 meV
+    surface=GenericMetal
+        electronbarrier: 2 eV
+    conditions=
+        stiffness
+            C11: 390 GPa
+            C12: 145 GPa
+            C13: 106 GPa
+            C33: 398 GPa
+            C44: 105 GPa
+        kp
+            A1:  -7.21  hbar**2/(2*m_e)
+            A2:  -0.44  hbar**2/(2*m_e)
+            A3:   6.68  hbar**2/(2*m_e)
+            A4:  -3.46  hbar**2/(2*m_e)
+            A5:  -3.40  hbar**2/(2*m_e)
+            A6:  -4.90  hbar**2/(2*m_e)
+            A7:   93.7  meV angstrom
+
+            a1:  -4.90  eV
+            a2:  -11.3  eV
+
+            D1:  -3.7   eV
+            D2:   4.5   eV
+            D3:   8.2   eV
+            D4:  -4.1   eV
+            D5:  -4     eV
+            D6:  -5.5   eV
+
+            DeltaCR: 10 meV
+            DeltaSO: 17 meV
+
+    conditions=relaxed
+        lattice
+            a: 3.189 angstrom
+            c: 5.185 angstrom
+        carrier=electron
+            band=
+                g: 2
+                mzs:  .2 m_e
+                mxys: .2 m_e
+                mdos: .2 m_e
+        varshni
+            Eg0: 8.9 eV
+            alpha: 0 meV/K
+            beta: 0 K
     conditions=
         polarization
             Psp:    -.034   C/m^2

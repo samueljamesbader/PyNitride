@@ -53,16 +53,29 @@ class MaterialSystem():
         return item in self._attrs
 
     def bulk(matsys,**kwargs):
-        class BulkMaterial():
+        class BulkMaterial(matsys.__class__):
             def __init__(self,**kwargs):
+
+                # Set up properties to impersonate both a MaterialSystem and a trivial Mesh
                 self._matsys=matsys
                 self.mesh=self
+                self.zm=0
+                self.ztrans=1
+
+                # Initialize as a MaterialSystem
+                self._dopants=[]
+                super().__init__()
                 self._funcs=matsys._defaults.copy()
-                self._funcs.update({k:np.array([v]) for k,v in kwargs.items()})
-                if 'exx' not in self._funcs:
-                    self._funcs['exx']=0
-                if 'eyy' not in self._funcs:
-                    self._funcs['eyy']=0
+
+                # Default strains to 0
+                kwargs2={k:0 for k in ['exx','eyy','exy','exz','eyz']}
+                kwargs2.update(kwargs)
+
+                # Other specials supplied
+                self._funcs.update({k:np.array(v) for k,v in kwargs2.items()})
+
+                self._funcs['ezz']=-2*self.C13/self.C33*self['exx']
+
             def __getitem__(self,item):
                 if item in self._funcs:
                     return self._funcs[item]
@@ -74,6 +87,7 @@ class MaterialSystem():
                 return self.__getitem__(item)
             def __getattr__(self, item):
                 return self.__getitem__(item)
+
         return BulkMaterial(**kwargs)
 
 
@@ -84,6 +98,7 @@ class Wurtzite(MaterialSystem):
         self._attrs.update({
             'exx':      self.strain,
             'eyy':      self.strain,
+            'ezz':      self.strain,
 
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
@@ -127,7 +142,8 @@ class Wurtzite(MaterialSystem):
 
     def polarization(self,m,key):
         m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
-        m['DP']=-m.P.differentiate(fill_value=0)
+        if hasattr(m.zm,'shape'):
+            m['DP']=-m.P.differentiate(fill_value=0)
         return m[key]
 
     def bandedge_params(self,m,key):
@@ -222,11 +238,22 @@ class Wurtzite(MaterialSystem):
         Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
 
         def double(arr):
-            n=arr.shape[0]
-            out=Function(m,value=np.zeros((2*n,2*n,arr.shape[2]),dtype='complex'),dtype='complex',pos=arr.pos)
-            out[:n,:n,:]=arr
-            out[n:,n:,:]=arr
-            return out
+            if len(arr.shape)>2:
+                n=arr.shape[0]
+                out=Function(m,value=np.zeros((2*n,2*n,arr.shape[2]),dtype='complex'),dtype='complex',pos=arr.pos)
+                out[:n,:n,:]=arr
+                out[n:,n:,:]=arr
+                return out
+            else:
+                n=arr.shape[0]
+                out=Function(m,value=np.zeros((2*n,2*n),dtype='complex'),dtype='complex',pos=arr.pos)
+                out[:n,:n]=arr
+                out[n:,n:]=arr
+                return out
+
+        #print("FAKING N2p,N2m=0")
+        #N2p*=0
+        #N2m*=0
 
         Cmats=[]
         for kx,ky in zip(kx,ky):
@@ -306,6 +333,22 @@ class AlGaN(Wurtzite):
 
         self._defaults.update({
             'x': 0
+        })
+        self.append_dopants(['Si','Mg'])
+
+class AlGaN_SiO2(Wurtzite):
+    def __init__(self):
+        self._vergardbasis={
+            'x': 'AlN',
+            None: 'GaN',
+            'SiO2': 'SiO2'
+        }
+
+        super().__init__()
+
+        self._defaults.update({
+            'x': 0,
+            'SiO2': 0
         })
         self.append_dopants(['Si','Mg'])
 
