@@ -31,14 +31,27 @@ class PoissonSolver():
     def __init__(self, mesh, epsfactor=1):
         m=self._mesh = mesh
 
-        self._donors    =[d for d in m._matsys._dopants if d.endswith("Donor")]
-        self._acceptors =[d for d in m._matsys._dopants if d.endswith("Acceptor")]
+        m['DP']=-m.get("P",default=0.0).differentiate(fill_value=0)
+
+        alldopants=sum((mb.matsys._dopants for mb in m._matblocks),[])
+        self._donors    =[d for d in alldopants if d.endswith("Donor")]
+        self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
+        for d in self._donors+self._acceptors:
+            m.get(d+"g",default=(2. if d.endswith("Donor") else 4),store=True)
+            m.get(d+"Conc",default=0.,store=True)
+            m.get(d+"E",default=0.,store=True)
+
+            if np.any(np.diff(m[d+"g"])!=0):
+                print(d,m[d+"g"])
+                raise Exception("Non-uniform g not working yet because idd takes one g")
+
+
 
         surface=mesh._boundary[0]
         if isinstance(surface,numbers.Real):
             self._phib=surface
         else:
-            self._phib=mesh._matsys.surface_barrier(m)
+            self._phib=mesh._matblocks[0].matsys.surface_barrier(mesh._matblocks[0].mesh)
 
 
         m['Ndp']=PointFunction(m,0)

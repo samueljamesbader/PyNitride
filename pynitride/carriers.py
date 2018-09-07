@@ -244,7 +244,8 @@ class MultibandKP(CarrierModel):
 
         print("Assembling k.p matrices ...")
         self._kt=np.linspace(0,ktmax,num_kpoints)
-        Cmats=m._matsys.kp_Cmats(m,kx=self._kt,ky=0*self._kt)
+        assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
+        Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=self._kt,ky=0*self._kt)
         self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for kx,[C0,Cl,Cr,C2] in zip(self._kt,Cmats)]
         print("Done assembly.")
 
