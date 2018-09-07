@@ -334,7 +334,7 @@ class AlGaN(Wurtzite):
         self._defaults.update({
             'x': 0
         })
-        self.append_dopants(['Si','Mg'])
+        self.append_dopants(['Si','Mg','DeepDonor'])
 
 class AlGaN_SiO2(Wurtzite):
     def __init__(self):
@@ -350,7 +350,7 @@ class AlGaN_SiO2(Wurtzite):
             'x': 0,
             'SiO2': 0
         })
-        self.append_dopants(['Si','Mg'])
+        self.append_dopants(['Si','Mg','DeepDonor'])
 
 class SamGaN(Wurtzite):
     def __init__(self):
