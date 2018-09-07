@@ -23,10 +23,13 @@ class MaterialSystem():
     def vergard(self,lookup):
         interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self._vergardbasis.items()}
         def prop(mesh,key):
-            molefracs={k:mesh[k] for k in interpdict.keys() if k is not None}
-            val=(1-sum(v for v in molefracs.values()))*interpdict[None]
-            for k,v in molefracs.items():
-                val+=interpdict[k]*v
+            if len(interpdict.keys())==1:
+                val=MidFunction(mesh,value=interpdict[None])
+            else:
+                molefracs={k:mesh[k] for k in interpdict.keys() if k is not None}
+                val=(1-sum(v for v in molefracs.values()))*interpdict[None]
+                for k,v in molefracs.items():
+                    val+=interpdict[k]*v
             if key is not None:
                 mesh[key]=val
             return val
@@ -47,8 +50,7 @@ class MaterialSystem():
         self._defaults.update({d+"Conc":0 for d in self._dopants})
 
     def get(self,mesh,item):
-        if item in self._attrs:
-            return self._attrs[item](mesh,item)
+        return self._attrs[item](mesh,item)
     def __contains__(self, item):
         return item in self._attrs
 
@@ -106,7 +108,6 @@ class Wurtzite(MaterialSystem):
             'C13':      self.vergard('stiffness.C13'),
             'C33':      self.vergard('stiffness.C33'),
             'P'  :      self.polarization,
-            'DP' :      self.polarization,
 
             'medos':    self.smcls_band_params,
             'mexy':     self.smcls_band_params,
@@ -142,8 +143,6 @@ class Wurtzite(MaterialSystem):
 
     def polarization(self,m,key):
         m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
-        if hasattr(m.zm,'shape'):
-            m['DP']=-m.P.differentiate(fill_value=0)
         return m[key]
 
     def bandedge_params(self,m,key):
@@ -318,7 +317,7 @@ class AlGaInN(Wurtzite):
             'y': 0,
             'gotz': True
         })
-        self.append_dopants(['Si','Mg'])
+        self.append_dopants(['Si','Mg','Deep'])
 
         self._attrs['MgAcceptorE']
 
@@ -328,29 +327,34 @@ class AlGaN(Wurtzite):
             'x': 'AlN',
             None: 'GaN',
         }
+        self.name="AlGaN"
 
         super().__init__()
 
         self._defaults.update({
             'x': 0
         })
-        self.append_dopants(['Si','Mg'])
+        self.append_dopants(['Si','Mg','DeepDonor'])
 
-class AlGaN_SiO2(Wurtzite):
-    def __init__(self):
-        self._vergardbasis={
-            'x': 'AlN',
-            None: 'GaN',
-            'SiO2': 'SiO2'
-        }
-
+class Insulator(MaterialSystem):
+    def __init__(self, name):
+        self._vergardbasis={None: name}
+        self.name=name
         super().__init__()
+        self.append_dopants([])
 
-        self._defaults.update({
-            'x': 0,
-            'SiO2': 0
-        })
-        self.append_dopants(['Si','Mg'])
+    def bandedge_params(self,m,key):
+        Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
+        alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
+        beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
+        Eg_re=Eg0-alpha*m.T**2/(m.T+beta)
+
+        m['Eg']=Eg_re
+        m['E0-Ev']=Eg_re/2
+        m['Ec-E0']=Eg_re/2
+
+        return m[key]
+
 
 class SamGaN(Wurtzite):
     def __init__(self):
