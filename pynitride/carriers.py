@@ -115,6 +115,7 @@ class Semiclassical(CarrierModel):
             assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tpf())
             assign(m['pderiv'],np.sum((m.Nv/(k*m.T)) * fd12p(eta), axis=0).tpf())
 
+
 class Schrodinger(CarrierModel):
     """ Implements a Schrodinger envelope function carrier model.
 

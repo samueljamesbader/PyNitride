@@ -70,7 +70,7 @@ def gan_pfet_SiO2(xd,xw,xs,Ndef,surface='GenericMetal'):
     m=Mesh([
         UniformLayer('diel',xd,SiO2=1),
         UniformLayer('well',xw,x=0),
-        UniformLayer('subs',xs,x=1,SiDonorConc=Ndef)],
+        UniformLayer('subs',xs,x=1,DeepDonorDonorConc=Ndef)],
         matsys=AlGaN_SiO2(),
         max_dz=10,refinements=[[xd,.01,2],[xd+xw,.02,1.6]],
         boundary=[surface,"thick"])
