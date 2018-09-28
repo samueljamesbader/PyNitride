@@ -233,7 +233,28 @@ class Schrodinger(CarrierModel):
                 self._sch.repopulate(Ev_eff=np.minimum(m.hen[:,-1,:],m.Ev),addon=True)
 
 class MultibandKP(CarrierModel):
-    def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25):
+    def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='xy'):
+        """ Solves the multiband k.p problem for the valence bands.
+
+        Can use either a 1D line of k-points or a rectangular 'xy' grid of k-points or a polar grid of k-points
+        depending on `kmeshmethod`.  Regardless, assumes in-plane inversion symmetry (ie for 1D, only solves at
+        positive kx, and for 2D only solves one quadrant of k-plane for efficiency.
+
+        :param mesh: the :py:class:`pynitride.mesh.Mesh` on which to solve
+        :param num_eigenvalues: (int) the number of eigenvalues to solve for at each k-point
+        :param ktmax: the max absolute k value to solve at, either (1) an int if just solving along just along one
+        direction in k-space or (2) a two-tuple of ints (for x and y directions) if solving the full in-plane k-space
+        with `kmeshmethod='xy'`.
+        :param num_kpoints: The number of points to solve for per direction, either (1) an int if just solving one
+        direction or (2) a two-tuple of ints if solving the full in-plane dispersion.  In the latter case, the
+        interpretation depends on `kmeshmethod`.
+        in-plane dispersion without spherical symmetry, the number of points goes as square of this value.)
+        :param kmeshmethod: Either '1D' or 'xy' or 'polar'. If (1) just solving in one-direction, specify '1D' and
+        supply single integers for ktmax and num_kpoints. If (2) solving the full-plane and 'xy' is specified, the two
+        integers of num_kpoints are taken to the be the number of k-points in the x and y directions.
+        If 'polar' is specified, the first num_kpoints value is the number of radial points and the second value is
+        the numer of angles along which to solve (within one quadrant).
+        """
         super().__init__(mesh)
         m=mesh
 
