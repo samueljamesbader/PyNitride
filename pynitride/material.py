@@ -294,12 +294,30 @@ class Wurtzite(MaterialSystem):
 
 
     def strain(self,m,key):
-        a=self.vergard('conditions=relaxed.lattice.a')(m.subs.mesh,None)[0]
+        raise Exception("Strain state has not been solved yet.")
+
+    def strain_to(self,m,straincond={}):
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)
-        m['exx']=m['eyy']=(a-a0)/a0
-        m['ezz']=-2*m.C13/m.C33*m['exx']
+
+        if 'a' in straincond:
+            ax=ay=straincond['a']
+        else:
+            if 'ax' in straincond:
+                ax=straincond['ax']
+            else: raise NotImplementedError
+            if 'ay' in straincond:
+                ay=straincond['ay']
+            else: raise NotImplementedError
+        m['exx']=(ax-a0)/a0
+        m['eyy']=(ay-a0)/a0
+        m['ezz']=-m.C13/m.C33*(m['exx']+m['eyy'])
         m['exy']=m['eyz']=m['exz']=MidFunction(m,0)
-        return m[key]
+
+    def bulk_lattice_condition(self,m):
+        pos=-1 if (m.ztrans == -1 ) else 0
+        a0=self.vergard('conditions=relaxed.lattice.a')(m,None)[pos]
+        return {'a':a0}
+
 
 
 class AlGaInN(Wurtzite):
@@ -334,7 +352,7 @@ class AlGaN(Wurtzite):
         self._defaults.update({
             'x': 0
         })
-        self.append_dopants(['Si','Mg','DeepDonor'])
+        self.append_dopants(['Si','Mg','DeepDonor','DeepAcceptor'])
 
 class Insulator(MaterialSystem):
     def __init__(self, name):

@@ -104,6 +104,10 @@ class Mesh():
         else:
             self._subs=stack[-1].matsys.bulk(**subs)
 
+        #self._namedinterfacesz={}
+        #for l in layers:
+
+
         # Parse refinements
         for r in refinements:
             zr=r[0]
