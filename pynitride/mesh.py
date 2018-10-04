@@ -14,7 +14,8 @@ from pynitride.visual import log
 from scipy.special import lambertw as W
 
 class MaterialBlock():
-    def __init__(self,matsys,layers):
+    def __init__(self,name,matsys,layers):
+        self.name=name
         self.matsys=matsys
         self.layers=layers
         for l in layers:
@@ -26,6 +27,44 @@ class MaterialBlock():
     @property
     def mesh(self):
         return self._mesh
+
+    def get(self, item, destmesh=None):
+        if destmesh is None:
+            destmesh=self._mesh
+
+        # Get the subfunc from matsys
+        subfunc=self.matsys.get(self._mesh,item)
+
+        # Get the func if it's defined on this mesh
+        if item in destmesh._functions:
+            func=destmesh[item]
+
+        # Or if we haven't made the global func yet, make it from this one
+        else:
+            func=destmesh[item]=MidFunction(destmesh, dtype=subfunc.dtype, empty=subfunc.shape[:-1])
+
+        # Figure out the ranges where the desination mesh and material block overlap
+        globalstart=max(self._mesh._global_slicem.start,destmesh._global_slicem.start)
+        globalstop =min(self._mesh._global_slicem.stop ,destmesh._global_slicem.stop )
+
+
+        #print("ITEM: ",item,"  matblock ",self.name,"  ",self.mesh.zm.shape," destmesh  ", destmesh.zm.shape)
+        #print("    ",globalstart,"  -  ",globalstop)
+        #print(globalstart-destmesh._global_slicem.start,globalstop-destmesh._global_slicem.start)
+        #print(globalstart-self._mesh._global_slicem.start,globalstop-self._mesh._global_slicem.start)
+        #print(subfunc[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].shape)
+        # Fill in the relevant part of the function
+        func[globalstart-destmesh._global_slicem.start:globalstop-destmesh._global_slicem.start]=\
+            subfunc.T[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].T
+        #print('hi')
+        return func
+
+    def update(self,reason,destmesh):
+        for f in self.matsys._updates[reason]:
+            f(destmesh)
+
+    def __contains__(self, item):
+        return item in self.matsys
 
 class Layer():
     def __init__(self, name, thickness):
@@ -231,7 +270,12 @@ class Mesh():
 
         # Store functions which live on this mesh
         self._functions = {}
+        self._attrs = {}
+        self._requested_functions = {}
         self._submeshes= []
+
+        self._global_slicep=slice(0,len(self._zp))
+        self._global_slicem=slice(0,len(self._zm))
 
 
         # TODO: break this up so some is done within matblock
@@ -274,6 +318,9 @@ class Mesh():
         :return: an index into the mid mesh
         """
         return np.rint(self._zm2i_interp(zm)).astype(int)
+
+    def matblock(self,name):
+        return next(mb for mb in self._matblocks if mb.name==name)
 
     def plot_mesh(self,xlim=None):
         """ Plots a 1-D representation of the mesh for visual inspection.
@@ -321,6 +368,63 @@ class Mesh():
         mpl.title('Total mesh points: {:d}'.format(len(self._zp)))
         mpl.tight_layout()
 
+
+    def request_function(self,func,default=None,pos=None):
+        self._requested_functions[func]={'default': default,'pos':pos}
+    def request_functions(self,funcs,defaults=[],poss=[]):
+        if not len(defaults):
+            defaults=[None]*len(funcs)
+        if not len(poss):
+            poss=[None]*len(funcs)
+        assert len(funcs)==len(defaults) and len(funcs)==len(poss)
+        for func,default,pos in zip(funcs,defaults,poss):
+            self._requested_functions[func]={'default': default, 'pos': pos}
+
+    def initialize(self):
+        """
+
+        Before this function is called,
+        (1) all exchanged non-material functions should be created (but maybe not globalized)
+        (2) no material functions (on submeshes that are not on this mesh) should be created
+
+        Go through the requested functions one by one and
+        (1) if the function exists on this mesh, do nothing
+        (2) if the function exists on a submesh (note it is not a material function), globalize it
+        (3) if the function can be drawn from all the relevant material blocks (and/or there is a default value), do so
+
+        """
+
+        for key,v in self._requested_functions.items():
+            if key in self._functions:
+                continue
+            else:
+                default,pos=v['default'],v['pos']
+                if sum([key in sm for sm in self._submeshes]):
+                    self.globalize(key,default=default)
+                else:
+                    if pos=='point':
+                        assert default is not None,"Specified pos=='point' for key "+key+"but no default"
+                        self[key]=PointFunction(self,value=default)
+                    else:
+                        self._fill_from_matblocks(key,default)
+
+    def _fill_from_matblocks(self,key,default=None):
+
+        # If we have a default, build the function
+        if default is not None:
+            func=self[key]=MidFunction(self,value=default)
+        # Otherwise MaterialBlock.get will build it the first time
+
+        # Check each material block
+        for mb in self._matblocks:
+            try:
+                mb.get(key,self)
+            except Exception as e:
+                print(e)
+                if default is None:
+                    raise Exception("No default specified and {} not in {}".format(key,mb.matsys.name))
+        return self[key]
+
     def globalize(self, func, default=None, submeshes=None):
         """ Finds the function `func` on submeshes and expands it to a function on the full mesh, ensuring that
         the functions on submeshes are just restricted views of the full mesh function (no longer independent).
@@ -333,6 +437,7 @@ class Mesh():
         :param default: a default value to fill into the function where not defined on a submesh
         :return: the function
         """
+        if func in self._functions: return self[func]
         log("Expanding function "+func,level="debug")
         if submeshes is None:
             submeshes=self._submeshes
@@ -340,8 +445,8 @@ class Mesh():
         # Find the first submesh to have this function and copy out the position/shape/dtype to full mesh
         for sm in submeshes:
             foundit=False
-            try:
-                sfunc=sm[func]
+            if func in sm:
+                sfunc=sm.globalize(func,default=default)
                 if not foundit:
                     # Get the shape from the default if supplied
                     if default is not None:
@@ -349,8 +454,6 @@ class Mesh():
                     else:
                         self._functions[func]=Function(self,sfunc.pos,dtype=sfunc.dtype,empty=sfunc.shape[:-1])
                 foundit=True
-            except:
-                pass
 
         # Fill the function on the entire mesh from anywhere it appears in submeshes
         for sm in submeshes:
@@ -361,7 +464,8 @@ class Mesh():
                     self[func][...,sm._slicem]=sm[func]
 
                 # Make submeshes a restricted view of the full mesh
-                sm._functions[func]=self[func].restrict(sm)
+                del sm._functions[func]
+                sm[func]=self[func].restrict(sm)
         return self[func]
 
     def ensure_function_exists(self,func,dim=(),pos='point',dtype='float',value=np.NaN):
@@ -387,73 +491,31 @@ class Mesh():
         return self._functions.__iter__()
 
     def __getitem__(self, key):
-        return self.get(key,default=None,store=True)
+        return self.get(key)
 
-    def get(self,key,default=None,dtype=None,store=False):
+    def get(self,key):
         r""" Get by name a function defined on this mesh.
 
-        Search order: (1) if the function is already defined on this mesh, return it.  (2) If the function is not
-        defined on this mesh, but is defined by all the material blocks, populate the function onto this mesh.
+        Search order: (1) if the function is already defined on this mesh, return it.
 
         Note: if the function is defined on submeshes but not on the global mesh, this method will not find it, but
         you can call py:func:`pynitride.mesh.globalize` to bring it onto the global mesh.
 
-        If the definitions by different material blocks are incompatible (eg different shapes),
-        results may be erroneous or errors raised.
         """
         if key in self._functions:
             return self._functions[key]
+        elif key in self._attrs:
+            self._attrs[key]()
+            return self._functions[key]
+        elif sum(key in mb for mb in self._matblocks):
+            return self._fill_from_matblocks(key)
         else:
-            # If we have a default, build the function
-            if default is not None:
-                func=MidFunction(self,value=default,dtype=dtype)
-            # Otherwise we'll build it based on the first subfunction
-            else:
-                func=None
+            raise Exception("EEH? "+key)
 
-            # Temporary hack, only global mesh or first children can pull from matblocks
-            # simplifies finding overlap of matblock with mesh
-            # matblocks are always first children
-            if not (type(self)==Mesh or type(self._supermesh==Mesh) ):
-                raise NotImplementedError
-
-
-            # Check each material block
-            for mb in self._matblocks:
-                # Is it in the matblock
-                try:
-                    if key in mb.mesh:
-                        subfunc=mb.mesh[key]
-                    else:
-                        subfunc=mb.matsys.get(mb.mesh,key)
-                except:
-                    if default is None:
-                        raise Exception("No default specified and {} not in {}".format(key,mb.matsys.name))
-                    else:
-                        subfunc=None
-
-                if subfunc is not None:
-                    # If we haven't made the global func yet, make it from this one
-                    if func is None:
-                        func=MidFunction(self,dtype=subfunc.dtype,empty=subfunc.shape[:-1])
-
-                    # Add these values to the global
-                    if subfunc is not None:
-                        if type(self)==Mesh:
-                            func[mb.mesh._slicem]=subfunc
-                        if type(self)==SubMesh:
-                            sstart=self._slicem.start
-                            gstart=max(self._slicem.start,mb.mesh._slicem.start)
-                            gstop=min(self._slicem.stop,mb.mesh._slicem.stop)
-                            substart=(sstart-gstart if gstart<sstart else 0)
-                            substop=substart+gstop-gstart
-                            func.T[gstart-sstart : gstop-sstart]=subfunc.T[substart:substop]
-
-            if store:
-                self[key]=func
-            return func
-
-
+    def add_attr(self,attr,func):
+        self._attrs[attr]=func
+        for sm in self._submeshes:
+            sm.add_attr(attr,func)
 
     def __setitem__(self, key, value):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
@@ -462,8 +524,13 @@ class Mesh():
         else:
             assert isinstance(value,Function), "Must be a mesh.functions.Function"
             self._functions[key] = value
-            for sm in self._submeshes:
-                sm._functions[key]=value.restrict(sm)
+            def submeshesview(m):
+                if not len(m._submeshes): return
+                for sm in m._submeshes:
+                    sm._functions[key]=value.restrict(sm)
+                    submeshesview(sm)
+            submeshesview(self)
+
 
     def __getattr__(self,item):
         return self.__getitem__(item)
@@ -526,6 +593,34 @@ class Mesh():
             sms+=[SubMesh(self,il,ir+1)]
         return sms
 
+    def function_chart(self,submeshchain=[]):
+        allfuncs=list(set(sum([list(m._functions.keys()) for m in [self]+submeshchain],[])))
+        #print(allfuncs)
+        def share(a,b):
+            return (a.base is not None and a.base is b.base) or (a.base is b) or (b.base is a)
+        table=[]
+        for m,m2 in zip([self]+submeshchain, submeshchain+[None]):
+            table+=[[f if f in m._functions else "" for f in allfuncs]]
+            if m2:
+                assert m2 in m._submeshes
+                table+=[[(" -> " if ((f in m._functions)
+                                     and (f in m2._functions)
+                                     and share(m2._functions[f],m._functions[f]))
+                                else "    ")\
+                         for f in allfuncs]]
+        table=zip(*table)
+        print("---------------------------")
+        for r in table:
+            lout=""
+            for i,c in enumerate(r):
+                if (i+1) % 2:
+                    lout+=c.rjust(30)
+                else:
+                    lout+=c
+            print(lout)
+        print("---------------------------")
+
+
     # Finish making and testing save and load
     #def save(self,filename):
     #    r""" Save the mesh, its submeshes, and all functions defined on it to a file.
@@ -574,6 +669,8 @@ class SubMesh(Mesh):
 
         self._slicep = slice(start, stop)
         self._slicem = slice(start, stop - 1)
+        self._global_slicep=slice(mesh._global_slicep.start+start,mesh._global_slicep.start+stop)
+        self._global_slicem=slice(mesh._global_slicem.start+start,mesh._global_slicem.start+stop-1)
 
         self._zp = mesh._zp[self._slicep]
         self._zm = mesh._zm[self._slicem]
@@ -588,6 +685,8 @@ class SubMesh(Mesh):
             self._layers=[next(ll for i,ll,lr in (mesh.interfaces_point+[[start+1,mesh._layers[-1],None]]) if i > start)]
 
         self._functions = { k: f.restrict(self) for k, f in mesh._functions.items()}
+        self._attrs = mesh._attrs.copy()
+        self._requested_functions = {}
 
         self._supermesh = mesh
         self._submeshes = []

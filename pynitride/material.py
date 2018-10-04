@@ -1,4 +1,4 @@
-from pynitride.paramdb import pmdb, K, hbar, m_e, nm
+from pynitride.paramdb import pmdb, hbar, m_e, nm
 from pynitride.mesh import MidFunction, PointFunction, Function, SubMesh
 from pynitride.visual import log
 import numpy as np
@@ -13,9 +13,8 @@ class MaterialSystem():
             'E0-Ev':    self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
         }
-        self._defaults={
-            'T':    300 *K
-        }
+        self._defaults={}
+        self._updates={}
 
     def surface_barrier(self,m):
         return self.vergard('surface={}.electronbarrier'.format(m._boundary[0]))(m,None)[0]
@@ -97,10 +96,15 @@ class MaterialSystem():
 class Wurtzite(MaterialSystem):
     def __init__(self):
         super().__init__()
+
+        self._updates.update({
+            'strain': [self.bandedge_params,self.polarization],
+            'temperature': [self.bandedge_params],
+        })
         self._attrs.update({
-            'exx':      self.strain,
-            'eyy':      self.strain,
-            'ezz':      self.strain,
+            #'exx':      self.strain,
+            #'eyy':      self.strain,
+            #'ezz':      self.strain,
 
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
@@ -145,13 +149,17 @@ class Wurtzite(MaterialSystem):
         m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
         return m[key]
 
-    def bandedge_params(self,m,key):
+    def bandedge_params(self,m,key=None):
         Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
         alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
         beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
         Eg_re=Eg0-alpha*m.T**2/(m.T+beta)
 
+
         s=(m.exx+m.eyy)/2
+        #print('M.exx',m.exx)
+        #print('M.eyy',m.eyy)
+        #print('M.ezz',m.ezz)
         Sigma2=(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*2*s
         Sigmac=(m.a1+m.D1)*m.ezz+(m.a2+m.D2)*2*s
 
@@ -166,7 +174,8 @@ class Wurtzite(MaterialSystem):
         # So let's set Ev_raw to Ev minus that amount to make sure the bulk solution top energy is Ev
         m['EvOffset']=-Sigma2-np.maximum(m.Delta1+m.Delta2,m.Delta1-m.Delta2,MidFunction(m,0))
 
-        return m[key]
+        if key:
+            return m[key]
 
     def smcls_band_params(self,m,key):
         log("Using explicit masses from file",'TODO')
@@ -292,9 +301,9 @@ class Wurtzite(MaterialSystem):
             Cmats+=[[C0,Cl,Cr,C2]]
         return Cmats
 
-
     def strain(self,m,key):
-        raise Exception("Strain state has not been solved yet.")
+        print("Returning {} even though strain is unsolved".format(key))
+        #raise Exception("Strain state has not been solved yet.")
 
     def strain_to(self,m,straincond={}):
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)
@@ -359,6 +368,9 @@ class Insulator(MaterialSystem):
         self._vergardbasis={None: name}
         self.name=name
         super().__init__()
+        self._updates.update({
+            'temperature': [self.bandedge_params],
+        })
         self.append_dopants([])
 
     def bandedge_params(self,m,key):

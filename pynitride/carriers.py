@@ -64,13 +64,25 @@ class Semiclassical(CarrierModel):
     """
     def __init__(self,mesh,carriers=['electron','hole']):
         super().__init__(mesh)
-        m=mesh
+        m=self._mesh
         self._carriers=carriers
+        m.request_function("EF")
+        if 'electron' in self._carriers:
+            m.request_functions(["eg","medos","Ec"])
+            m.ensure_function_exists("n",value=0)
+            m.ensure_function_exists("nderiv",value=0)
+        if 'hole' in self._carriers:
+            m.request_functions(["hg","mhdos","Ev"])
+            m.ensure_function_exists("p",value=0)
+            m.ensure_function_exists("pderiv",value=0)
 
+
+    def initialize(self):
+        m=self._mesh
         # Compute the effective density of states
-        if 'electron' in carriers:
+        if 'electron' in self._carriers:
             m['Nc']= m.eg * (m.medos*k*m.T/(2*pi*hbar**2))**(3/2)
-        if 'hole' in carriers:
+        if 'hole' in self._carriers:
             m['Nv']= m.hg * (m.mhdos*k*m.T/(2*pi*hbar**2))**(3/2)
 
     def solve(self):
@@ -96,8 +108,6 @@ class Semiclassical(CarrierModel):
             current values (False).  Default False.
         """
         m=self._mesh
-        for func in ['n','p','nderiv','pderiv']:
-            m.ensure_function_exists(func=func,value=0)
 
         # Use effective band edges if provided, otherwise take from mesh
         Ec_eff = Ec_eff if (Ec_eff is not None) else m.Ec
@@ -146,22 +156,36 @@ class Schrodinger(CarrierModel):
         self._carriers=carriers
         self._neig=num_eigenvalues
         self._boundary=boundary
+        self._blend=blend
 
+        if 'electron' in self._carriers:
+            m.request_functions(["mez","mexy","Ec","cDE"])
+            m.ensure_function_exists("n",value=0)
+            m.ensure_function_exists("nderiv",value=0)
+            if self._blend: self._sce=Semiclassical(m,carriers=['electron'])
+        if 'hole' in self._carriers:
+            m.request_functions(["mhz","mhxy","Ev","vDE"])
+            m.ensure_function_exists("p",value=0)
+            m.ensure_function_exists("pderiv",value=0)
+            if self._blend: self._sch=Semiclassical(m,carriers=['hole'])
+
+    def initialize(self):
+        m=self._mesh
         self._subbands=[]
         self._zkinetic=[]
         self._lkineticfactor=[]
-        if 'electron' in carriers:
+        if 'electron' in self._carriers:
             self._nebands=m.mez.shape[0]
             m['een']=PointFunction(m, empty=(self._nebands, self._neig))
             m['epsi']=PointFunction(m, empty=(self._nebands, self._neig))
-            if blend: self._sce=Semiclassical(m,carriers=['electron'])
             self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
-        if 'hole' in carriers:
+            if self._blend: self._sce.initialize()
+        if 'hole' in self._carriers:
             self._nhbands=m.mhz.shape[0]
             m['hen']=PointFunction(m, empty=(self._nhbands, self._neig))
             m['hpsi']=PointFunction(m, empty=(self._nhbands, self._neig))
-            if blend: self._sch=Semiclassical(m,carriers=['hole'])
             self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
+            if self._blend: self._sch.initialize()
 
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'),sb['subband']
@@ -202,6 +226,7 @@ class Schrodinger(CarrierModel):
                 #print(eigsh(-H,k=self._neig+self._blend,sigma=-valley)[0])
             sb['energies'][l,:,:]=np.atleast_2d(energies[:self._neig]).T
             sb['psi'][l,:,:]=(1/np.sqrt(m._dzm))*eigenvectors[:,:self._neig].T
+
 
     def repopulate(self):
         m=self._mesh
@@ -257,8 +282,18 @@ class MultibandKP(CarrierModel):
         """
         super().__init__(mesh)
         m=mesh
-
+        m.ensure_function_exists("p",value=0)
+        m.ensure_function_exists("pderiv",value=0)
         self._neig=num_eigenvalues
+        self._ktmax=ktmax
+        self._num_kpoints=num_kpoints
+        self._kmeshmethod=kmeshmethod
+
+    def initialize(self):
+        m=self._mesh
+        ktmax=self._ktmax
+        num_kpoints=self._num_kpoints
+        num_eigenvalues=self._neig
         m['kppsi']=PointFunction(m,dtype='complex',empty=(num_kpoints,num_eigenvalues,6,))
         m['kpen']=PointFunction(m,dtype='float',empty=(num_kpoints,num_eigenvalues,))
         self._normsqs=PointFunction(m,dtype='float',empty=(num_kpoints,num_eigenvalues))
