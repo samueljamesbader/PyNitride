@@ -152,8 +152,11 @@ class Mesh():
             zr=r[0]
             if isinstance(zr,str):
                 l1,l2=zr.split("/")
-                l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1)
-                l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2)
+                try:
+                    l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1)
+                    l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2)
+                except:
+                    raise Exception("A layer ({} or {}) was not found for refinement.".format(l1,l2))
                 if (l2-l1)>1: raise Exception("Interface {} not found".format(zr))
                 r[0]=np.cumsum([l.thickness for l in layers])[min(l1,l2)]
 
@@ -260,7 +263,7 @@ class Mesh():
         self._zm = (self._zp[:-1] + self._zp[1:]) / 2
         self._dzm = np.array([self._dzp[0]] * len(self._zp))
         self._dzm[1:-1] = np.diff(self._zm)
-        self._dzm[[0, -1]] = self._dzm[[1, -2]]
+        self._dzm[[0, -1]] = self._dzp[[0, -1]]/2
 
         if len(self._zm)>1:
             # interpolate the z -> index mapping
