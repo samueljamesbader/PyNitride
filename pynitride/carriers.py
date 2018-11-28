@@ -4,6 +4,7 @@ from pynitride.paramdb import pmdb, k, pi, hbar, m_e, nm
 from pynitride.maths import fd12, fd12p, assemble6x6
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
+from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
@@ -258,7 +259,7 @@ class Schrodinger(CarrierModel):
                 self._sch.repopulate(Ev_eff=np.minimum(m.hen[:,-1,:],m.Ev),addon=True)
 
 class MultibandKP(CarrierModel):
-    def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='xy'):
+    def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
         """ Solves the multiband k.p problem for the valence bands.
 
         Can use either a 1D line of k-points or a rectangular 'xy' grid of k-points or a polar grid of k-points
@@ -282,6 +283,7 @@ class MultibandKP(CarrierModel):
         """
         super().__init__(mesh)
         m=mesh
+        assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
         m.ensure_function_exists("p",value=0)
         m.ensure_function_exists("pderiv",value=0)
         self._neig=num_eigenvalues
@@ -294,32 +296,72 @@ class MultibandKP(CarrierModel):
         ktmax=self._ktmax
         num_kpoints=self._num_kpoints
         num_eigenvalues=self._neig
-        m['kppsi']=PointFunction(m,dtype='complex',empty=(num_kpoints,num_eigenvalues,6,))
-        m['kpen']=PointFunction(m,dtype='float',empty=(num_kpoints,num_eigenvalues,))
-        self._normsqs=PointFunction(m,dtype='float',empty=(num_kpoints,num_eigenvalues))
+        kmeshmethod=self._kmeshmethod
 
-        print("Assembling k.p matrices ...")
-        self._kt=np.linspace(0,ktmax,num_kpoints)
-        assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
-        Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=self._kt,ky=0*self._kt)
-        self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for kx,[C0,Cl,Cr,C2] in zip(self._kt,Cmats)]
-        print("Done assembly.")
+        # Make the k-mesh
+        if isinstance(self._kmeshmethod,str):
+            if kmeshmethod=='1D':
+                self._kt=np.linspace(0,ktmax,num_kpoints)
+                self._kx=1*self._kt
+                self._ky=0*self._kt
+            elif kmeshmethod=='xy':
+                if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                kx=np.linspace(0,ktmax[0],num_kpoints[0])
+                ky=np.linspace(0,ktmax[1],num_kpoints[1])
+                self._kmeshman=KMesh2D(kx,ky)
+                self._kt=self._kmeshman.kt
+                self._kx=self._kmeshman.kx1
+                self._ky=self._kmeshman.ky1
+            elif kmeshmethod=='xyfull':
+                if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
+                ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
+                self._kmeshman=KMesh2D(kx,ky)
+                self._kt=self._kmeshman.kt
+                self._kx=self._kmeshman.kx1
+                self._ky=self._kmeshman.ky1
+            elif kmeshmethod=='polar':
+                raise NotImplementedError
+            kx,ky=self._kmeshman.kx,self._kmeshman.ky
+        # otherwise kmeshmethod should be an iterable of ((kx1,ky1),(kx2,ky2),...)
+        else :
+            self._kt=np.array(kmeshmethod)
+            self._kx,self._ky=np.hsplit(self._kt,2)
+            kx,ky=self._kx,self._ky
+
+        # Assemble k.p matrices
+        log("Assembling k.p matrices ...",level='info')
+        self._Cmats=Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
+        self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
+        log("Done assembly.",level='info')
+
+        # Initialize other functions
+        m['kppsi']=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
+        m['kpen']=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues,))
+        self._normsqs=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues))
+
+    def remesh(self,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
+        if 'kppsi' in self._mesh._functions:
+            del self._mesh._functions['kppsi']
+        if 'kpen' in self._mesh._functions:
+            del self._mesh._functions['kpen']
+        self.__init__(self._mesh,num_eigenvalues,ktmax,num_kpoints,kmeshmethod)
+        self.initialize()
 
     def solve(self):
         log("MBKP Solve",level="debug")
         m=self._mesh
-        kT=k*m.T
         kt=self._kt
         pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
-        #print('about to eigsh ',np.min(pot))
-        m.tests=[]
-        for i,(kx,H) in enumerate(zip(kt,self._H)):
+        #m.tests=[]
+        for i,(kti,H) in enumerate(zip(kt,self._H)):
             Htot=-H+diags(pot)
             energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2)
 
             # Sort by energy
             indarr=np.argsort(energies)
-            #print("kx ",kx," en ",energies[indarr][:10])
             # kt, eig, z
             m['kpen'][i,:,:]=-np.atleast_2d(energies[indarr]).T
             # kt, eig, comp, z
@@ -331,17 +373,76 @@ class MultibandKP(CarrierModel):
             self._normsqs[i,:,:]=np.sum(abs(m.kppsi[i])**2,axis=1)
 
             # delete this
-            m.tests+=[[-Htot,eigenvectors[:,indarr],-energies[indarr]]]
+            #m.tests+=[[-Htot,eigenvectors[:,indarr],-energies[indarr]]]
 
+    def solve_point_as_bulk(self,zp):
+        m=self._mesh
+        kt=self._kt
+        izp=m.indexp(zp)
+
+        return np.array([eigvalsh(C[0][:,:,izp]) for i, (kti,C) in enumerate(zip(kt,self._Cmats))])
+
+
+    def repopulate(self):
+        m=self._mesh
+        kT=k*m.T
+        kt=self._kt
         # kt, eig, z
         eta=(m.kpen-m.EF)/kT.tpf()
 
-        m['p']=np.sum(1/(2*np.pi)*np.trapz(kt*(self._normsqs/(1+np.exp(-eta))).T,x=kt),axis=1)
-        m['pderiv']=np.sum(1/(2*np.pi*kT.tpf())*np.trapz(kt*(self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2).T,x=kt).T,axis=0)
-        log("not blending",level="TODO")
-        #m['hen']=uens
-        #m['hpsi']=eigenvectors.T/np.sqrt(self._mesh.dzm)
-        #return kt,uens,normsqs,weights
+        if self._kmeshmethod=='1D':
+            m['p']=np.sum(1/(2*np.pi)*np.trapz(kt*(self._normsqs/(1+np.exp(-eta))).T,x=kt),axis=1)
+            m['pderiv']=np.sum(1/(2*np.pi*kT.tpf())*np.trapz(kt*(self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2).T,x=kt).T,axis=0)
+        elif self._kmeshmethod=='xy':
+            dkx,dky=self._kmeshman.dkx,self._kmeshman.dky
+            ig= self._normsqs/(1+np.exp(-eta))
+            igd=self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2
 
-    def repopulate(self):
-        pass
+            # x 4 for all quadrants
+            m['p']=4*np.sum(1/(2*np.pi)**2*self._kmeshman.intflat(ig),axis=0)
+            m['pderiv']=4*np.sum(1/(4*np.pi**2*kT.tpf())*self._kmeshman.intflat(igd),axis=0)
+        elif self._kmeshmethod=='xyfull':
+            dkx,dky=self._kmeshman.dkx,self._kmeshman.dky
+            ig= self._normsqs/(1+np.exp(-eta))
+            igd=self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2
+
+            m['p']=np.sum(1/(2*np.pi)**2*self._kmeshman.intflat(ig),axis=0)
+            m['pderiv']=np.sum(1/(4*np.pi**2*kT.tpf())*self._kmeshman.intflat(igd),axis=0)
+        log("not blending",level="TODO")
+
+
+class KMesh2D:
+    def __init__(self,kx,ky):
+        self.kx1=kx
+        self.kx1p=kx[kx>=0]
+        self.ky1=ky
+        self.ky1p=ky[ky>=0]
+        self.lkx=len(self.kx1)
+        self.lky=len(self.ky1)
+        self.KX,self.KY=np.meshgrid(kx,ky)
+        self.KT=np.stack([self.KX,self.KY],axis=2)
+        self.kt=self.conv2flat(self.KT)
+        self.kx=self.kt[:,0]
+        self.ky=self.kt[:,1]
+        self.dkx=kx[1]-kx[0]
+        self.dky=ky[1]-ky[0]
+
+    def conv2grid(self,arr):
+        return np.reshape(arr,[self.lky,self.lkx]+list(arr.shape[1:]))
+    def conv2flat(self,arr):
+        return np.reshape(arr,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
+    def intflat(self,arr):
+        ig= self.conv2grid(arr).T
+        return np.trapz(np.trapz(ig,dx=self.dky),dx=self.dkx).T
+    def along(self,arr,dir='x',input='guess',onesided=True):
+        assert input=='flat' or (input=='guess' and arr.shape[0]==self.lkx*self.lky)
+        if dir=='x':
+            iy=np.argmax(self.ky1==0)
+            assert (self.ky1[iy]==0), "0 not in ky"
+            ix = np.argmax(self.kx1>=0) if onesided else 0
+            return arr[(iy*self.lkx+ix):(iy*self.lkx+self.lkx)]
+        elif dir=='y':
+            ix=np.argmax(self.kx1==0)
+            assert (self.kx1[ix]==0), "0 not in kx"
+            iy=np.argmax(self.ky1>=0) if onesided else 0
+            return arr[(ix+iy*self.lkx)::self.lkx]

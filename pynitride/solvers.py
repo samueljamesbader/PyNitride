@@ -89,6 +89,7 @@ class PoissonSolver():
         self._right[:-1]=eps/(m.dzp * m._dzm[:-1])
         self._center= -(eps/m.dzp).tpf(interp='unweighted') / m.dzm
         self._center[-1]=self._center[-2]
+        self._left[-1]/=2
         self._left[:2]=0
         self._right[0]=0
         self._right[-1:]=0
@@ -364,6 +365,7 @@ class SelfConsistentLoop():
 
             dlefstart*=np.sign(lefstop-lefstart)
             dlef=dlefstart
+            prevlef=None
             while True:
                 ef=10**lef
                 log("Eps factor: {:.2e}".format(ef))
@@ -385,6 +387,8 @@ class SelfConsistentLoop():
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
                 except Exception as e:
                     log("Failure: {}".format(str(e)))
+                    if prevlef is None:
+                        raise Exception("Failed at initial epsfactor")
                     ef=10**prevlef
                     log("Restoring at {:.2e}".format(ef))
                     for fs in self._fs:

@@ -12,6 +12,7 @@ class MaterialSystem():
             'Eg':       self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
+            'density':  self.vergard('density'),
         }
         self._defaults={}
         self._updates={}
@@ -109,8 +110,11 @@ class Wurtzite(MaterialSystem):
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
             'e31':      self.vergard('polarization.e31'),
+            'C11':      self.vergard('stiffness.C11'),
+            'C12':      self.vergard('stiffness.C12'),
             'C13':      self.vergard('stiffness.C13'),
             'C33':      self.vergard('stiffness.C33'),
+            'C44':      self.vergard('stiffness.C44'),
             'P'  :      self.polarization,
 
             'medos':    self.smcls_band_params,
@@ -229,6 +233,18 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
     def kp_Cmats(self,m,kx,ky):
+        """
+
+        The matrices match the conventions in Birner, {X^,Y^,Z^, Xv, Yv, Zv} basis.  The strain is included by means of
+        the note at the bottom of pg 2496 of C&C https://doi.org/10.1103/PhysRevB.54.2491 .
+        See examples/wzstrainterms.ipynb to show that this is consistent with C&C,
+        since C&C doesn't give the strain terms in this basis.
+
+        :param m:
+        :param kx:
+        :param ky:
+        :return:
+        """
         U=MidFunction(m,hbar**2/(2*m_e))
         O=MidFunction(m,0)
 
@@ -240,7 +256,7 @@ class Wurtzite(MaterialSystem):
         N2m=Ahat
         l1=m.D2+m.D4+m.D5; l2=m.D1
         m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
-        n1=-2*m.D5; n2=np.sqrt(2)*m.D6
+        n1=2*m.D5; n2=np.sqrt(2)*m.D6
         L1u=L1+U; L2u=L2+U
         M1u=M1+U; M2u=M2+U; M3u=M3+U
         Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
@@ -300,6 +316,43 @@ class Wurtzite(MaterialSystem):
                     [           O     ,              O   ,       L2u    ]]))
             Cmats+=[[C0,Cl,Cr,C2]]
         return Cmats
+
+
+    def ec_Cmats(self,m,q):
+        q=np.reshape(q,(len(q),1,1,1))
+        O=MidFunction(m,0)
+        C0=MidFunction(m,q**2*(np.array([
+            [    m.C11,               O,         O],
+            [        O, (m.C11-m.C12)/2,         O],
+            [        O,               O,     m.C44]])/m.density)).tpf()
+        Cl=(m.ztrans/m.density*MidFunction(m,q*np.array([
+            [        O,               O,     m.C13],
+            [        O,               O,         O],
+            [    m.C44,               O,         O]]))).tpf()
+        Cr=(m.ztrans/m.density*MidFunction(m,q*np.array([
+            [        O,               O,     m.C44],
+            [        O,               O,         O],
+            [    m.C13,               O,         O]]))).tpf()
+        C2=0*q+np.array([
+            [    m.C44,               O,         O],
+            [        O,           m.C44,         O],
+            [        O,               O,     m.C33]])/m.density
+        return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
+
+        #### If we want, we can decouple y-axis
+        #C0=np.array([
+        #    [    m.C11,         0],
+        #    [        0, 1/2*m.C44]])
+        #Cl=q*np.array([
+        #    [        0,     m.C13],
+        #    [1/2*m.C44,         0]])
+        #Cr=q*np.array([
+        #    [        0, 1/2*m.C44],
+        #    [    m.C13,         0]])
+        #C2=q**2*np.array([
+        #    [1/2*m.C44,         0],
+        #    [        0,     m.C13]])
+
 
     def strain(self,m,key):
         print("Returning {} even though strain is unsolved".format(key))
