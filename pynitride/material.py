@@ -324,19 +324,19 @@ class Wurtzite(MaterialSystem):
         C0=MidFunction(m,q**2*(np.array([
             [    m.C11,               O,         O],
             [        O, (m.C11-m.C12)/2,         O],
-            [        O,               O,     m.C44]])/m.density)).tpf()
-        Cl=(m.ztrans/m.density*MidFunction(m,q*np.array([
+            [        O,               O,     m.C44]]))).tpf()
+        Cl=(m.ztrans*MidFunction(m,q*np.array([
             [        O,               O,     m.C13],
             [        O,               O,         O],
             [    m.C44,               O,         O]]))).tpf()
-        Cr=(m.ztrans/m.density*MidFunction(m,q*np.array([
+        Cr=(m.ztrans*MidFunction(m,q*np.array([
             [        O,               O,     m.C44],
             [        O,               O,         O],
             [    m.C13,               O,         O]]))).tpf()
         C2=0*q+np.array([
             [    m.C44,               O,         O],
             [        O,           m.C44,         O],
-            [        O,               O,     m.C33]])/m.density
+            [        O,               O,     m.C33]])
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
         #### If we want, we can decouple y-axis
