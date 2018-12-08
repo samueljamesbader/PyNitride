@@ -15,6 +15,7 @@ cpdef assemble3x3(
         cnp.ndarray[cnp.float64_t,ndim=3] C0, cnp.ndarray[cnp.float64_t,ndim=3] Cl,
         cnp.ndarray[cnp.float64_t,ndim=3] Cr, cnp.ndarray[cnp.float64_t,ndim=3] C2,
         cnp.ndarray[cnp.float64_t   ,ndim=1] dzm,cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
+        cnp.ndarray[cnp.float64_t   ,ndim=1] p,
         float bctop, float bcbottom):
     #assert bctop=="Free"
     #assert bcbottom=="Fixed"
@@ -35,19 +36,19 @@ cpdef assemble3x3(
                 rinds+=range(n*z-n,n*z)
                 for j in range(n):
                     tmp[j]= \
-                        -C2[i,j,z-1]/dzp[z-1]/sqrt(dzm[z]*dzm[z-1]) \
-                        +.5j*(Cl[i,j,z]+Cr[i,j,z-1])/sqrt(dzm[z]*dzm[z-1])
+                        -C2[i,j,z-1]/dzp[z-1]/sqrt(p[z]*p[z-1]*dzm[z]*dzm[z-1]) \
+                        +.5j*(Cl[i,j,z]+Cr[i,j,z-1])/sqrt(p[z]*p[z-1]*dzm[z]*dzm[z-1])
                 rdata+=[t for t in tmp]
 
             # Put in diag
             rinds+=range(n*z,n*z+n)
             for j in range(n):
                 tmp[j]= \
-                    C0[i,j,z]+ \
-                    (C2[i,j,z-1]/dzp[z-1]/dzm[z] if z>0    else 0) + \
-                    (C2[i,j,z  ]/dzp[z  ]/dzm[z] if z<nz-1 else 0) + \
-                    ((1j/dzp[z  ]*(Cl[i,j,z]-Cr[i,j,z])-   bctop*(i==j)/dzp[z  ]) if z==0    else 0)+ \
-                    ((1j/dzp[z-1]*(Cl[i,j,z]-Cr[i,j,z])-bcbottom*(i==j)/dzp[z-1]) if z==nz-1 else 0)
+                    C0[i,j,z]/p[z]+ \
+                    (C2[i,j,z-1]/dzp[z-1]/dzm[z]/p[z] if z>0    else 0) + \
+                    (C2[i,j,z  ]/dzp[z  ]/dzm[z]/p[z] if z<nz-1 else 0) + \
+                    ((1j/dzp[z  ]/p[z]*(Cl[i,j,z]-Cr[i,j,z])-   bctop*(i==j)/dzp[z  ]/p[z]) if z==0    else 0)+ \
+                    ((1j/dzp[z-1]/p[z]*(Cl[i,j,z]-Cr[i,j,z])-bcbottom*(i==j)/dzp[z-1]/p[z]) if z==nz-1 else 0)
             rdata+=[t for t in tmp]
 
             # Put in right
@@ -55,7 +56,7 @@ cpdef assemble3x3(
                 rinds+=range(n*z+n,n*z+2*n)
                 for j in range(n):
                     tmp[j]= \
-                        -C2[i,j,z]/dzp[z]/sqrt(dzm[z]*dzm[z+1]) \
-                        -.5j*(Cl[i,j,z]+Cr[i,j,z+1])/sqrt(dzm[z]*dzm[z+1])
+                        -C2[i,j,z]/dzp[z]/sqrt(p[z]*p[z+1]*dzm[z]*dzm[z+1]) \
+                        -.5j*(Cl[i,j,z]+Cr[i,j,z+1])/sqrt(p[z]*p[z+1]*dzm[z]*dzm[z+1])
                 rdata+=[t for t in tmp]
     return lil.asformat('csc')

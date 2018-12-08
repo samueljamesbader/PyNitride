@@ -1,0 +1,271 @@
+% arara: pdflatex
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{physics}
+\begin{document}
+\title{Finite difference equation for wurtzite phonons}
+\author{Samuel James Bader}
+\maketitle
+
+\section{Elastic continuum model}
+Newton's law for the local displacement $u$ in a continuous media of density $\rho$: the local mass times acceleration in direction $\alpha$ is the divergence of the stress components $T_{\alpha \beta}$ which push along $\alpha$.
+\begin{equation}
+  \rho \pdv[2]{u_i}{t}=\pdv{T_{ij}}{r_j}
+  \label{eq:ecmnewton}
+\end{equation}
+where $i$ and $j$ run over $x, y, z$.  Hooke's law relates the stress tensor back to strain tensor
+\begin{equation}
+  T_{ij}=c_{ijkl}\epsilon_{kl}
+\end{equation}
+where the strain $\epsilon_{ij}=\frac{1}{2}\left( \pdv{u_i}{r_j}+\pdv{u_j}{r_i} \right)$.  The fourth-rank tensor $c_{ijkl}$ is highly redundant under symmetry which allows this equation to be rewritten with Voight notation:
+\begin{equation}
+  T_{\alpha}=c_{\alpha \beta}\epsilon_\beta
+\end{equation}
+where $\alpha, \beta$ run from 1 to 6 and the Voight vectors are related to the actual tensors by
+\begin{align}
+  T_{1}=T_{xx}&,\quad
+  \epsilon_{1}=\epsilon_{xx}\\
+  T_{2}=T_{yy}&,\quad
+  \epsilon_{2}=\epsilon_{yy}\\
+  T_{3}=T_{zz}&,\quad
+  \epsilon_{3}=\epsilon_{zz}\\
+  T_{4}=T_{yz}&,\quad
+  \epsilon_{4}=2\epsilon_{yz}\\
+  T_{5}=T_{xz}&,\quad
+  \epsilon_{5}=2\epsilon_{xz}\\
+  T_{6}=T_{xy}&,\quad
+  \epsilon_{6}=2\epsilon_{xy}
+\end{align}
+For a wurtzite crystal, the $c_{\alpha \beta}$ can be written
+\begin{equation}
+  c=\begin{pmatrix}
+    C_{11} & C_{12} & C_{13} &      0 &      0 & 0 \\
+    C_{12} & C_{22} & C_{13} &      0 &      0 & 0 \\
+    C_{13} & C_{13} & C_{33} &      0 &      0 & 0 \\
+    0      &      0 &      0 & C_{44} &      0 & 0 \\
+    0      &      0 &      0 &      0 & C_{44} & 0 \\
+    0      &      0 &      0 &      0 &      0 & \frac{1}{2}\left(C_{11}-C_{12}  \right)  \end{pmatrix}
+\end{equation}
+\section{Epitaxial wurtzite structure}
+For a wurtzite structure uniform in the basal plane but possibly inhomogenous along $z$, we note that the elastic continuum model is rotationally symmetric in plane, so we can choose the in-plane wavevector along $x$ and assume phonons have a form
+\begin{equation}
+  u = \begin{pmatrix}
+    u_x(z)\\
+    u_y(z)\\
+    u_z(z)\\
+  \end{pmatrix} e^{i(q x-\omega t)}
+\end{equation}
+We will hide the explicit $z$ dependence for now. The the strain can be evaluated
+\begin{align}
+  \epsilon_1&=iq u_x ,& \quad \epsilon_4&=\partial_z u_y \\
+  \epsilon_2&=0 ,& \quad \epsilon_5&=iqu_z+\partial_z u_x \\
+  \epsilon_3&=\partial_zu_z ,& \quad \epsilon_6&=iqu_y
+\end{align}
+Then Newton's law \eqref{eq:ecmnewton} reads 
+\begin{equation}
+  -\rho\omega^2\begin{pmatrix}
+    u_x\\
+    u_y\\
+    u_z
+  \end{pmatrix}=
+  \begin{pmatrix}
+    -C_{11}q^2u_x + iqC_{13}\partial_zu_z + \partial_zC_{44}iq u_z+\partial_zC_{44}\partial_zu_x  \\
+    -\frac{1}{2}\left( C_{11}-C_{12} \right)q^2u_y +\partial_z C_{44}\partial_z u_y\\
+  -C_{44}q^2u_z+C_{44}iq\partial_z u_x+iq\partial_zC_{13}u_x+\partial_zC_{33}\partial_zu_z
+  \end{pmatrix}
+\end{equation}
+This matrix can be split by order
+\begin{equation}
+  \rho\omega^2u=
+  Gu, \quad G= q^2G^0 -iq G^L\partial_z -iq \partial_z G^R  - \partial_z G^2 \partial_z
+  \label{eq:split}
+\end{equation}
+where
+\begin{equation}
+  G^0= \begin{pmatrix}
+    C_{11} &  & \\
+    & \frac{1}{2}\left( C_{11}-C_{12} \right) & \\
+    & & C_{44}
+  \end{pmatrix}, \quad
+  G^2= \begin{pmatrix}
+    C_{44} &  & \\
+    & C_{44} & \\
+    & & C_{33}
+  \end{pmatrix}
+\end{equation}
+\begin{equation}
+  G^L= \begin{pmatrix}
+    &  & C_{13}\\
+    & 0& \\
+    C_{44} & &
+  \end{pmatrix}, \quad
+  G^R= \begin{pmatrix}
+    &  & C_{44}\\
+    & 0& \\
+    C_{13} & &
+  \end{pmatrix}
+\end{equation}
+\subsection{Bulk modes}
+To solve a heterostructure problem, we will need to know, for a given energy and in-plane wavevector, what modes are available in each homogenous region to be combined in such a way that they satisfy the boundary conditions.
+
+The $y$ direction is uncoupled from the others, so that gives t
+\subsubsection{Polarization along y}
+\subsubsection{Polarization in x-z plane}
+We look for bulk modes of the form $u_{xz}=(u_x,u_y)e^{i\beta z}$
+\begin{equation}
+  \rho\omega^2u_{xz}=
+  G_{xz}u_{xz}, \quad G_{xz}= q^2G_{xz}^0 +\beta q (G_{xz}^L+G_{xz}^R)  + \beta^2 G_{xz}^2
+\end{equation}
+The solution values of $\beta$ at a given energy $\omega$ will make the matrix $\rho \omega^2-G_{xz}$ singular.
+\begin{equation}
+\left|\begin{pmatrix}- \beta^{2} c_{44} - c_{11} q^{2} + \omega^{2} \rho & - \beta c_{13} q - \beta c_{44} q\\- \beta c_{13} q - \beta c_{44} q & - \beta^{2} c_{33} - c_{44} q^{2} + \omega^{2} \rho\end{pmatrix}\right|=0
+\end{equation}
+Setting this determinant to zero, we have
+\begin{equation}
+  0=B_4\beta^4+B_2\beta^2+B_0
+\end{equation}
+where
+\begin{align}
+  B_4&=\left( c_{33} c_{44} \right)\\
+  B_2&=\left( c_{11} c_{33} q^{2} - c_{13}^{2} q^{2} - 2 c_{13} c_{44} q^{2} - c_{33} \omega^{2} \rho - c_{44} \omega^{2} \rho \right)\\
+  B_0&=\left(\omega^{2} p- c_{11} q^{2} \right) \left(\omega^{2} p- c_{44} q^{2}\right)
+\end{align}
+This equation is quadratic in $\beta^2$, so it will have four roots: $+\beta_{+1}$, $-\beta_{+1}$, $+\beta_{-1},$ and $-\beta_{-1}$, where
+\begin{equation}
+  \beta_b=\sqrt{\frac{1}{2 B_4}\left( -B_2 +b \sqrt{\tilde B} \right)}, \quad \tilde B =B_2^2-4B_4B_0
+  \label{eq:betab}
+\end{equation}
+
+\subsubsection{Showing that $\beta_b$ is pure}
+Looking at this equation, we note that a negative value of $\tilde B$ may result in a complex $\beta_b$ with both real and imaginary parts, while a positive $\tilde B$ will necessarily produce only pure-real or pure-imaginary $\beta_b$.  The values of $\tilde B$ are thus worthy of further inspection.  It can be written
+\begin{equation}
+  \tilde B = P_0\rho^2\omega^4+P_2q^2\rho\omega^2+P_4q^4
+  \label{eq:tildeB}
+\end{equation}
+\begin{align}
+  P_0&=\left(c_{33} - c_{44}\right)^{2}\\
+  P_2&=- 2 c_{11} c_{33}^{2} + 2 c_{11} c_{33} c_{44} + 2 c_{13}^{2} c_{33} \\&\quad + 2 c_{13}^{2} c_{44} + 4 c_{13} c_{33} c_{44} + 4 c_{13} c_{44}^{2} + 4 c_{33} c_{44}^{2}\\
+  P_4&=\left(c_{11} c_{33} - c_{13}^{2}\right) \left(c_{11} c_{33} - c_{13}^{2} - 4 c_{13} c_{44} - 4 c_{44}^{2}\right)
+\end{align}
+For a given $\omega$, since $P_0>0$, we see that, if $q=0$, then $\tilde B\ge 0$.  If $\tilde B$ is ever negative for any $q$, it must pass through 0 somewhere, so we may solve \eqref{eq:tildeB} with $\tilde B=0$ to find the $q$ at which $\tilde B$ becomes negative.  This is a quadratic equation in $q^2$, and the determinant is $\tilde P\rho^2\omega^4$, where $\tilde P$ is given by
+\begin{align}
+  \tilde P &= P_2^2-4P_4P_0\\
+    &=- 16 c_{33} c_{44} \left(c_{13} + c_{44}\right)^{2} \left(c_{11} c_{33} - c_{11} c_{44} - c_{13}^{2} - 2 c_{13} c_{44} - c_{33} c_{44}\right)
+\end{align}
+If $\tilde P$ is positive, then there is a real value of $q^2$ where $\tilde B$ becomes zero.  But if $\tilde P$ is negative, then there is no zero-crossing, so $\tilde B$ is always positive.  We could simply plug in the literature values of the elastic coefficients for GaN/AlN at this point to see the sign of this term, but that leaves open the question of whether our answer depends on the precise numerical values of these coefficients.  In order to be a little more general by tying the result to a well-known value, we note that  $\tilde P$ is negative if and only if the last parenthesized factor is positive.  But this factor can be written
+\begin{equation}
+  \left(c_{11} c_{33} - c_{11} c_{44} - c_{13}^{2} - 2 c_{13} c_{44} - c_{33} c_{44}\right)=
+  \left(c_{11} c_{33} - c_{13}^{2}\right)(1-A)
+\end{equation}
+where
+\begin{equation}
+  A=c_{44} (c_{11}+2c_{13}+c_{33})/(c_{11}c_{33}-c_{13}^2)
+\end{equation}
+is known as the anisotropy factor (Qin2017). The $\left(c_{11} c_{33} - c_{13}^{2}\right)$ factor is positive as a general requirement for stability (Qin2017, Eq 1), and the anisotropy factor is less than 1 for GaN, in accord with both literature values (Vurgaftman and Meyer) and first-principles computation (Qin2017).  Thus $\tilde P$ is definitively negative, so $\tilde B$ is never negative, so $\beta_b$ is pure real or pure imaginary.
+
+At a solution $\beta_b$, where the matrix $\rho \omega^2-G_{xz}$ is singular, we can also find the ratio $\delta$ of $u_z$ to $u_x$ in the mode.
+\begin{equation}
+  \delta = 
+\frac{- \beta^{2} c_{44} - c_{11} q^{2} + \omega^{2} \rho }{ - \beta c_{13} q - \beta c_{44} q}
+\end{equation}
+We note that this expression is odd in $\beta$, so, for the symmetric values of $\beta=\pm \beta_b$, $\delta$ just switches signs.  So we write the ratio of $u_z/u_x$ for the mode with wavevector $\pm\beta_b$ as $\pm\delta_b$, with
+\begin{equation}
+  \delta_b = 
+\frac{- \beta_b^{2} c_{44} - c_{11} q^{2} + \omega^{2} \rho }{ - \beta_b c_{13} q - \beta_b c_{44} q}
+\label{eq:deltab}
+\end{equation}
+
+Putting this all together, in each homogenous region we have four modes available at a given energy to satisfy whatever boundar conditions are demanded
+\begin{align}
+  \begin{pmatrix}u_x\\u_z\end{pmatrix}=&D_{+, +1} e^{+i\beta_{+1}z}\begin{pmatrix}1\\\ \ \delta_{+1}\end{pmatrix}
+  +D_{+, -1} e^{+i\beta_{-1}z}\begin{pmatrix}1\\\ \ \delta_{-1}\end{pmatrix}\\
+  +&D_{-, +1} e^{-i\beta_{+1}z}\begin{pmatrix}1\\-\delta_{+1}\end{pmatrix}
+   +D_{-, -1} e^{-i\beta_{-1}z}\begin{pmatrix}1\\-\delta_{-1}\end{pmatrix}
+\end{align}
+where $\beta_b$ and $\delta_b$ are given by Equations \eqref{eq:betab},\eqref{eq:deltab}.
+
+Qin2017: https://doi.org/10.3390/ma10121419
+
+
+\subsection{Top boundary}
+The top boundary is ``free'', ie no stresses can exist, so $T_{iz}=0$.  Note: simulations with both boundaries free are ill-posed, since they permit the entire structure to drift rigidly (this will appear mathematically as a singular matrix).  But to easily allow for simulations with an arbitrary selection of free or clamped boundaries without changing the code, I'll actually implement a generalization $T_{iz}=\alpha u$, where $\alpha$ will be an arbitrarily small spring constant for free boundaries or arbitrarily large spring constant for clamped boundaries.
+\begin{equation}
+  \alpha u=
+  \begin{pmatrix}
+    C_{44}\left( iqu_z+\partial_zu_x \right)\\
+    C_{44}\partial_z u_y\\
+    C_{13}iqu_x+C_{33}\partial_zu_z
+  \end{pmatrix}
+\end{equation}
+\begin{equation}
+  \begin{pmatrix}
+    C_{44}\partial_z u_x\\C_{44}\partial_z u_y\\C_{33}\partial_zu_z
+  \end{pmatrix}=-
+  \begin{pmatrix}
+    C_{44}iqu_z\\
+    0\\
+    C_{13}iqu_x
+  \end{pmatrix}+\alpha u
+\end{equation}
+\begin{equation}
+  G^2\partial_zu=\left(-iqG^R+\alpha\right)u
+  \label{eq:topbc}
+\end{equation}
+\subsection{Bottom boundary}
+The bottom boundary is ``thick'', ie we are interested in localized modes, those who decay away for large $z$ ($z$ increases inward from the surface).  Toward that end, we will have to stay in a range where both $\beta_b$ are imaginary, and take only the $+$ terms.  What energy range is this?
+
+Well, for finite $q$, at $\omega=0$, $\beta_{+1}$ is imaginary iff $-B_2+\sqrt{\tilde B}<0$.  First consider the sign of $B_2$.  For finite $q$, at $\omega=0$, the sign of $B_2$ is just the sign of $c_{11}c_{33}-c_{13}^2-2c_{13}c{44}$.  This expression can be written
+
+\begin{equation}
+\left(c_{11}c_{33}-c_{13}^2\right)\left( 1+\frac{c_{11}c_{44}+c_{33}c_{44}}{c_{11}c_{33}-c_{13}^2}-A \right)
+\end{equation}
+Employing the stability and anisotropy criteria as before, this expression is positive.  So $B_2$ is positive at $\omega=0$. And from the form of $B_2$, we see that it should switch signs precisely once as $\omega$ is swept positive.
+
+So at low $\omega$ where $B_2$ is positive, 
+$\beta_{+1}$ is imaginary iff
+$\tilde B < B_2^2$, ie $B_0>0$.
+And $B_0>0$ certainly holds for $\omega=0$.  So $\beta_{+1}$ is imaginary at $\omega=0$, and, by corollary, so is $\beta_{-1}$, because the expression inside the square root is strictly less.  By the same logic, if a $\beta_b$ crosses to real at some $\omega$, it will have to be $\beta_{+1}$ first.
+
+Consider the two roots of $B_0$: $\omega^2=c_{44}q^2/\rho$ and $\omega^2=c_{11}q^2/\rho$.  At the $c_{44}$ root, $B_2=c_{11}c_{33}-c_{13}^2-2c_{13}c{44}-(c_{33}+c_{44})c_{44}$, which can be rewritten $\left(c_{11}c_{33}-c_{13}^2\right)\left( 1-A \right)$, which is positive.  At the $c_{11}$ root, $B_2=-c_{13}^2-2c_{13}c{44}-c_{44}^2$, which is negative.  So the order of the various sign changes as $\omega$ sweeps positive must be (1) $B_0$ becomes negative, then (2) $B_2$ becomes negative, then (3) $B_0$ becomes positive.  At event (1), $\beta_{+1}$ becomes real. After event (2), $\beta_{+1}$ must be real for the rest of $\omega$.  So, in short, $\beta_{+1}$ becomes real at $\omega=\sqrt{c_{44}/\rho}$ and is real thereafter.  [Though I haven't done the math, I imagine $\omega=\sqrt{c_{11}/\rho}$ is the same transition for $\beta_{-1}$.] So to find localized modes, we must remain in the range $\omega<q\sqrt{c_{44}/\rho}$ and take only the $+$ (decaying for $-z$) terms.
+
+
+
+\section{Discretization}
+Equation \eqref{eq:split}  can be discretized using central differences
+\begin{align}
+  \rho_\sigma\omega^2u_\sigma&=q^2G^0_\sigma u_\sigma\\
+  &\quad-i\frac{q}{2dz_\sigma}G^L_\sigma \left( u_{\sigma+1}-u_{\sigma-1} \right)\\
+  &\quad-i\frac{q}{2dz_\sigma} \left( G^R_{\sigma+1} u_{\sigma+1}-G^R_{\sigma-1} u_{\sigma-1} \right)\\
+  &\quad-\frac{G^2_{\sigma-}}{dz_{\sigma-}dz_{\sigma}}u_{\sigma-1}-\frac{G^2_{\sigma+}}{dz_{\sigma+}dz_{\sigma}}u_{\sigma+1}\\
+  &\quad+\left(\frac{G^2_{\sigma-}}{dz_{\sigma-}dz_\sigma}+\frac{G^2_{\sigma+}}{dz_{\sigma+}dz_\sigma}\right)u_\sigma
+\end{align}
+where $dz_{\sigma}=\frac{1}{2}(z_{\sigma+1}-z_{\sigma-1})$ and $dz_{\sigma\pm}=|z_{\sigma\pm 1}-z_\sigma|$.  Thus $\rho_{\sigma'}\omega^2 u_{\sigma'}=W_{\sigma' \sigma} u_\sigma$ where $W_{\sigma' \sigma} $ is given by
+\begin{align}
+  W_{\sigma,\sigma}=q^2 G^0_\sigma +\left(\frac{G^2_{\sigma-}}{dz_{\sigma-}dz_\sigma}+\frac{G^2_{\sigma+}}{dz_{\sigma+}dz_\sigma}\right)\\
+  W_{\sigma,\sigma+1}=
+  -i\frac{q}{2dz_\sigma}G^L_\sigma
+  -i\frac{q}{2dz_\sigma} G^R_{\sigma+1}
+  -\frac{1}{dz_{\sigma+}dz_{\sigma}}G^2_{\sigma+}\\
+  W_{\sigma,\sigma-1}=
+  +i\frac{q}{2dz_\sigma}G^L_\sigma
+  +i\frac{q}{2dz_\sigma} G^R_{\sigma-1}
+  -\frac{1}{dz_{\sigma-}dz_{\sigma}}G^2_{\sigma-}
+\end{align}
+\subsection{Top boundary}
+Eq \eqref{eq:topbc} can be discretized carefully.  It is tempting to employ the same second-order-accurate central difference approximation for the derivative $\partial_z u|_{z=0}=\frac{1}{dz_0}(u_1-u_{-1})$; indeed this is often how the condition is applied for scalar differential equations.  This expression would however, break the Hermitian symmetry of the matrix (in elements $00$ and $01$ in a way that is difficult to correct.  [In the case of a scalar differential equation, this means of applying of Neuman boundary conditions has a similar effect, which is generally possible to correct by rescaling the first row of the matrix equation.]  So instead, we employ a first-order-accurate backward derivative $\partial_z u|_{z=0}=\frac{1}{dz_0-}(u_0-u_{-1})$, which leads to
+\begin{equation}
+  u_{-1}=\left[ 1+\alpha dz_{0-}+iqdz_{0-}\frac{1}{G^2_{0-}}G^R_{0-} \right]u_0.
+\end{equation}
+This expression only affects the first 2x2 submatrix $W_{0 0}$:
+  \begin{align}
+    W_{0 0}=&q^2G_0^0 + \frac{1}{dz_{0+}dz_0}G^2_{0+}\\
+    &+\frac{iq}{2dz_0}\left[ G_0^L+G_{-1}^R-2G_{0-}^R-2\frac{\alpha}{iq}G_{0-}^2 \right]\\
+  &-\frac{dz_{0-}}{dz_0}q^2\left[ G^L_0+G^R_{-1} \right]\left[\frac{\alpha}{iq}+\frac{1}{G^2_{0-}}G^R_{0-}\right]
+  \end{align}
+  If we now take the spacing to the ghost point to zero, thus moving the free condition arbitrarily close to the boundary, this gives $dz_{0-}\rightarrow 0$, $dz_0\rightarrow dz_{\sigma+}/2$ and  we will also set $G^R_{-1}\rightarrow G^R_0$, we have
+  \begin{align}
+    W_{0 0}=q^2G_0^0 + \frac{2}{dz_{0+}dz_{0+}}G^2_{0+}
+    +\frac{iq}{dz_{0+}}\left[ G_0^L-G_{0}^R\right]-\frac{\alpha}{dz_0}G^2_{0}
+  \end{align}
+  Note, though we said this only affects the submatrix $W_{00}$, that it is important to make sure that the same definition $dz_0=dz_{\sigma+}/2$ is employed in $W_{01}$ and $W_{10}$.
+\end{document}

@@ -30,6 +30,7 @@ class ElasticContinuum(PhononModel):
 
         assert len(mesh._matblocks)==1, "ElasticContinuum only works on a mesh with a single material system for now"
         mesh.request_function("C11")
+        mesh.request_function("density")
 
     def initialize(self):
         m=self._mesh
@@ -43,7 +44,7 @@ class ElasticContinuum(PhononModel):
         #q[0]+=qmax/(num_qpoints-1)*.01
         Cmats=m._matblocks[0].matsys.ec_Cmats(m,q)
         log("Assembling EC matrices ...",level='info')
-        self._H=[assemble3x3(C0,Cl,Cr,C2,m._dzm,m._dzp,bctop=m.ztrans*self._bctop,bcbottom=m.ztrans*self._bcbottom) for [C0,Cl,Cr,C2] in Cmats]
+        self._H=[assemble3x3(C0,Cl,Cr,C2,m._dzm,m._dzp,m.density.tpf(),bctop=m.ztrans*self._bctop,bcbottom=m.ztrans*self._bcbottom) for [C0,Cl,Cr,C2] in Cmats]
         log("Done assembly.",level='info')
         self._en   =np.empty((len(self._H),self._neig))
         self._vecs =PointFunction(m,empty=(len(self._H),self._neig,3),dtype='complex')
@@ -63,4 +64,4 @@ class ElasticContinuum(PhononModel):
             self._vecs[i,:,:,:]=np.swapaxes(np.reshape(
                 eigenvectors[:,indarr],
                 (len(m._zp),3,self._neig)),0,2) \
-                                /np.sqrt(m._dzm)
+                                /np.sqrt(m._dzm*m.density.tpf())
