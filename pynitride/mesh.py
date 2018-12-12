@@ -624,6 +624,19 @@ class Mesh():
         print("---------------------------")
 
 
+    def save(self,filename,keys):
+        res={k:self[k] for k in keys}
+        np.savez_compressed(filename,**res)
+    def read(self,filename):
+        with np.load(filename) as data:
+            for k,v in data.items():
+                if v.shape[-1]==len(self._zp):
+                    self[k]=PointFunction(self,v)
+                elif v.shape[-1]==len(self._zm):
+                    self[k]=MidFunction(self,v)
+                else:
+                    raise Exception(k+" has the wrong shape "+str(v.shape)+" for this mesh.")
+
     # Finish making and testing save and load
     #def save(self,filename):
     #    r""" Save the mesh, its submeshes, and all functions defined on it to a file.
