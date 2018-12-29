@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r""" Meshing, submeshing, and manipulating funtions defined on meshes.
+r""" Meshing, submeshing, and manipulating functions defined on meshes.
 
 This module is tested by :py:mod:`~tests.test_mesh`.
 """
@@ -11,25 +11,81 @@ from scipy.interpolate import interp1d
 from math import gcd,ceil
 from functools import reduce
 from pynitride.visual import log
+from scipy.special import lambertw as W
 
-class Layer():
-    def __init__(self, name, thickness):
-        self._name = name
-        self._thickness = thickness
+class MaterialBlock():
+    def __init__(self,name,matsys,layers):
+        self.name=name
+        self.matsys=matsys
+        self.layers=layers
+        for l in layers:
+            l._matblock=self
+
     def place(self,mesh):
         self._mesh=mesh
 
     @property
-    def name(self):
-        return self._name
+    def mesh(self):
+        return self._mesh
 
-    @property
-    def thickness(self):
-        return self._thickness
+    def get(self, item, destmesh=None):
+        if destmesh is None:
+            destmesh=self._mesh
+
+        # Get the subfunc from matsys
+        if item in self._mesh._functions:
+            subfunc=self._mesh._functions[item]
+        else:
+            subfunc=self.matsys.get(self._mesh,item)
+
+        # Get the func if it's defined on this mesh
+        if item in destmesh._functions:
+            func=destmesh[item]
+
+        # Or if we haven't made the global func yet, make it from this one
+        else:
+            func=destmesh[item]=MidFunction(destmesh, dtype=subfunc.dtype, empty=subfunc.shape[:-1])
+
+        # Figure out the ranges where the desination mesh and material block overlap
+        globalstart=max(self._mesh._global_slicem.start,destmesh._global_slicem.start)
+        globalstop =min(self._mesh._global_slicem.stop ,destmesh._global_slicem.stop )
+
+
+        #print("ITEM: ",item,"  matblock ",self.name,"  ",self.mesh.zm.shape," destmesh  ", destmesh.zm.shape)
+        #print("    ",globalstart,"  -  ",globalstop)
+        #print(globalstart-destmesh._global_slicem.start,globalstop-destmesh._global_slicem.start)
+        #print(globalstart-self._mesh._global_slicem.start,globalstop-self._mesh._global_slicem.start)
+        #print(subfunc[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].shape)
+        # Fill in the relevant part of the function
+        func[globalstart-destmesh._global_slicem.start:globalstop-destmesh._global_slicem.start]=\
+            subfunc.T[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].T
+        #print('hi')
+        return func
+
+    def update(self,reason,destmesh):
+        for f in self.matsys._updates[reason]:
+            f(destmesh)
+
+    def __contains__(self, item):
+        return (item in self.matsys) or (item in self._mesh._functions)
+
+class Layer():
+    def __init__(self, name, thickness):
+        self.name = name
+        self.thickness = thickness
+    def place(self,mesh):
+        self._mesh=mesh
 
     @property
     def mesh(self):
         return self._mesh
+
+    @property
+    def matblock(self):
+        return self._matblock
+
+    def __getitem__(self, key):
+        return self._mesh[key]
 
 class UniformLayer(Layer):
     def __init__(self, name, thickness, **kwargs):
@@ -43,10 +99,7 @@ class UniformLayer(Layer):
                 dtype='bool'
             else:
                 dtype='float'
-            mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
-
-    def __getitem__(self, key):
-        return self._mesh[key]
+            mesh.create_restricted_function(k,MidFunction(mesh,value=v,dtype=dtype))
 
 
 class Mesh():
@@ -81,19 +134,38 @@ class Mesh():
         refinement with `dz^p_0` tighter than ``max_dz`` is included.
     """
 
-    def __init__(self, stack, matsys, max_dz, refinements=[], uniform=False, subs=None, boundary=["GenericMetal","thick"]):
-        self._matsys=matsys
+    def __init__(self, stack, max_dz, refinements=[], uniform=False, subs=None, boundary=["GenericMetal","thick"]):
         self._boundary=boundary
         self.ztrans=-1
+        self._matblocks=stack
+        self._layers = layers = sum([mb.layers for mb in stack],[])
         if subs is None:
-            assert isinstance(stack[-1],UniformLayer),\
+            assert isinstance(layers[-1],UniformLayer),\
                 "If no substrate explicitly specified, bottom layer must be uniform"
-            self._subs=stack[-1]
+            self._subs=layers[-1]
         else:
-            self._subs=matsys.bulk(**subs)
+            self._subs=stack[-1].matsys.bulk(**subs)
+
+        #self._namedinterfacesz={}
+        #for l in layers:
+
+
+        # Parse refinements
+        for r in refinements:
+            zr=r[0]
+            if isinstance(zr,str):
+                l1,l2=zr.split("/")
+                try:
+                    l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1)
+                    l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2)
+                except:
+                    raise Exception("A layer ({} or {}) was not found for refinement.".format(l1,l2))
+                if (l2-l1)>1: raise Exception("Interface {} not found".format(zr))
+                r[0]=np.cumsum([l.thickness for l in layers])[min(l1,l2)]
+
 
         # Make a uniform mesh
-        if uniform:
+        if uniform or (refinements==[]):
 
             # Get the maximum spacing from the tightest of max_dz and the refinements
             max_dz=min([max_dz]+[r[1] for r in refinements])
@@ -102,26 +174,26 @@ class Mesh():
             rint=lambda x: int(round(x))
 
             # Get the gcd of the thicknesses, where distances are discretized to an integer number of milli-Angstroms
-            tgcd=reduce(gcd,[rint(l.thickness/1e-3) for l in stack])*1e-3
+            tgcd=reduce(gcd,[rint(l.thickness/1e-3) for l in layers])*1e-3
 
             # The spacing to use must be an integer divisor of that gcd,
             # and ceil guarantees it will be smaller than max_dz
             dz=tgcd/ceil(tgcd/max_dz)
 
             # Figure out how many points this is, then use linspace to create the mesh
-            totthick=self.thickness=sum([l.thickness for l in stack])
+            totthick=self.thickness=sum([l.thickness for l in layers])
             N=rint(totthick/dz)+1
             fixed_positions=np.linspace(0,totthick,num=N,endpoint=True)
 
             # List all the interface indices
-            interface_indices=np.rint(np.cumsum([l.thickness for l in stack])/dz)
+            interface_indices=np.rint(np.cumsum([l.thickness for l in layers])/dz)
 
         else:
-            # Implement the max_dz requirement by adding it to the refinements list
-            if refinements:
-                refinements = np.vstack([np.array(refinements), [0, max_dz, 1]])
-            else:
-                refinements = np.array([[0, max_dz, 1]])
+            ## Implement the max_dz requirement by adding it to the refinements list
+            #if refinements:
+            #    refinements = np.vstack([np.array(refinements), [0, max_dz, 1]])
+            #else:
+            #    refinements = np.array([[0, max_dz, 1]])
 
             # List of z points which have been finalized (ie are behind the most recent interface)
             fixed_positions = [0]
@@ -133,7 +205,7 @@ class Mesh():
             zl = 0
 
             # For each region
-            for layer in stack:
+            for layer in layers:
 
                 # z point of right interface of currently building region
                 zr = zl + layer.thickness
@@ -146,8 +218,18 @@ class Mesh():
 
                 # Build until we pass right interface
                 while True:
+
                     # The maximal allowed dz is the minimum of the the refinement criteria
-                    dz = np.min(refinements[:, 1] * refinements[:, 2] ** np.abs(z - refinements[:, 0]))
+                    dz=max_dz
+                    with np.errstate(over='ignore'):
+                        for zref,zminref,rref in refinements:
+                            if zref-z<=0:
+                                dz=min(dz,zminref*rref**abs(zref-z))
+                            else:
+                                # the second entry in the below list is the
+                                # max dz such that dz < zminref x r ^ |z+dz|, assuming z+dz<zref
+                                # (cool tricks with the lambert W function)
+                                dz=min([dz,abs(1/np.log(rref)*W(np.log(rref)/1*zminref*rref**(zref-z))),zref-z])
 
                     # Extend the mesh
                     z += dz
@@ -166,6 +248,8 @@ class Mesh():
                 # The left index of the next interface is the right index of the current
                 zl = zr
 
+        interface_indices=interface_indices[:-1]
+
         # Convert the built z list to numpy array
         self._zp = np.array(fixed_positions)
         self._dzp = np.diff(self._zp)
@@ -173,19 +257,16 @@ class Mesh():
         # Compile a list of interfaces for z
         interface_indices=np.array(interface_indices,dtype=int)
         # Each element is a tuple of the form (index, left layer, right layer)
-        self._interfacesp = list(zip(interface_indices[:-1], stack[:-1], stack[1:]))
+        self._interfacesp = list(zip(interface_indices, layers[:-1], layers[1:]))
         # Compile a list of interfaces for zp
         # Each element is a tuple of the form (lindex,rindex, left layer, right layer)
-        self._interfacesm= list(zip(interface_indices[:-1] - 1, interface_indices[:-1], stack[:-1], stack[1:]))
-
-        # Keep the layer info
-        self._layers = stack
+        self._interfacesm= list(zip(interface_indices - 1, interface_indices, layers[:-1], layers[1:]))
 
         # Also keep the z's in-between mesh points
         self._zm = (self._zp[:-1] + self._zp[1:]) / 2
         self._dzm = np.array([self._dzp[0]] * len(self._zp))
         self._dzm[1:-1] = np.diff(self._zm)
-        self._dzm[[0, -1]] = self._dzm[[1, -2]]
+        self._dzm[[0, -1]] = self._dzp[[0, -1]]/2
 
         if len(self._zm)>1:
             # interpolate the z -> index mapping
@@ -195,17 +276,35 @@ class Mesh():
 
         # Store functions which live on this mesh
         self._functions = {}
+        self._attrs = {}
+        self._requested_functions = {}
         self._submeshes= []
-        for k,v in matsys._defaults.items():
-            self[k]=MidFunction(self,v)
+
+        self._global_slicep=slice(0,len(self._zp))
+        self._global_slicem=slice(0,len(self._zm))
+
+
+        # TODO: break this up so some is done within matblock
 
         # This is the whole world
         self._supermesh = None
-        for i,layer in enumerate(stack):
-            l=([0]+interface_indices.tolist())[i]
-            r=(interface_indices.tolist()+[self._zp[-1]])[i]
-            self._submeshes += [SubMesh(self, l, r+1)]
-            layer.place(self._submeshes[-1])
+        leftindices=[0]+interface_indices.tolist()
+        rightindices=interface_indices.tolist()+[len(self._zp)-1]
+        ill=-1
+        ilr=-1
+        for i,mb in enumerate(self._matblocks):
+            ill=ilr+1
+            ilr=ill+len(mb.layers)-1
+            ml=leftindices[ill]
+            mr=rightindices[ilr]
+            mb.place(SubMesh(self, ml, mr+1))
+            ###
+            for k,v in mb.matsys._defaults.items():
+                mb.mesh.create_restricted_function(k,MidFunction(mb.mesh,v))
+            ###
+            for lay,l,r in zip(mb.layers,leftindices[ill:ilr+1],rightindices[ill:ilr+1]):
+                lay.place(SubMesh(mb.mesh,l-ml,r-ml+1))
+
 
         self.Np=len(self._zp)
         self.Nm=len(self._zm)
@@ -225,6 +324,9 @@ class Mesh():
         :return: an index into the mid mesh
         """
         return np.rint(self._zm2i_interp(zm)).astype(int)
+
+    def matblock(self,name):
+        return next(mb for mb in self._matblocks if mb.name==name)
 
     def plot_mesh(self,xlim=None):
         """ Plots a 1-D representation of the mesh for visual inspection.
@@ -272,7 +374,64 @@ class Mesh():
         mpl.title('Total mesh points: {:d}'.format(len(self._zp)))
         mpl.tight_layout()
 
-    def expand_function(self, func, default=None):
+
+    #def request_function(self,func,default=None,pos=None):
+    #    self._requested_functions[func]={'default': default,'pos':pos}
+    #def request_functions(self,funcs,defaults=[],poss=[]):
+    #    if not len(defaults):
+    #        defaults=[None]*len(funcs)
+    #    if not len(poss):
+    #        poss=[None]*len(funcs)
+    #    assert len(funcs)==len(defaults) and len(funcs)==len(poss)
+    #    for func,default,pos in zip(funcs,defaults,poss):
+    #        self._requested_functions[func]={'default': default, 'pos': pos}
+
+    #def initialize(self):
+    #    """
+
+    #    Before this function is called,
+    #    (1) all exchanged non-material functions should be created (but maybe not globalized)
+    #    (2) no material functions (on submeshes that are not on this mesh) should be created
+
+    #    Go through the requested functions one by one and
+    #    (1) if the function exists on this mesh, do nothing
+    #    (2) if the function exists on a submesh (note it is not a material function), globalize it
+    #    (3) if the function can be drawn from all the relevant material blocks (and/or there is a default value), do so
+
+    #    """
+
+    #    for key,v in self._requested_functions.items():
+    #        if key in self._functions:
+    #            continue
+    #        else:
+    #            default,pos=v['default'],v['pos']
+    #            if sum([key in sm for sm in self._submeshes]):
+    #                self.globalize(key,default=default)
+    #            else:
+    #                if pos=='point':
+    #                    assert default is not None,"Specified pos=='point' for key "+key+"but no default"
+    #                    self[key]=PointFunction(self,value=default)
+    #                else:
+    #                    self._fill_from_matblocks(key,default)
+
+    def _fill_from_matblocks(self,key,default=None):
+
+        # If we have a default, build the function
+        if default is not None:
+            func=self[key]=MidFunction(self,value=default)
+        # Otherwise MaterialBlock.get will build it the first time
+
+        # Check each material block
+        for mb in self._matblocks:
+            try:
+                mb.get(key,self)
+            except Exception as e:
+                print(e)
+                if default is None:
+                    raise Exception("No default specified and {} not in {}".format(key,mb.matsys.name))
+        return self[key]
+
+    def globalize(self, func, default=None, submeshes=None):
         """ Finds the function `func` on submeshes and expands it to a function on the full mesh, ensuring that
         the functions on submeshes are just restricted views of the full mesh function (no longer independent).
 
@@ -284,22 +443,26 @@ class Mesh():
         :param default: a default value to fill into the function where not defined on a submesh
         :return: the function
         """
+        if func in self._functions: return self[func]
         log("Expanding function "+func,level="debug")
+        if submeshes is None:
+            submeshes=self._submeshes
 
         # Find the first submesh to have this function and copy out the position/shape/dtype to full mesh
-        for sm in self._submeshes:
+        for sm in submeshes:
+            foundit=False
             if func in sm:
-                sfunc=sm[func]
-
-                # Get the shape from the default if supplied
-                if default is not None:
-                    self._functions[func]=Function(self,sfunc.pos,value=default,dtype=sfunc.dtype)
-                else:
-                    self._functions[func]=Function(self,sfunc.pos,dtype=sfunc.dtype,empty=sfunc.shape[:-1])
-                break
+                sfunc=sm.globalize(func,default=default)
+                if not foundit:
+                    # Get the shape from the default if supplied
+                    if default is not None:
+                        self._functions[func]=Function(self,sfunc.pos,value=default,dtype=sfunc.dtype)
+                    else:
+                        self._functions[func]=Function(self,sfunc.pos,dtype=sfunc.dtype,empty=sfunc.shape[:-1])
+                foundit=True
 
         # Fill the function on the entire mesh from anywhere it appears in submeshes
-        for sm in self._submeshes:
+        for sm in submeshes:
             if func in sm:
                 if sfunc.pos=='point':
                     self[func][...,sm._slicep]=sm[func]
@@ -307,10 +470,20 @@ class Mesh():
                     self[func][...,sm._slicem]=sm[func]
 
                 # Make submeshes a restricted view of the full mesh
-                sm._functions[func]=self[func].restrict(sm)
+                del sm._functions[func]
+                sm[func]=self[func].restrict(sm)
         return self[func]
 
-    def ensure_function_exists(self,func,dim=(),pos='point',dtype='float',value=np.NaN):
+    def ensure_function_exists(self,func,value=np.NaN,dim=(),pos='point',dtype='float'):
+        """ If it doesn't exist, make it in the global mesh, if it does, check the dim/pos.
+
+        :param func:
+        :param dim:
+        :param pos:
+        :param dtype:
+        :param value:
+        :return:
+        """
         if self.__contains__(func):
             if not list(self[func].shape[:-1])==list(dim):
                 raise Exception(func+" is the wrong shape: "+\
@@ -319,9 +492,10 @@ class Mesh():
                 raise Exception(func+" is the wrong mesh-type: "+\
                     pos + " requested "+str(self[func].pos+" present."))
         else:
-            self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
-
-
+            if self._supermesh==None:
+                self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
+            else:
+                self._supermesh.ensure_function_exists(func,dim=dim,pos=pos,dtype=dtype,value=value)
 
 
     def __contains__(self,key):
@@ -333,25 +507,49 @@ class Mesh():
         return self._functions.__iter__()
 
     def __getitem__(self, key):
-        r""" Get by name a function defined on this mesh."""
+        return self.get(key)
+
+    def get(self,key):
+        r""" Get by name a function defined on this mesh.
+
+        Search order: (1) if the function is already defined on this mesh, return it.
+
+        Note: if the function is defined on submeshes but not on the global mesh, this method will not find it, but
+        you can call py:func:`pynitride.mesh.globalize` to bring it onto the global mesh.
+
+        """
         if key in self._functions:
             return self._functions[key]
-        elif sum([key in sm for sm in self._submeshes]):
-            return self.expand_function(key)
-        elif key in self._matsys:
-            return self._matsys.get(self,key)
+        elif key in self._attrs:
+            self._attrs[key]()
+            return self._functions[key]
+        elif sum(key in mb for mb in self._matblocks):
+            return self._fill_from_matblocks(key)
         else:
-            raise Exception("{} not found in mesh".format(key))
+            raise Exception("EEH? "+key)
 
-    def __setitem__(self, key, value):
+    def add_attr(self,attr,func):
+        self._attrs[attr]=func
+        for sm in self._submeshes:
+            sm.add_attr(attr,func)
+
+    def __setitem__(self, key, value, restricted=False):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
         if key in self._functions:
             self._functions[key][:] = value
         else:
+            #assert restricted or (self._supermesh==None), "Cannot set functions on submeshes"
             assert isinstance(value,Function), "Must be a mesh.functions.Function"
             self._functions[key] = value
-            for sm in self._submeshes:
-                sm._functions[key]=value.restrict(sm)
+            def submeshesview(m):
+                if not len(m._submeshes): return
+                for sm in m._submeshes:
+                    sm._functions[key]=value.restrict(sm)
+                    submeshesview(sm)
+            submeshesview(self)
+
+    def create_restricted_function(self,key,value):
+        self.__setitem__(key,value,restricted=True)
 
     def __getattr__(self,item):
         return self.__getitem__(item)
@@ -414,6 +612,47 @@ class Mesh():
             sms+=[SubMesh(self,il,ir+1)]
         return sms
 
+    def function_chart(self,submeshchain=[]):
+        allfuncs=list(set(sum([list(m._functions.keys()) for m in [self]+submeshchain],[])))
+        #print(allfuncs)
+        def share(a,b):
+            return (a.base is not None and a.base is b.base) or (a.base is b) or (b.base is a)
+        table=[]
+        for m,m2 in zip([self]+submeshchain, submeshchain+[None]):
+            table+=[[f if f in m._functions else "" for f in allfuncs]]
+            if m2:
+                assert m2 in m._submeshes
+                table+=[[(" -> " if ((f in m._functions)
+                                     and (f in m2._functions)
+                                     and share(m2._functions[f],m._functions[f]))
+                                else "    ")\
+                         for f in allfuncs]]
+        table=zip(*table)
+        print("---------------------------")
+        for r in table:
+            lout=""
+            for i,c in enumerate(r):
+                if (i+1) % 2:
+                    lout+=c.rjust(30)
+                else:
+                    lout+=c
+            print(lout)
+        print("---------------------------")
+
+
+    def save(self,filename,keys):
+        res={k:self[k] for k in keys}
+        np.savez_compressed(filename,**res)
+    def read(self,filename):
+        with np.load(filename) as data:
+            for k,v in data.items():
+                if v.shape[-1]==len(self._zp):
+                    self[k]=PointFunction(self,v)
+                elif v.shape[-1]==len(self._zm):
+                    self[k]=MidFunction(self,v)
+                else:
+                    raise Exception(k+" has the wrong shape "+str(v.shape)+" for this mesh.")
+
     # Finish making and testing save and load
     #def save(self,filename):
     #    r""" Save the mesh, its submeshes, and all functions defined on it to a file.
@@ -462,6 +701,8 @@ class SubMesh(Mesh):
 
         self._slicep = slice(start, stop)
         self._slicem = slice(start, stop - 1)
+        self._global_slicep=slice(mesh._global_slicep.start+start,mesh._global_slicep.start+stop)
+        self._global_slicem=slice(mesh._global_slicem.start+start,mesh._global_slicem.start+stop-1)
 
         self._zp = mesh._zp[self._slicep]
         self._zm = mesh._zm[self._slicem]
@@ -476,6 +717,8 @@ class SubMesh(Mesh):
             self._layers=[next(ll for i,ll,lr in (mesh.interfaces_point+[[start+1,mesh._layers[-1],None]]) if i > start)]
 
         self._functions = { k: f.restrict(self) for k, f in mesh._functions.items()}
+        self._attrs = mesh._attrs.copy()
+        self._requested_functions = {}
 
         self._supermesh = mesh
         self._submeshes = []
@@ -488,8 +731,9 @@ class SubMesh(Mesh):
             # interpolate the zm -> index mapping
             self._zm2i_interp = interp1d(self._zm, np.arange(len(self._zm)))
 
-        self._matsys=mesh._matsys
+        self._matblocks=list(set(l._matblock for l in self._layers))
         self.ztrans=mesh.ztrans
+        self._subs=mesh._subs
 
 
 class Function(np.ndarray):
@@ -639,6 +883,8 @@ class Function(np.ndarray):
         :param submesh: the submesh on which this function is needed
         :return: a Function of the same type, which shares, not copies, data with the original
         """
+        if submesh==self.mesh:
+            return self
         if self.pos=='point':
             return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T,dtype=self.dtype)
         if self.pos=='mid':
@@ -660,9 +906,9 @@ class Function(np.ndarray):
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]+=1
-            arr = np.empty(newshape).T
+            arr = np.empty(newshape,dtype=self.dtype).T
             arr[1:-1] = (self.T[1:] + self.T[:-1]) / 2
-            arr[[0, -1]] = self[[0, -1]]
+            arr[[0, -1]] = self.T[[0, -1]]
             arr=arr.T
         if interp == 'z':
             arr = interp1d(self.mesh.zm, self,
@@ -683,13 +929,13 @@ class Function(np.ndarray):
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]-=1
-            arr = np.empty(newshape).T
+            arr = np.empty(newshape,dtype=self.dtype).T
             arr = (self.T[1:] + self.T[:-1]) / 2
             arr=arr.T
         if interp == 'z':
             arr = interp1d(self.mesh.zp, self,
                            fill_value='extrapolate')(self.mesh.zm)
-        return Function(self.mesh,pos='mid',value=arr)
+        return Function(self.mesh,pos='mid',value=arr,dtype=self.dtype)
 
 def PointFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the point mesh

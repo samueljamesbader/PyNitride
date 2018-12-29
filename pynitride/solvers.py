@@ -28,31 +28,42 @@ class PoissonSolver():
 
     :param mesh: the :py:class:`~pynitride.poissolve.mesh.Mesh` on which to perform the solve
     """
-    def __init__(self, mesh, epsfactor=1):
+    def __init__(self, mesh):
         m=self._mesh = mesh
 
-        self._donors    =[d for d in m._matsys._dopants if d.endswith("Donor")]
-        self._acceptors =[d for d in m._matsys._dopants if d.endswith("Acceptor")]
+        alldopants=sum((mb.matsys._dopants for mb in m._matblocks),[])
+        self._donors    =[d for d in alldopants if d.endswith("Donor")]
+        self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
 
-        surface=mesh._boundary[0]
+        for d in self._donors+self._acceptors:
+            if np.any(np.diff(m[d+"g"])!=0):
+                print(d,m[d+"g"])
+                raise Exception("Non-uniform g not working yet because idd takes one g")
+
+        surface=m._boundary[0]
         if isinstance(surface,numbers.Real):
             self._phib=surface
         else:
-            self._phib=mesh._matsys.surface_barrier(m)
+            self._phib=m._matblocks[0].matsys.surface_barrier(m._matblocks[0].mesh)
 
 
-        m['Ndp']=PointFunction(m,0)
-        m['Nam']=PointFunction(m,0)
-        m['Ndpderiv']=PointFunction(m,0)
-        m['Namderiv']=PointFunction(m,0)
-        if 'fc' not in m:
-            m['fc']=PointFunction(m,0)
+        m.ensure_function_exists('rho',0)
+        m.ensure_function_exists('rhoderiv',0)
+        m.ensure_function_exists('fixedcharge',0)
 
-        if len(mesh.zm)>1:
-            self._left=np.empty(len(mesh.zp))
-            self._right=np.empty(len(mesh.zp))
-        self.update_epsfactor(epsfactor=epsfactor)
-        self._update_others(PointFunction(mesh, 0.0))
+        m.ensure_function_exists('Ndp',0)
+        m.ensure_function_exists('Nam',0)
+        m.ensure_function_exists('Ndpderiv',0)
+        m.ensure_function_exists('Namderiv',0)
+
+        m.ensure_function_exists('DP',0)
+        m.ensure_function_exists('phi',0)
+
+        if len(m.zm)>1:
+            self._left=np.empty(len(m.zp))
+            self._right=np.empty(len(m.zp))
+        self.update_epsfactor(epsfactor=1)
+        self._update_others(-m['phi'])
         self.ionized_dopants(gotzloop=False)
 
     def update_epsfactor(self,epsfactor):
@@ -67,6 +78,7 @@ class PoissonSolver():
         self._right[:-1]=eps/(m.dzp * m._dzm[:-1])
         self._center= -(eps/m.dzp).tpf(interp='unweighted') / m.dzm
         self._center[-1]=self._center[-2]
+        self._left[-1]/=2
         self._left[:2]=0
         self._right[0]=0
         self._right[-1:]=0
@@ -127,6 +139,7 @@ class PoissonSolver():
     def solve(self):
         m=self._mesh
         self.ionized_dopants()
+        m['DP']=-m.P.differentiate(fill_value=0)
         if 'p' in m:
             p=m.p
             pderiv=m.pderiv
@@ -137,7 +150,7 @@ class PoissonSolver():
             nderiv=m.nderiv
         else:
             n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fc
+        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
         m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
 
 
@@ -172,6 +185,7 @@ class PoissonSolver():
     def isolve(self,visual=False,activation=1):
         log("Poisson iSolve",level="debug")
         m=self._mesh
+        m['DP']=-m.P.differentiate(fill_value=0)
         self.ionized_dopants()
         if 'p' in m:
             p=m.p
@@ -183,7 +197,7 @@ class PoissonSolver():
             nderiv=m.nderiv
         else:
             n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fc
+        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
         m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
         qrho=q*m['rho']
         qrho[0]=0
@@ -240,39 +254,40 @@ class Equilibrium():
 
     def __init__(self,mesh):
         self._mesh=mesh
-        self._mesh['EF']=PointFunction(self._mesh,0)
+        mesh.ensure_function_exists('EF',0)
+
     def solve(self):
-        self._mesh['EF']=PointFunction(self._mesh,0)
+        self._mesh['EF']=0
 
-class ChargeNeutral():
-
-    def __init__(self,mesh,carriersolvers=[],resolve_carriers=False):
-        self._mesh=mesh
-        self._mesh.ensure_function_exists('EF',value=0)
-        #self._mesh.ensure_function_exists('phi',0)
-        self._cs=carriersolvers
-        self._ps=PoissonSolver(mesh)
-        if resolve_carriers:
-            for cs in self._cs: cs.solve()
-
-    def solve(self, check='integrated', tol=None):
-        with sublog("Neutralizing charge","debug"):
-            m=self._mesh
-            if tol is None:
-                tol={'integrated':1e6/cm**2,'mean':1e9/cm**3}[check]
-            if check=='mean':
-                tol*=m.thickness
-            kT=k*np.max(m.T)
-            while True:
-                for cs in self._cs:
-                    cs.repopulate()
-                self._ps.ionized_dopants()
-                rho=(m.p-m.n+m.Ndp-m.Nam+m.DP).integrate(definite=True)
-                if abs(rho)<tol: break
-                rhoderiv=(m.pderiv-m.nderiv+m.Ndpderiv-m.Namderiv).integrate(definite=True)
-                log("Rho: {:.2e}        Rho' {:.2e}".format(float(rho),float(rhoderiv)),"debug")
-                dEF=np.sign(rho)*min(np.abs(rho/rhoderiv),kT)
-                m['EF']+=dEF
+#class ChargeNeutral():
+#
+#    def __init__(self,mesh,carriersolvers=[],resolve_carriers=False):
+#        self._mesh=mesh
+#        self._mesh.ensure_function_exists('EF',value=0)
+#        #self._mesh.ensure_function_exists('phi',0)
+#        self._cs=carriersolvers
+#        self._ps=PoissonSolver(mesh)
+#        if resolve_carriers:
+#            for cs in self._cs: cs.solve()
+#
+#    def solve(self, check='integrated', tol=None):
+#        with sublog("Neutralizing charge","debug"):
+#            m=self._mesh
+#            if tol is None:
+#                tol={'integrated':1e6/cm**2,'mean':1e9/cm**3}[check]
+#            if check=='mean':
+#                tol*=m.thickness
+#            kT=k*np.max(m.T)
+#            while True:
+#                for cs in self._cs:
+#                    cs.repopulate()
+#                self._ps.ionized_dopants()
+#                rho=(m.p-m.n+m.Ndp-m.Nam+m.DP).integrate(definite=True)
+#                if abs(rho)<tol: break
+#                rhoderiv=(m.pderiv-m.nderiv+m.Ndpderiv-m.Namderiv).integrate(definite=True)
+#                log("Rho: {:.2e}        Rho' {:.2e}".format(float(rho),float(rhoderiv)),"debug")
+#                dEF=np.sign(rho)*min(np.abs(rho/rhoderiv),kT)
+#                m['EF']+=dEF
 
 
 class Linear_Fermi():
@@ -340,6 +355,7 @@ class SelfConsistentLoop():
 
             dlefstart*=np.sign(lefstop-lefstart)
             dlef=dlefstart
+            prevlef=None
             while True:
                 ef=10**lef
                 log("Eps factor: {:.2e}".format(ef))
@@ -361,6 +377,8 @@ class SelfConsistentLoop():
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
                 except Exception as e:
                     log("Failure: {}".format(str(e)))
+                    if prevlef is None:
+                        raise Exception("Failed at initial epsfactor")
                     ef=10**prevlef
                     log("Restoring at {:.2e}".format(ef))
                     for fs in self._fs:
@@ -375,10 +393,3 @@ class SelfConsistentLoop():
                     # if we passed the end, go back
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
             log("Done eps factor ramp")
-
-
-
-
-
-
-

@@ -31,7 +31,7 @@ def to_unit(val,unit):
     :param unit: The desired units for the result as a string (eg "cm**-2")
     :return: the number representing that quantity in the desired units.
     """
-    return val/Brain._ureg(unit).magnitude
+    return val/Brain._ureg(unit).to_base_units().magnitude
 
 class ParamDB(Brain):
     def __getitem__(self,key):
