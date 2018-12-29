@@ -67,23 +67,19 @@ class Semiclassical(CarrierModel):
         super().__init__(mesh)
         m=self._mesh
         self._carriers=carriers
-        m.request_function("EF")
         if 'electron' in self._carriers:
-            m.request_functions(["eg","medos","Ec"])
             m.ensure_function_exists("n",value=0)
             m.ensure_function_exists("nderiv",value=0)
         if 'hole' in self._carriers:
-            m.request_functions(["hg","mhdos","Ev"])
             m.ensure_function_exists("p",value=0)
             m.ensure_function_exists("pderiv",value=0)
 
-
-    def initialize(self):
-        m=self._mesh
         # Compute the effective density of states
         if 'electron' in self._carriers:
+            m.ensure_function_exists("Nc",dim=m.medos.shape[:-1],pos='mid')
             m['Nc']= m.eg * (m.medos*k*m.T/(2*pi*hbar**2))**(3/2)
         if 'hole' in self._carriers:
+            m.ensure_function_exists("Nv",dim=m.mhdos.shape[:-1],pos='mid')
             m['Nv']= m.hg * (m.mhdos*k*m.T/(2*pi*hbar**2))**(3/2)
 
     def solve(self):
@@ -160,33 +156,27 @@ class Schrodinger(CarrierModel):
         self._blend=blend
 
         if 'electron' in self._carriers:
-            m.request_functions(["mez","mexy","Ec","cDE"])
             m.ensure_function_exists("n",value=0)
             m.ensure_function_exists("nderiv",value=0)
             if self._blend: self._sce=Semiclassical(m,carriers=['electron'])
         if 'hole' in self._carriers:
-            m.request_functions(["mhz","mhxy","Ev","vDE"])
             m.ensure_function_exists("p",value=0)
             m.ensure_function_exists("pderiv",value=0)
             if self._blend: self._sch=Semiclassical(m,carriers=['hole'])
 
-    def initialize(self):
-        m=self._mesh
         self._subbands=[]
         self._zkinetic=[]
         self._lkineticfactor=[]
         if 'electron' in self._carriers:
             self._nebands=m.mez.shape[0]
-            m['een']=PointFunction(m, empty=(self._nebands, self._neig))
-            m['epsi']=PointFunction(m, empty=(self._nebands, self._neig))
+            self._een=PointFunction(m, empty=(self._nebands, self._neig))
+            self._epsi=PointFunction(m, empty=(self._nebands, self._neig))
             self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
-            if self._blend: self._sce.initialize()
         if 'hole' in self._carriers:
             self._nhbands=m.mhz.shape[0]
-            m['hen']=PointFunction(m, empty=(self._nhbands, self._neig))
-            m['hpsi']=PointFunction(m, empty=(self._nhbands, self._neig))
+            self._hen=PointFunction(m, empty=(self._nhbands, self._neig))
+            self._hpsi=PointFunction(m, empty=(self._nhbands, self._neig))
             self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
-            if self._blend: self._sch.initialize()
 
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'),sb['subband']
@@ -199,8 +189,8 @@ class Schrodinger(CarrierModel):
                 diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
             sb['lkinetic']=\
                 diags(-b*(hbar**2/(2*mxy)).tpf(interp='unweighted'),format='csc')
-            sb['energies']=m['een'] if elec else m['hen']
-            sb['psi']=m['epsi'] if elec else m['hpsi']
+            sb['energies']=self._een if elec else self._hen
+            sb['psi']=self._epsi if elec else self._hpsi
 
     def solve(self):
         kperp=0
@@ -254,9 +244,9 @@ class Schrodinger(CarrierModel):
 
         if self._blend:
             if 'electron' in self._carriers:
-                self._sce.repopulate(Ec_eff=np.maximum(m.een[:,-1,:],m.Ec),addon=True)
+                self._sce.repopulate(Ec_eff=np.maximum(self._een[:,-1,:],m.Ec),addon=True)
             if 'hole' in self._carriers:
-                self._sch.repopulate(Ev_eff=np.minimum(m.hen[:,-1,:],m.Ev),addon=True)
+                self._sch.repopulate(Ev_eff=np.minimum(self._hen[:,-1,:],m.Ev),addon=True)
 
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
@@ -284,96 +274,116 @@ class MultibandKP(CarrierModel):
         super().__init__(mesh)
         m=mesh
         assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
-        m.ensure_function_exists("p",value=0)
-        m.ensure_function_exists("pderiv",value=0)
         self._neig=num_eigenvalues
         self._ktmax=ktmax
         self._num_kpoints=num_kpoints
         self._kmeshmethod=kmeshmethod
 
-    def initialize(self):
-        m=self._mesh
-        ktmax=self._ktmax
-        num_kpoints=self._num_kpoints
-        num_eigenvalues=self._neig
-        kmeshmethod=self._kmeshmethod
+        if num_kpoints!=0:
+            m.ensure_function_exists("p",value=0)
+            m.ensure_function_exists("pderiv",value=0)
 
-        # Make the k-mesh
-        if isinstance(self._kmeshmethod,str):
-            if kmeshmethod=='1D':
-                self._kt=np.linspace(0,ktmax,num_kpoints)
-                self._kx=1*self._kt
-                self._ky=0*self._kt
-            elif kmeshmethod=='xy':
-                if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                kx=np.linspace(0,ktmax[0],num_kpoints[0])
-                ky=np.linspace(0,ktmax[1],num_kpoints[1])
-                self._kmeshman=KMesh2D(kx,ky)
-                self._kt=self._kmeshman.kt
-                self._kx=self._kmeshman.kx1
-                self._ky=self._kmeshman.ky1
-            elif kmeshmethod=='xyfull':
-                if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
-                ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
-                self._kmeshman=KMesh2D(kx,ky)
-                self._kt=self._kmeshman.kt
-                self._kx=self._kmeshman.kx1
-                self._ky=self._kmeshman.ky1
-            elif kmeshmethod=='polar':
-                raise NotImplementedError
-            kx,ky=self._kmeshman.kx,self._kmeshman.ky
-        # otherwise kmeshmethod should be an iterable of ((kx1,ky1),(kx2,ky2),...)
-        else :
-            self._kt=np.array(kmeshmethod)
-            self._kx,self._ky=np.hsplit(self._kt,2)
-            kx,ky=self._kx,self._ky
+            # Make the k-mesh
+            if isinstance(self._kmeshmethod,str):
+                if kmeshmethod=='1D':
+                    self._kt=np.linspace(0,ktmax,num_kpoints)
+                    self._kx=1*self._kt
+                    self._ky=0*self._kt
+                elif kmeshmethod=='xy':
+                    if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                    if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                    kx=np.linspace(0,ktmax[0],num_kpoints[0])
+                    ky=np.linspace(0,ktmax[1],num_kpoints[1])
+                    self._kmeshman=KMesh2D(kx,ky)
+                    self._kt=self._kmeshman.kt
+                    self._kx=self._kmeshman.kx1
+                    self._ky=self._kmeshman.ky1
+                elif kmeshmethod=='xyfull':
+                    if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                    if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                    kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
+                    ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
+                    self._kmeshman=KMesh2D(kx,ky)
+                    self._kt=self._kmeshman.kt
+                    self._kx=self._kmeshman.kx1
+                    self._ky=self._kmeshman.ky1
+                elif kmeshmethod=='polar':
+                    raise NotImplementedError
+                kx,ky=self._kmeshman.kx,self._kmeshman.ky
+            # otherwise kmeshmethod should be an iterable of ((kx1,ky1),(kx2,ky2),...)
+            else :
+                self._kt=np.array(kmeshmethod)
+                self._kx,self._ky=np.hsplit(self._kt,2)
+                kx,ky=self._kx,self._ky
 
-        # Assemble k.p matrices
-        log("Assembling k.p matrices ...",level='info')
-        self._Cmats=Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
-        self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
-        log("Done assembly.",level='info')
+            # Assemble k.p matrices
+            log("Assembling k.p matrices ...",level='info')
+            self._Cmats=Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
+            self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
+            for H in self._H:
+                H[:6, :6] *= 2
+                H[-6:, -6:] *= 2
+            log("Done assembly.",level='info')
 
-        # Initialize other functions
-        m['kppsi']=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
-        m['kpen']=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues,))
-        self._normsqs=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues))
+            # Initialize other functions
+            m['kppsi']=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
+            m['kpen']=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues,))
+            self._normsqs=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues))
 
-    def remesh(self,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
-        if 'kppsi' in self._mesh._functions:
-            del self._mesh._functions['kppsi']
-        if 'kpen' in self._mesh._functions:
-            del self._mesh._functions['kpen']
-        self.__init__(self._mesh,num_eigenvalues,ktmax,num_kpoints,kmeshmethod)
-        self.initialize()
+    #def remesh(self,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
+    #    if 'kppsi' in self._mesh._functions:
+    #        del self._mesh._functions['kppsi']
+    #    if 'kpen' in self._mesh._functions:
+    #        del self._mesh._functions['kpen']
+    #    self.__init__(self._mesh,num_eigenvalues,ktmax,num_kpoints,kmeshmethod)
+    #    self.initialize()
 
+    # kpen is kt, eig, z
+    # kppsi is kt, eig, comp, z
+    # normsqs is kt, eig, z
     def solve(self):
         log("MBKP Solve",level="debug")
         m=self._mesh
         kt=self._kt
         pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
-        #m.tests=[]
         for i,(kti,H) in enumerate(zip(kt,self._H)):
-            Htot=-H+diags(pot)
-            energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2)
+            m['kpen'][i,:,:],m['kppsi'][i,:,:,:],self._normsqs[i,:,:]=self.solve_one_k(None,None,pot=pot,H=H)
 
-            # Sort by energy
-            indarr=np.argsort(energies)
-            # kt, eig, z
-            m['kpen'][i,:,:]=-np.atleast_2d(energies[indarr]).T
-            # kt, eig, comp, z
-            m['kppsi'][i,:,:,:]=np.swapaxes(np.reshape(
-                    eigenvectors[:,indarr],
-                    (len(m._zp),6,self._neig)),0,2)\
-                /np.sqrt(m._dzm)
-            # kt, eig, z
-            self._normsqs[i,:,:]=np.sum(abs(m.kppsi[i])**2,axis=1)
 
-            # delete this
-            #m.tests+=[[-Htot,eigenvectors[:,indarr],-energies[indarr]]]
+    # kpen is eig, z
+    # kppsi is eig, comp, z
+    # normsqs is eig, z
+    def solve_one_k(self,kx,ky,pot=None,H=None):
+
+        m=self._mesh
+        if pot is None:
+            pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
+        if H is None:
+            C0,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])[0]
+            H=assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False)
+            H[:6, :6] *= 2
+            H[-6:, -6:] *= 2
+
+        Htot=-H+diags(pot)
+        energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2)
+
+        # Sort by energy
+        indarr=np.argsort(energies)
+        # eig, z
+        kpen=-np.atleast_2d(energies[indarr]).T
+        # eig, comp, z
+        kppsi=PointFunction(m,value=np.swapaxes(np.reshape(
+            eigenvectors[:,indarr],
+            (len(m._zp),6,self._neig)),0,2) \
+                            /np.sqrt(m._dzm),dtype='complex')
+        #kppsi=(kppsi.T/np.sum(np.abs(kppsi)**2,axis=-2).integrate(definite=True).T).T
+        ###THESE ARE NOT NORMALIZED....
+
+        # eig, z
+        normsqs=np.sum(abs(kppsi)**2,axis=1)
+
+        return kpen,kppsi,normsqs
+
 
     def solve_point_as_bulk(self,zp):
         m=self._mesh
@@ -424,8 +434,10 @@ class KMesh2D:
         self.kt=self.conv2flat(self.KT)
         self.kx=self.kt[:,0]
         self.ky=self.kt[:,1]
-        self.dkx=kx[1]-kx[0]
-        self.dky=ky[1]-ky[0]
+        if len(kx)>1:
+            self.dkx=kx[1]-kx[0]
+        if len(ky)>1:
+            self.dky=ky[1]-ky[0]
 
     def conv2grid(self,arr):
         return np.reshape(arr,[self.lky,self.lkx]+list(arr.shape[1:]))

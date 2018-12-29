@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r""" Meshing, submeshing, and manipulating funtions defined on meshes.
+r""" Meshing, submeshing, and manipulating functions defined on meshes.
 
 This module is tested by :py:mod:`~tests.test_mesh`.
 """
@@ -33,7 +33,10 @@ class MaterialBlock():
             destmesh=self._mesh
 
         # Get the subfunc from matsys
-        subfunc=self.matsys.get(self._mesh,item)
+        if item in self._mesh._functions:
+            subfunc=self._mesh._functions[item]
+        else:
+            subfunc=self.matsys.get(self._mesh,item)
 
         # Get the func if it's defined on this mesh
         if item in destmesh._functions:
@@ -64,7 +67,7 @@ class MaterialBlock():
             f(destmesh)
 
     def __contains__(self, item):
-        return item in self.matsys
+        return (item in self.matsys) or (item in self._mesh._functions)
 
 class Layer():
     def __init__(self, name, thickness):
@@ -96,7 +99,7 @@ class UniformLayer(Layer):
                 dtype='bool'
             else:
                 dtype='float'
-            mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
+            mesh.create_restricted_function(k,MidFunction(mesh,value=v,dtype=dtype))
 
 
 class Mesh():
@@ -297,7 +300,7 @@ class Mesh():
             mb.place(SubMesh(self, ml, mr+1))
             ###
             for k,v in mb.matsys._defaults.items():
-                mb.mesh[k]=MidFunction(mb.mesh,v)
+                mb.mesh.create_restricted_function(k,MidFunction(mb.mesh,v))
             ###
             for lay,l,r in zip(mb.layers,leftindices[ill:ilr+1],rightindices[ill:ilr+1]):
                 lay.place(SubMesh(mb.mesh,l-ml,r-ml+1))
@@ -372,44 +375,44 @@ class Mesh():
         mpl.tight_layout()
 
 
-    def request_function(self,func,default=None,pos=None):
-        self._requested_functions[func]={'default': default,'pos':pos}
-    def request_functions(self,funcs,defaults=[],poss=[]):
-        if not len(defaults):
-            defaults=[None]*len(funcs)
-        if not len(poss):
-            poss=[None]*len(funcs)
-        assert len(funcs)==len(defaults) and len(funcs)==len(poss)
-        for func,default,pos in zip(funcs,defaults,poss):
-            self._requested_functions[func]={'default': default, 'pos': pos}
+    #def request_function(self,func,default=None,pos=None):
+    #    self._requested_functions[func]={'default': default,'pos':pos}
+    #def request_functions(self,funcs,defaults=[],poss=[]):
+    #    if not len(defaults):
+    #        defaults=[None]*len(funcs)
+    #    if not len(poss):
+    #        poss=[None]*len(funcs)
+    #    assert len(funcs)==len(defaults) and len(funcs)==len(poss)
+    #    for func,default,pos in zip(funcs,defaults,poss):
+    #        self._requested_functions[func]={'default': default, 'pos': pos}
 
-    def initialize(self):
-        """
+    #def initialize(self):
+    #    """
 
-        Before this function is called,
-        (1) all exchanged non-material functions should be created (but maybe not globalized)
-        (2) no material functions (on submeshes that are not on this mesh) should be created
+    #    Before this function is called,
+    #    (1) all exchanged non-material functions should be created (but maybe not globalized)
+    #    (2) no material functions (on submeshes that are not on this mesh) should be created
 
-        Go through the requested functions one by one and
-        (1) if the function exists on this mesh, do nothing
-        (2) if the function exists on a submesh (note it is not a material function), globalize it
-        (3) if the function can be drawn from all the relevant material blocks (and/or there is a default value), do so
+    #    Go through the requested functions one by one and
+    #    (1) if the function exists on this mesh, do nothing
+    #    (2) if the function exists on a submesh (note it is not a material function), globalize it
+    #    (3) if the function can be drawn from all the relevant material blocks (and/or there is a default value), do so
 
-        """
+    #    """
 
-        for key,v in self._requested_functions.items():
-            if key in self._functions:
-                continue
-            else:
-                default,pos=v['default'],v['pos']
-                if sum([key in sm for sm in self._submeshes]):
-                    self.globalize(key,default=default)
-                else:
-                    if pos=='point':
-                        assert default is not None,"Specified pos=='point' for key "+key+"but no default"
-                        self[key]=PointFunction(self,value=default)
-                    else:
-                        self._fill_from_matblocks(key,default)
+    #    for key,v in self._requested_functions.items():
+    #        if key in self._functions:
+    #            continue
+    #        else:
+    #            default,pos=v['default'],v['pos']
+    #            if sum([key in sm for sm in self._submeshes]):
+    #                self.globalize(key,default=default)
+    #            else:
+    #                if pos=='point':
+    #                    assert default is not None,"Specified pos=='point' for key "+key+"but no default"
+    #                    self[key]=PointFunction(self,value=default)
+    #                else:
+    #                    self._fill_from_matblocks(key,default)
 
     def _fill_from_matblocks(self,key,default=None):
 
@@ -471,7 +474,16 @@ class Mesh():
                 sm[func]=self[func].restrict(sm)
         return self[func]
 
-    def ensure_function_exists(self,func,dim=(),pos='point',dtype='float',value=np.NaN):
+    def ensure_function_exists(self,func,value=np.NaN,dim=(),pos='point',dtype='float'):
+        """ If it doesn't exist, make it in the global mesh, if it does, check the dim/pos.
+
+        :param func:
+        :param dim:
+        :param pos:
+        :param dtype:
+        :param value:
+        :return:
+        """
         if self.__contains__(func):
             if not list(self[func].shape[:-1])==list(dim):
                 raise Exception(func+" is the wrong shape: "+\
@@ -480,9 +492,10 @@ class Mesh():
                 raise Exception(func+" is the wrong mesh-type: "+\
                     pos + " requested "+str(self[func].pos+" present."))
         else:
-            self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
-
-
+            if self._supermesh==None:
+                self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
+            else:
+                self._supermesh.ensure_function_exists(func,dim=dim,pos=pos,dtype=dtype,value=value)
 
 
     def __contains__(self,key):
@@ -520,11 +533,12 @@ class Mesh():
         for sm in self._submeshes:
             sm.add_attr(attr,func)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, restricted=False):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
         if key in self._functions:
             self._functions[key][:] = value
         else:
+            #assert restricted or (self._supermesh==None), "Cannot set functions on submeshes"
             assert isinstance(value,Function), "Must be a mesh.functions.Function"
             self._functions[key] = value
             def submeshesview(m):
@@ -534,6 +548,8 @@ class Mesh():
                     submeshesview(sm)
             submeshesview(self)
 
+    def create_restricted_function(self,key,value):
+        self.__setitem__(key,value,restricted=True)
 
     def __getattr__(self,item):
         return self.__getitem__(item)
@@ -867,6 +883,8 @@ class Function(np.ndarray):
         :param submesh: the submesh on which this function is needed
         :return: a Function of the same type, which shares, not copies, data with the original
         """
+        if submesh==self.mesh:
+            return self
         if self.pos=='point':
             return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T,dtype=self.dtype)
         if self.pos=='mid':
@@ -888,9 +906,9 @@ class Function(np.ndarray):
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]+=1
-            arr = np.empty(newshape).T
+            arr = np.empty(newshape,dtype=self.dtype).T
             arr[1:-1] = (self.T[1:] + self.T[:-1]) / 2
-            arr[[0, -1]] = self[[0, -1]]
+            arr[[0, -1]] = self.T[[0, -1]]
             arr=arr.T
         if interp == 'z':
             arr = interp1d(self.mesh.zm, self,
@@ -911,13 +929,13 @@ class Function(np.ndarray):
         if interp == 'unweighted':
             newshape=list(self.shape)
             newshape[-1]-=1
-            arr = np.empty(newshape).T
+            arr = np.empty(newshape,dtype=self.dtype).T
             arr = (self.T[1:] + self.T[:-1]) / 2
             arr=arr.T
         if interp == 'z':
             arr = interp1d(self.mesh.zp, self,
                            fill_value='extrapolate')(self.mesh.zm)
-        return Function(self.mesh,pos='mid',value=arr)
+        return Function(self.mesh,pos='mid',value=arr,dtype=self.dtype)
 
 def PointFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the point mesh
