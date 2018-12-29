@@ -339,19 +339,22 @@ class Wurtzite(MaterialSystem):
             [        O,               O,     m.C33]])
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
-        #### If we want, we can decouple y-axis
-        #C0=np.array([
-        #    [    m.C11,         0],
-        #    [        0, 1/2*m.C44]])
-        #Cl=q*np.array([
-        #    [        0,     m.C13],
-        #    [1/2*m.C44,         0]])
-        #Cr=q*np.array([
-        #    [        0, 1/2*m.C44],
-        #    [    m.C13,         0]])
-        #C2=q**2*np.array([
-        #    [1/2*m.C44,         0],
-        #    [        0,     m.C13]])
+    def ec_CmatsXZ(self,m,q):
+        q=np.reshape(q,(len(q),1,1,1))
+        O=MidFunction(m,0)
+        C0=MidFunction(m,q**2*(np.array([
+            [    m.C11,         O],
+            [        O,     m.C44]]))).tpf()
+        Cl=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,     m.C13],
+            [    m.C44,         O]]))).tpf()
+        Cr=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,     m.C44],
+            [    m.C13,         O]]))).tpf()
+        C2=0*q+np.array([
+            [    m.C44,         O],
+            [        O,     m.C33]])
+        return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
 
     def strain(self,m,key):
