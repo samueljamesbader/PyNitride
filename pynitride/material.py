@@ -1,4 +1,4 @@
-from pynitride.paramdb import pmdb, K, hbar, m_e, nm
+from pynitride.paramdb import pmdb, hbar, m_e, nm
 from pynitride.mesh import MidFunction, PointFunction, Function, SubMesh
 from pynitride.visual import log
 import numpy as np
@@ -12,10 +12,10 @@ class MaterialSystem():
             'Eg':       self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
+            'density':  self.vergard('density'),
         }
-        self._defaults={
-            'T':    300 *K
-        }
+        self._defaults={}
+        self._updates={}
 
     def surface_barrier(self,m):
         return self.vergard('surface={}.electronbarrier'.format(m._boundary[0]))(m,None)[0]
@@ -23,10 +23,13 @@ class MaterialSystem():
     def vergard(self,lookup):
         interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self._vergardbasis.items()}
         def prop(mesh,key):
-            molefracs={k:mesh[k] for k in interpdict.keys() if k is not None}
-            val=(1-sum(v for v in molefracs.values()))*interpdict[None]
-            for k,v in molefracs.items():
-                val+=interpdict[k]*v
+            if len(interpdict.keys())==1:
+                val=MidFunction(mesh,value=interpdict[None])
+            else:
+                molefracs={k:mesh[k] for k in interpdict.keys() if k is not None}
+                val=(1-sum(v for v in molefracs.values()))*interpdict[None]
+                for k,v in molefracs.items():
+                    val+=interpdict[k]*v
             if key is not None:
                 mesh[key]=val
             return val
@@ -47,8 +50,7 @@ class MaterialSystem():
         self._defaults.update({d+"Conc":0 for d in self._dopants})
 
     def get(self,mesh,item):
-        if item in self._attrs:
-            return self._attrs[item](mesh,item)
+        return self._attrs[item](mesh,item)
     def __contains__(self, item):
         return item in self._attrs
 
@@ -95,18 +97,25 @@ class MaterialSystem():
 class Wurtzite(MaterialSystem):
     def __init__(self):
         super().__init__()
+
+        self._updates.update({
+            'strain': [self.bandedge_params,self.polarization],
+            'temperature': [self.bandedge_params],
+        })
         self._attrs.update({
-            'exx':      self.strain,
-            'eyy':      self.strain,
-            'ezz':      self.strain,
+            #'exx':      self.strain,
+            #'eyy':      self.strain,
+            #'ezz':      self.strain,
 
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
             'e31':      self.vergard('polarization.e31'),
+            'C11':      self.vergard('stiffness.C11'),
+            'C12':      self.vergard('stiffness.C12'),
             'C13':      self.vergard('stiffness.C13'),
             'C33':      self.vergard('stiffness.C33'),
+            'C44':      self.vergard('stiffness.C44'),
             'P'  :      self.polarization,
-            'DP' :      self.polarization,
 
             'medos':    self.smcls_band_params,
             'mexy':     self.smcls_band_params,
@@ -142,17 +151,19 @@ class Wurtzite(MaterialSystem):
 
     def polarization(self,m,key):
         m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
-        if hasattr(m.zm,'shape'):
-            m['DP']=-m.P.differentiate(fill_value=0)
         return m[key]
 
-    def bandedge_params(self,m,key):
+    def bandedge_params(self,m,key=None):
         Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
         alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
         beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
         Eg_re=Eg0-alpha*m.T**2/(m.T+beta)
 
+
         s=(m.exx+m.eyy)/2
+        #print('M.exx',m.exx)
+        #print('M.eyy',m.eyy)
+        #print('M.ezz',m.ezz)
         Sigma2=(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*2*s
         Sigmac=(m.a1+m.D1)*m.ezz+(m.a2+m.D2)*2*s
 
@@ -167,7 +178,8 @@ class Wurtzite(MaterialSystem):
         # So let's set Ev_raw to Ev minus that amount to make sure the bulk solution top energy is Ev
         m['EvOffset']=-Sigma2-np.maximum(m.Delta1+m.Delta2,m.Delta1-m.Delta2,MidFunction(m,0))
 
-        return m[key]
+        if key:
+            return m[key]
 
     def smcls_band_params(self,m,key):
         log("Using explicit masses from file",'TODO')
@@ -221,6 +233,18 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
     def kp_Cmats(self,m,kx,ky):
+        """
+
+        The matrices match the conventions in Birner, {X^,Y^,Z^, Xv, Yv, Zv} basis.  The strain is included by means of
+        the note at the bottom of pg 2496 of C&C https://doi.org/10.1103/PhysRevB.54.2491 .
+        See examples/wzstrainterms.ipynb to show that this is consistent with C&C,
+        since C&C doesn't give the strain terms in this basis.
+
+        :param m:
+        :param kx:
+        :param ky:
+        :return:
+        """
         U=MidFunction(m,hbar**2/(2*m_e))
         O=MidFunction(m,0)
 
@@ -232,7 +256,7 @@ class Wurtzite(MaterialSystem):
         N2m=Ahat
         l1=m.D2+m.D4+m.D5; l2=m.D1
         m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
-        n1=-2*m.D5; n2=np.sqrt(2)*m.D6
+        n1=2*m.D5; n2=np.sqrt(2)*m.D6
         L1u=L1+U; L2u=L2+U
         M1u=M1+U; M2u=M2+U; M3u=M3+U
         Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
@@ -294,13 +318,71 @@ class Wurtzite(MaterialSystem):
         return Cmats
 
 
+    def ec_Cmats(self,m,q):
+        q=np.reshape(q,(len(q),1,1,1))
+        O=MidFunction(m,0)
+        C0=MidFunction(m,q**2*(np.array([
+            [    m.C11,               O,         O],
+            [        O, (m.C11-m.C12)/2,         O],
+            [        O,               O,     m.C44]]))).tpf()
+        Cl=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,               O,     m.C13],
+            [        O,               O,         O],
+            [    m.C44,               O,         O]]))).tpf()
+        Cr=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,               O,     m.C44],
+            [        O,               O,         O],
+            [    m.C13,               O,         O]]))).tpf()
+        C2=0*q+np.array([
+            [    m.C44,               O,         O],
+            [        O,           m.C44,         O],
+            [        O,               O,     m.C33]])
+        return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
+
+    def ec_CmatsXZ(self,m,q):
+        q=np.reshape(q,(len(q),1,1,1))
+        O=MidFunction(m,0)
+        C0=MidFunction(m,q**2*(np.array([
+            [    m.C11,         O],
+            [        O,     m.C44]]))).tpf()
+        Cl=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,     m.C13],
+            [    m.C44,         O]]))).tpf()
+        Cr=(m.ztrans*MidFunction(m,q*np.array([
+            [        O,     m.C44],
+            [    m.C13,         O]]))).tpf()
+        C2=0*q+np.array([
+            [    m.C44,         O],
+            [        O,     m.C33]])
+        return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
+
+
     def strain(self,m,key):
-        a=self.vergard('conditions=relaxed.lattice.a')(m.subs.mesh,None)[0]
+        print("Returning {} even though strain is unsolved".format(key))
+        #raise Exception("Strain state has not been solved yet.")
+
+    def strain_to(self,m,straincond={}):
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)
-        m['exx']=m['eyy']=(a-a0)/a0
-        m['ezz']=-2*m.C13/m.C33*m['exx']
+
+        if 'a' in straincond:
+            ax=ay=straincond['a']
+        else:
+            if 'ax' in straincond:
+                ax=straincond['ax']
+            else: raise NotImplementedError
+            if 'ay' in straincond:
+                ay=straincond['ay']
+            else: raise NotImplementedError
+        m['exx']=(ax-a0)/a0
+        m['eyy']=(ay-a0)/a0
+        m['ezz']=-m.C13/m.C33*(m['exx']+m['eyy'])
         m['exy']=m['eyz']=m['exz']=MidFunction(m,0)
-        return m[key]
+
+    def bulk_lattice_condition(self,m):
+        pos=-1 if (m.ztrans == -1 ) else 0
+        a0=self.vergard('conditions=relaxed.lattice.a')(m,None)[pos]
+        return {'a':a0}
+
 
 
 class AlGaInN(Wurtzite):
@@ -318,7 +400,7 @@ class AlGaInN(Wurtzite):
             'y': 0,
             'gotz': True
         })
-        self.append_dopants(['Si','Mg'])
+        self.append_dopants(['Si','Mg','Deep'])
 
         self._attrs['MgAcceptorE']
 
@@ -328,29 +410,37 @@ class AlGaN(Wurtzite):
             'x': 'AlN',
             None: 'GaN',
         }
+        self.name="AlGaN"
 
         super().__init__()
 
         self._defaults.update({
             'x': 0
         })
-        self.append_dopants(['Si','Mg','DeepDonor'])
+        self.append_dopants(['Si','Mg','DeepDonor','DeepAcceptor'])
 
-class AlGaN_SiO2(Wurtzite):
-    def __init__(self):
-        self._vergardbasis={
-            'x': 'AlN',
-            None: 'GaN',
-            'SiO2': 'SiO2'
-        }
-
+class Insulator(MaterialSystem):
+    def __init__(self, name):
+        self._vergardbasis={None: name}
+        self.name=name
         super().__init__()
-
-        self._defaults.update({
-            'x': 0,
-            'SiO2': 0
+        self._updates.update({
+            'temperature': [self.bandedge_params],
         })
-        self.append_dopants(['Si','Mg','DeepDonor'])
+        self.append_dopants([])
+
+    def bandedge_params(self,m,key):
+        Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
+        alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
+        beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
+        Eg_re=Eg0-alpha*m.T**2/(m.T+beta)
+
+        m['Eg']=Eg_re
+        m['E0-Ev']=Eg_re/2
+        m['Ec-E0']=Eg_re/2
+
+        return m[key]
+
 
 class SamGaN(Wurtzite):
     def __init__(self):

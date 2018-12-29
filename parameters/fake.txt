@@ -52,6 +52,7 @@ material=GaN
             DE: 320 meV
     surface=GenericMetal
         electronbarrier: 1 eV
+    density: 6.15 g/cm^3
 material=InN
     DE: .19   eV
     dielectric
@@ -146,6 +147,7 @@ material=AlN
             DE: 0 eV
     surface=GenericMetal
         electronbarrier: 2 eV
+    density: 3.26 g/cm^3
 
 #####material=Al2O3_on_GaN
 #####    conditions=
