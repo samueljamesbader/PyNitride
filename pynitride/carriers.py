@@ -8,6 +8,7 @@ from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
+from pynitride.machine import Pool
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -347,9 +348,10 @@ class MultibandKP(CarrierModel):
         m=self._mesh
         kt=self._kt
         pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
-        for i,(kti,H) in enumerate(zip(kt,self._H)):
+        def save_one_solve(i,H):
             m['kpen'][i,:,:],m['kppsi'][i,:,:,:],self._normsqs[i,:,:]=self.solve_one_k(None,None,pot=pot,H=H)
-
+        Pool.thread_pool().starmap(save_one_solve,
+            [(i,H) for i,(kti,H) in enumerate(zip(kt,self._H))])
 
     # kpen is eig, z
     # kppsi is eig, comp, z
@@ -366,7 +368,8 @@ class MultibandKP(CarrierModel):
             H[-6:, -6:] *= 2
 
         Htot=-H+diags(pot)
-        energies,eigenvectors=eigsh(Htot,k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2)
+        energies,eigenvectors=Pool.process_pool().apply(
+            eigsh,args=(Htot,),kwds=dict(k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2))
 
         # Sort by energy
         indarr=np.argsort(energies)
