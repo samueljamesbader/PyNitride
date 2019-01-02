@@ -19,6 +19,7 @@ class Pool():
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
             print("Pool was already configured with the given arguments.")
+            return
 
         cls._kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
         if cextthread is not None:
