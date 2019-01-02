@@ -321,7 +321,9 @@ class MultibandKP(CarrierModel):
             # Assemble k.p matrices
             log("Assembling k.p matrices ...",level='info')
             self._Cmats=Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
-            self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
+            #self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
+            self._H=Pool.process_pool().starmap(assemble6x6,\
+                    [[C0,Cl,Cr,C2,m._dzm,m._dzp,False] for [C0,Cl,Cr,C2] in Cmats])
             for H in self._H:
                 H[:6, :6] *= 2
                 H[-6:, -6:] *= 2
@@ -363,7 +365,8 @@ class MultibandKP(CarrierModel):
             pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
         if H is None:
             C0,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])[0]
-            H=assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False)
+            H=Pool.process_pool().apply(assemble6x6,
+                    args=(C0,Cl,Cr,C2,m._dzm,m._dzp),kwds=dict(periodic=False))
             H[:6, :6] *= 2
             H[-6:, -6:] *= 2
 
