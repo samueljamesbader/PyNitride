@@ -91,3 +91,21 @@ class FakePool():
         return [func(*i) for i in iterable]
     def apply(self,func,args=(),kwds=()):
         return func(*args,**kwds)
+
+
+_storage={}
+_storagepids={}
+_storagelock=Lock()
+def glob_store(obj):
+    with _storagelock:
+        key=len(_storage)
+        _storage[key]=obj
+        _storagepids[key]=os.getpid()
+    return key
+def glob_read(key):
+    return _storage[key]
+def glob_remove(key):
+    with _storagelock:
+        if _storagepids[key]==os.getpid():
+            del _storage[key]
+            del _storagepids[key]
