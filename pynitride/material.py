@@ -12,7 +12,6 @@ class MaterialSystem():
             'Eg':       self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
-            'density':  self.vergard('density'),
         }
         self._defaults={}
         self._updates={}
@@ -147,6 +146,8 @@ class Wurtzite(MaterialSystem):
             'Delta3':  self.kp_params,
             'a1':       self.kp_params,
             'a2':       self.kp_params,
+
+            'density':  self.vergard('density'),
         })
 
     def polarization(self,m,key):

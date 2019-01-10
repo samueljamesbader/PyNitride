@@ -28,23 +28,35 @@ class MaterialBlock():
     def mesh(self):
         return self._mesh
 
-    def get(self, item, destmesh=None):
-        if destmesh is None:
+    def get(self, item, destmesh=None, destfunc=None):
+        if destfunc is not None:
+            destmesh=destfunc.mesh
+        elif destmesh is None:
             destmesh=self._mesh
+
+        #print('item ',item,'   destmesh', destmesh.zp.shape)
 
         # Get the subfunc from matsys
         if item in self._mesh._functions:
             subfunc=self._mesh._functions[item]
+            if destmesh==self._mesh:
+                return subfunc
         else:
             subfunc=self.matsys.get(self._mesh,item)
+            if destmesh==self._mesh:
+                return subfunc
 
         # Get the func if it's defined on this mesh
         if item in destmesh._functions:
+            #print("is already defined")
             func=destmesh[item]
 
         # Or if we haven't made the global func yet, make it from this one
+        elif destfunc is None:
+            func=MidFunction(destmesh, dtype=subfunc.dtype, empty=subfunc.shape[:-1])
+            #print("defining now")
         else:
-            func=destmesh[item]=MidFunction(destmesh, dtype=subfunc.dtype, empty=subfunc.shape[:-1])
+            func=destfunc
 
         # Figure out the ranges where the desination mesh and material block overlap
         globalstart=max(self._mesh._global_slicem.start,destmesh._global_slicem.start)
@@ -56,6 +68,7 @@ class MaterialBlock():
         #print(globalstart-destmesh._global_slicem.start,globalstop-destmesh._global_slicem.start)
         #print(globalstart-self._mesh._global_slicem.start,globalstop-self._mesh._global_slicem.start)
         #print(subfunc[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].shape)
+        #print("are there nans in subfunc?",np.isnan(subfunc))
         # Fill in the relevant part of the function
         func[globalstart-destmesh._global_slicem.start:globalstop-destmesh._global_slicem.start]=\
             subfunc.T[globalstart-self._mesh._global_slicem.start:globalstop-self._mesh._global_slicem.start].T
@@ -420,15 +433,17 @@ class Mesh():
         if default is not None:
             func=self[key]=MidFunction(self,value=default)
         # Otherwise MaterialBlock.get will build it the first time
+        func=None
 
         # Check each material block
         for mb in self._matblocks:
             try:
-                mb.get(key,self)
+                func=mb.get(key,destmesh=self,destfunc=func)
             except Exception as e:
                 print(e)
                 if default is None:
                     raise Exception("No default specified and {} not in {}".format(key,mb.matsys.name))
+        self[key]=func
         return self[key]
 
     def globalize(self, func, default=None, submeshes=None):
@@ -961,7 +976,7 @@ def ConstantFunction(*args,**kwargs):
     return PointFunction(*args,**kwargs)
     #raise NotImplementedError
 
-def MaterialFunction(mesh, prop, default=None,pos='mid'):
+def MaterialFunction(mesh, prop, default=None,dtype='float',pos='mid'):
     r""" Creates a Function by a piecewise-constant-over-materials definition.
 
     :param mesh: the mesh on which the function is defined.
@@ -972,25 +987,23 @@ def MaterialFunction(mesh, prop, default=None,pos='mid'):
     :param pos:
     :return:
     """
-    # could make this more efficient by directly interpolating if Point case?
-    # this function almost duplicates RegionFunction...
 
-    ptcounts = np.diff([0] + [i for i, ll, lr in mesh.interfaces_point] + [len(mesh.zp) - 1])
-    arr = []
-
-    propfunc = (lambda i: prop(mesh._layers[i].material)) \
-        if callable(prop) \
-        else (lambda i: mesh._layers[i].get(prop,default=default))
-
-    for i, ptc in enumerate(ptcounts):
-        arr += [propfunc(i)] * ptc
-
-    out = MidFunction(mesh, np.array(arr).T)
-    if pos == "point":
-        return out.tpf()
+    if default is not None:
+        func=MidFunction(mesh,value=default,dtype=dtype)
     else:
-        return out
+        func=MidFunction(mesh,dtype=dtype,empty=())
 
+    for mb in mesh._matblocks:
+        try:
+            mb.get(prop,destfunc=func)
+        except Exception as e:
+            if default is None:
+                raise Exception("Could not get \"{}\" from MaterialBlock \"{}\" and no default supplied".format(prop,mb.name))
+
+    if pos=='mid':
+        return func
+    else:
+        return func.tpf()
 
 def RegionFunction(mesh, prop, pos='mid'):
     # could make this more efficient by directly interpolating if Point case?
