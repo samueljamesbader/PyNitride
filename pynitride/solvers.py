@@ -35,10 +35,10 @@ class PoissonSolver():
         self._donors    =[d for d in alldopants if d.endswith("Donor")]
         self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
 
-        for d in self._donors+self._acceptors:
-            if np.any(np.diff(m[d+"g"])!=0):
-                print(d,m[d+"g"])
-                raise Exception("Non-uniform g not working yet because idd takes one g")
+        #for d in self._donors+self._acceptors:
+            #if np.any(np.diff(m[d+"g"])!=0):
+            #    print(d,m[d+"g"])
+            #    raise Exception("Non-uniform g not working yet because idd takes one g")
 
         surface=m._boundary[0]
         if isinstance(surface,numbers.Real):
@@ -58,6 +58,7 @@ class PoissonSolver():
 
         m.ensure_function_exists('DP',0)
         m.ensure_function_exists('phi',0)
+
 
         if len(m.zm)>1:
             self._left=np.empty(len(m.zp))
@@ -94,9 +95,10 @@ class PoissonSolver():
         m['Ndp']=0
         m['Ndpderiv']=0
         for d in self._donors:
-            g=m[d+"g"][0]
-            conc=m[d+"Conc"]
-            eta=((m.EF-m.Ec).tmf()+m[d+"E"])/kT
+            g=MaterialFunction(m,d+'g',default=0)[0]
+            conc=MaterialFunction(m,d+'Conc',default=0)
+            E=MaterialFunction(m,d+'E',default=0)
+            eta=((m.EF-m.Ec).tmf()+E)/kT
             m['Ndp']+=(conc*idd(eta,g)).tpf()
             m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tpf()
 
@@ -106,9 +108,10 @@ class PoissonSolver():
             Nam=PointFunction(m,value=0)
             m['Namderiv']=0
             for d in self._acceptors:
-                g=m[d+"g"][0]
-                conc=m[d+"Conc"]
-                eta=((m.Ev-m.EF).tmf()+m[d+"E"])/kT
+                g=MaterialFunction(m,d+'g',default=0)[0]
+                conc=MaterialFunction(m,d+'Conc',default=0)
+                E=MaterialFunction(m,d+'E',default=0)
+                eta=((m.Ev-m.EF).tmf()+E)/kT
                 #m['Nam']+=(conc*idd(eta,g)).tpf()
                 Nam+=(conc*idd(eta,g)).tpf()
                 m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
@@ -119,12 +122,13 @@ class PoissonSolver():
                 Nam=PointFunction(m,value=0)
                 m['Namderiv']=0
                 for d in self._acceptors:
-                    g=m[d+"g"][0]
-                    conc=m[d+"Conc"]
+                    g=MaterialFunction(m,d+'g',default=0)[0]
+                    conc=MaterialFunction(m,d+'Conc',default=0)
+                    E=MaterialFunction(m,d+'E',default=0)
                     f=2.1828
                     gotz=m[d+'gotzshift']=-m.gotz*f*(q**2)/(4*pi*m.eps)*(m.Nam.tmf())**(1/3)
                     #gotz=0
-                    eta=((m.Ev-m.EF).tmf()+m[d+"E"]+gotz)/kT
+                    eta=((m.Ev-m.EF).tmf()+E+gotz)/kT
                     Nam+=(conc*idd(eta,g)).tpf()
                     m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
                     #log("Gotz max {:.6f}".format(float(np.max(np.abs(gotz)))),'debug')
@@ -139,7 +143,8 @@ class PoissonSolver():
     def solve(self):
         m=self._mesh
         self.ionized_dopants()
-        m['DP']=-m.P.differentiate(fill_value=0)
+        P=MaterialFunction(m,'P',default=0)
+        m['DP']=-P.differentiate(fill_value=0)
         if 'p' in m:
             p=m.p
             pderiv=m.pderiv
@@ -185,7 +190,8 @@ class PoissonSolver():
     def isolve(self,visual=False,activation=1):
         log("Poisson iSolve",level="debug")
         m=self._mesh
-        m['DP']=-m.P.differentiate(fill_value=0)
+        P=MaterialFunction(m,'P',default=0)
+        m['DP']=-P.differentiate(fill_value=0)
         self.ionized_dopants()
         if 'p' in m:
             p=m.p
