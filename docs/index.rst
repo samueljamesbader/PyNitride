@@ -10,21 +10,22 @@ The PyNitride Scientific Package
 Everything the Python-friendly III-Nitride engineer needs!
 
 What is PyNitride?
-=============
+==================
 PyNitride began as a fun side-project, building a 1D Schrodinger-Poisson solver, and evolved into a cohesive, integrated collection of all of the Python code that I have found useful in my thesis work on Gallium Nitride Quantum Well High Electron Mobility Transistors.  This codebase is in a continual state of work, but is steadily being refined with validation and unit tests and more complete documentation.  I hope others might find these tools useful, either for their own calculation or for learning purposes, as I've written up a good deal of the physics that goes into these problems.
 
 Contents
 =========
 
-Find out more about the :ref:`math and physics <solve_schrodinger>` of this solver or jump right into the :doc:`API reference <modules>`.
+Find out more about the :doc:`solve_schrodinger` of this solver or jump right into the :doc:`API reference <modules>`.
 
 
 .. toctree::
     :maxdepth: 1
 
-        Math and Physics <_static/math_and_physics.rst>
-        Parameter Database <_static/parameter_database.rst>
-        Units system <_static/units.rst>
+        Math and Physics <math_and_physics>
+        Software Structure <overall_flow>
+        Parameter Database <parameter_database>
+        Units system <units>
         .. API Reference <pynitride>
 
         API Reference <modules>
@@ -33,10 +34,11 @@ Find out more about the :ref:`math and physics <solve_schrodinger>` of this solv
 
 Author
 =========
-.. image:: _static/SamBader.jpg
+.. image:: SamBader.jpg
     :alt: Sam Bader
     :scale: 45%
     :align: right
+
 If you have questions, feel free to connect with the project author (`Sam Bader <http://sambader.net>`_).
 
 I'm an Applied Physics PhD student with the `Prof Jena <https://djena.engineering.cornell.edu/>`_ and `Prof Xing <http://grace.engineering.cornell.edu/>`_ at Cornell University, and I love talking about computational methods and device physics!
