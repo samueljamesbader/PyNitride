@@ -1,5 +1,7 @@
-# Tests Schrodinger equation in a GaAs/AlGaAs square quantum well
-# Based on Li 1992 https://doi.org/10.1006/jcph.1994.1026
+""" Tests Schrodinger equation in a GaAs/AlGaAs square quantum well
+
+ Based on `Li 1992 <https://doi.org/10.1006/jcph.1994.1026>`_.
+"""
 
 from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
 from pynitride.material import MaterialSystem
@@ -101,7 +103,7 @@ if __name__=="__main__":
     E0err=(E[0]/.0357664-1)*100
     E1err=(E[1]/.1423513-1)*100
     E2err=(E[2]/.3110624-1)*100
-    if 0:
+    if 1:
         import matplotlib.pyplot as plt
         plt.plot(m.zm,m.Ec,'.-b',markersize=5)
         plt.plot(m.zm,m.Ev,'g')

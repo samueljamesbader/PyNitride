@@ -21,27 +21,18 @@ class PoissonSolver():
 
     The boundary conditions assumed are that the potential is zero at the first mesh point, and the electric field
     goes to zero at the last mesh point (or, to be more precise, at the next midpoint after the last meshpoint).
-    Two solve functions are available: :py:func:`~pynitride.poissolve.poisson.solve` and
-    :py:func:`~pynitride.poissolve.poisson.PoissonSolver.isolve`.  The former is a full, direct solution, which can be obtained
-    directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
-    iteration with a charge solver such as FermiDirac3D or Schrodinger.
+    Two solve functions are available: :func:`~PoissonSolver.solve` and
+    :func:`~pynitride.solvers.PoissonSolver.newton_step`.  The former is a direct solution, which can be
+    obtained directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
+    iteration with a carrier solver.
 
-    :param mesh: the :py:class:`~pynitride.poissolve.mesh.Mesh` on which to perform the solve
+    Args:
+        mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
     """
     def __init__(self, mesh):
         m=self._mesh = mesh
 
-        alldopants=sum((mb.matsys._dopants for mb in m._matblocks),[])
-        self._donors    =[d for d in alldopants if d.endswith("Donor")]
-        self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
-
-        #for d in self._donors+self._acceptors:
-            #if np.any(np.diff(m[d+"g"])!=0):
-            #    print(d,m[d+"g"])
-            #    raise Exception("Non-uniform g not working yet because idd takes one g")
-
-        self._sbh=PoissonSolver.get_sbh(m)
-
+        # Allocate output functions  on the mesh
         m.ensure_function_exists('rho',0)
         m.ensure_function_exists('rhoderiv',0)
         m.ensure_function_exists('fixedcharge',0)
@@ -55,19 +46,33 @@ class PoissonSolver():
         m.ensure_function_exists('phi',0)
 
 
-        if len(m.zm)>1:
-            self._left=np.empty(len(m.zp))
-            self._right=np.empty(len(m.zp))
-        self.update_epsfactor(epsfactor=1)
-        #self._update_others(-m.phi)
-        self.update_bands_to_potential(m,0,sbh=self._sbh)
-        self.ionized_dopants(gotzloop=False)
+        # Collect lists of all defined dopants whether in mesh or not
+        alldopants=sum((mb.matsys._dopants for mb in m._matblocks),[])
+        self._donors    =[d for d in alldopants if d.endswith("Donor")]
+        self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
 
+        # Get surface barrier
+        self._sbh=PoissonSolver.get_sbh(m)
+
+        # Set the epsilon_factor to 1 (ie don't scale epsilon), and initialize bands
+        self.update_epsfactor(epsfactor=1)
+        self.update_bands_to_potential(m,0,sbh=self._sbh)
+
+        # Assemble the load matrix
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=1,
                                dirichelet1=True,dirichelet2=False)
 
     def update_epsfactor(self,epsfactor):
-        self._eps=epsfactor*self._mesh.eps
+        """ Scales the epsilon used by this solver without actually changing epsilon on the mesh.
+
+        The higher the `epsfactor`, the less coupling between `phi` and charge, iterative solutions are easier.
+        The resulting solution is, of course, not correct for `epsfactor`!=1, but ramping `epsfactor` from a large
+        value where the problem is easy down to 1 is a useful way to smoothly approach the solution.
+
+        Args:
+            epsfactor: the factor (generally >=1) by which epsilon should be scaled
+        """
+        self._eps=epsfactor*self._mesh.eps.copy()
 
         # Assemble stiffness from eps
         O=np.expand_dims(np.expand_dims(self._mesh.zeros_mid,0),0)
@@ -79,6 +84,17 @@ class PoissonSolver():
 
     @staticmethod
     def get_sbh(m):
+        """ Get the surface barrier for a given mesh.
+
+        If the mesh boundary is specified numerically, that's the surface barrier, otherwise asks the topmost
+        material system for it's surface barrier given the mesh.
+
+        Args:
+            m: the global :class:`~pynitride.mesh.Mesh`
+
+        Returns:
+            the surface barrier (float)
+        """
         surface=m._boundary[0]
         if isinstance(surface,numbers.Real):
             return surface
@@ -93,6 +109,7 @@ class PoissonSolver():
         m['Ndp']=0
         m['Ndpderiv']=0
         for d in self._donors:
+            # TODO: Deal with the fact that idd only takes one g
             g=MaterialFunction(m,d+'g',default=0)[0]
             conc=MaterialFunction(m,d+'Conc',default=0)
             E=MaterialFunction(m,d+'E',default=0)
@@ -106,6 +123,7 @@ class PoissonSolver():
             Nam=PointFunction(m,value=0)
             m['Namderiv']=0
             for d in self._acceptors:
+                # TODO: Deal with the fact that idd only takes one g
                 g=MaterialFunction(m,d+'g',default=0)[0]
                 conc=MaterialFunction(m,d+'Conc',default=0)
                 E=MaterialFunction(m,d+'E',default=0)
@@ -192,6 +210,9 @@ class PoissonSolver():
         # Total charge
         m.rho=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
         m.rhoderiv=pderiv-nderiv+m.Ndpderiv-m.Namderiv
+
+        # Note that the derivatives are with respect to the Fermi level at fixed band position, which
+        # means it takes another negative sign to get the derivative with respect to potential
         drhodphi=-np.expand_dims(np.expand_dims(m.rhoderiv,0),0)
 
         # Assemble stiffness from eps
@@ -201,25 +222,26 @@ class PoissonSolver():
                                       C2=eps,dzp=self._mesh.dzp,
                                       dirichelet1=True,dirichelet2=False)
 
-        # Solve and update
+        # The error is calculated using the direct solution stiffness_matrix (which depends only on epsilon,
+        # not on the rho derivatives
         err0=fem_get_error(self._stiffness_matrix,self._load_matrix,load_vec=m.rho,test=m.phi,
                            err_out=None,n=1,dirichelet1=True,dirichelet2=False)
+
+        # Solve and update
         dphi=self._recent_dphi=activation*fem_solve(stiffness_matrix,self._load_matrix,load_vec=err0,
                       val_out=None,n=1,dirichelet1=True, dirichelet2=False)
         PoissonSolver.update_bands_to_potential(m,phi=m.phi+dphi,sbh=self._sbh)
 
-        return np.max(np.abs(dphi))
+        return np.max(np.abs(dphi))/activation
 
     @staticmethod
     def update_bands_to_potential(m,phi=None,sbh=None):
         """ Updates Ec, Ev, and phi to match the phi (potential) given.
 
         Args:
-            m - the mesh
-            phi- the new phi to use (MidFunction or scalar), None to just use current
-            sbh- the surface potential, if not specified, will be calculated from the mesh
-        Returns:
-            None
+            m: the :class:`~pynitride.mesh.Mesh`
+            phi: the new phi to use (MidFunction or scalar), None to just use current
+            sbh: the surface potential, if not specified, will be calculated from the mesh
         """
         m.ensure_function_exists('phi',0)
         sbh=sbh if sbh is not None else PoissonSolver.get_sbh(m)
@@ -228,19 +250,26 @@ class PoissonSolver():
         m['Ev']=m.Ec-m.Eg
         m['E']=-m.phi.differentiate()
 
-    #def _update_others(self, mqV):
-    #    m=self._mesh
-    #    self._mqV=mqV
-    #    PoissonSolver.update_bands_to_potential(m,phi=-mqV+m['Ec-E0'][0],sbh=self._sbh)
-    #    m['E']=mqV.differentiate()
-    #    m['D']=self._eps*m['E']
-    #    self._arho2=m['D'].differentiate()
-
     def store_state(self):
+        """ Stores the current phi in case we want to return to this current solution.
+
+        Useful in iterative self-consistent solves for returning back to "the last point where things worked".
+        See :func:`~pynitride.solvers.PoissonSolver.restore_state`.
+        """
         self._storedphi=self._mesh.phi.copy()
     def restore_state(self):
+        """ Restores the most recently saved phi.
+
+        Useful in iterative self-consistent solves for returning back to "the last point where things worked".
+        See :func:`~pynitride.solvers.PoissonSolver.store_state`.
+        """
         PoissonSolver.update_bands_to_potential(self._mesh,self._storedphi,sbh=self._sbh)
     def shorten_last_step(self,factor):
+        """ Shortens the `phi` step taken by the most recent solve by the given factor.
+
+        Args:
+            factor (float): the amount (0-1) by which the previous step should be rescaled
+        """
         PoissonSolver.update_bands_to_potential(self._mesh,self._mesh.phi-(1-factor)*self._recent_dphi,sbh=self._sbh)
 
 class Equilibrium():
