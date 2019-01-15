@@ -129,7 +129,7 @@ class Schrodinger(CarrierModel):
     """ Implements a Schrodinger envelope function carrier model.
 
     Carriers at each point are populated according to band alignment as if that point was the bulk.
-    See :func:`solve` for details and see :ref:`Carrier Models <carriers_schrodinger>` for the physics.
+    See :func:`solve` for details and see :ref:`Carrier Models <carriers>` for the physics.
 
     Arguments:
         mesh (:class:`.mesh.Mesh`): the Mesh to populate
