@@ -24,7 +24,6 @@ material=GaN
         E: 2 eV     #fake
         g: 4
     carrier=electron
-        DEc: 218 meV
         band=
             g: 2
             mzs: .2 m_e
@@ -70,7 +69,6 @@ material=InN
 
     ############ THESE ARE GAN VALUES
     carrier=electron
-        DEc: 218 meV
         band=
             g: 2
             mzs: .2 m_e
@@ -118,7 +116,6 @@ material=AlN
         E: 4 eV     #fake
         g: 4
     carrier=electron
-        DEc: 1.835 eV
         band=
             g: 2
             mzs: .4 m_e
@@ -126,7 +123,6 @@ material=AlN
             mdos: .4 m_e
             DE: 0 eV
     carrier=hole
-        DEv: .7
         band=HH
             g: 2
             mzs: .935 m_e
@@ -157,7 +153,6 @@ material=AlN
 #####        surface=GenericMetal
 #####            electronbarrier: 3.5 eV
 #####        carrier=electron
-#####            DEc: 2.1 eV
 #####            band=
 #####                g: 2
 #####                mzs: .2 m_e
@@ -191,7 +186,6 @@ material=AlN
 #####        surface=GenericMetal
 #####            electronbarrier: 1 eV
 #####        carrier=electron
-#####            DEc: 218 meV
 #####            band=
 #####                g: 2
 #####                mzs: .2 m_e
@@ -236,7 +230,6 @@ material=AlN
 #####        lattice
 #####            u: .376
 #####        carrier=electron
-#####            DEc: 0 meV
 #####            band=
 #####                g: 2
 #####                mzs: .2 m_e
@@ -269,7 +262,6 @@ material=AlN
 #####        surface=GenericMetal
 #####            electronbarrier: 3 eV
 #####        carrier=electron
-#####            DEc: 1.835 eV
 #####            band=
 #####                g: 2
 #####                mzs: .4 m_e
@@ -277,7 +269,6 @@ material=AlN
 #####                mdos: .4 m_e
 #####                DE: 0 eV
 #####        carrier=hole
-#####            DEv: .7
 #####            band=HH
 #####                g: 2
 #####                mzs: .935 m_e
@@ -326,7 +317,6 @@ material=AlN
 #####    conditions=
 #####        Eg : 1 #FAKE
 #####        carrier=electron
-#####            DEc: 0 eV
 #####            band=
 #####                g: 2
 #####                mzs: .067 m_e
@@ -350,7 +340,6 @@ material=AlN
 #####        surface=GenericMetal
 #####            electronbarrier:0 eV
 #####        carrier=electron
-#####            DEc: .4 eV
 #####            band=
 #####                g: 2
 #####                mzs: .1 m_e
@@ -392,7 +381,6 @@ material=Sam
         E: 2 eV     #fake
         g: 4
     carrier=electron
-        DEc: 218 meV
         band=
             g: 2
             mzs: .2 m_e
@@ -451,7 +439,6 @@ material=SiO2
         E: 2 eV     #fake
         g: 4
     carrier=electron
-        DEc: 218 meV
         band=
             g: 2
             mzs: .2 m_e

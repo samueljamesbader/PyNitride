@@ -16,6 +16,7 @@ setup(
     author_email='samuel.james.bader@gmail.com',
     description='Python utilities for 1D band diagrams and simulation',
     ext_modules = cythonize([
+        "pynitride/fem.pyx",
         "pynitride/maths.pyx",
         "pynitride/cython/assemblers/assemble1x1.pyx",
         "pynitride/cython/assemblers/assemble2x2.pyx",

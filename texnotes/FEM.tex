@@ -1,0 +1,108 @@
+% arara: pdflatex
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{physics}
+\begin{document}
+\section{Element function}
+If $\Delta_i(z)$ is the linear interpolation of $\delta_{z_i, z_j}$ on dependent variable $z_j$, then define
+\begin{multline*}
+  O_{ij}(G)=\int dz \Delta_i(z)G(z)\Delta_j(z)=\\
+  +\delta_{i-1, j}\frac{G_{i-.5}dz_{i-.5}}{6}
+    +\delta_{i+1, j}\frac{G_{i+.5}dz_{i+.5}}{6}\\
+    +\delta_{i  , j}\left(\frac{G_{i-.5}dz_{i-.5}}{3}+\frac{G_{i+.5}dz_{i+.5}}{3}\right)
+\end{multline*}
+\begin{multline*}
+  O^L_{ij}(G)=\int dz \Delta_i(z)G(z)\Delta'_j(z)=\\
+  -\delta_{i-1, j}\frac{G_{i-.5}}{2}
+  +\delta_{i+1, j}\frac{G_{i+.5}}{2}\\
+  +\delta_{i, j}\left(\frac{G_{i-.5}}{2}-\frac{G_{i+.5}}{2}\right)
+\end{multline*}
+\begin{multline*}
+  O''_{ij}(G)=\int dz \Delta'_i(z)G(z)\Delta'_j(z)=\\
+  -\delta_{i-1, j}\frac{G_{i-.5}}{dz_{i-.5}}
+  -\delta_{i+1, j}\frac{G_{i+.5}}{dz_{i+.5}}\\
+  +\delta_{i  , j}\left(\frac{G_{i-.5}}{dz_{i-.5}}+\frac{G_{i+.5}}{dz_{i+.5}}\right)
+\end{multline*}
+with the prescription that $dz^{-1}_{-.5}=dz^{-1}_{n+.5}=0$.
+
+%\section{Poisson}
+%Boundary conditions: a top boundary with zero potential and a bottom with zero field.
+%\[
+%  \partial_z \left[ \epsilon(z) \partial_z \phi(z) \right] = \rho(z), \quad \phi(z_0)=0, \quad \phi'(z_{n-1})=0
+%\]
+%Use basis functions $\Delta_i$ for $i\in \left\{1, \ldots n-1\right\}$. Multiply on both sides and integrate by parts
+%\[
+%  \left[ \Delta_i(z) \epsilon(z) \partial_z\phi(z)  \right]^{z_{n-1}}_{z_0}-\int_{z_0}^{z_{n-1}}dz \epsilon(z)\partial_z\phi(z)\partial_z\Delta_i = \int dz \rho(z) \Delta_i(z)
+%\]
+%For all $i$, $\Delta_i(z_0)=0$, and we use $\partial_x\phi(z_{n-1})=0$
+%\[
+%  -\int_{z_0}^{z_{n-1}}dz \epsilon(z)\partial_z\phi(z)\partial_z\Delta_i = \int dz \rho(z) \Delta_i(z)
+%\]
+%  
+%\[
+%  -\sum_{j}O''_{ij}\epsilon_{ij}\phi_j = \sum_j O_{ij}\rho_j 
+%\]
+  
+\section{General}
+The most general form of differential equation faced by PyNitride is 
+\begin{align}
+  \left[C^0(z)-iC^L(z)\partial_z-i\partial_zC^R(z)-\partial_z C^2(z) \partial_z \right] f(z) = w(z)b(z) 
+\end{align}
+where the $C$ are potentially matrices, $C^L$ and $C^R$ are transposes of one another. The $C$ and $w$ are material properties (ie they are well-defined on the mid mesh) whereas $f(z)$ and $b(z)$ are solution variables (well-defined on the node mesh).  This can include $b(z)=\lambda f(z)$ as an eigenvalue problem.
+
+Choose the basis functions $\Delta_i$ where $i$ includes any Neumann boundary point but not a Dirichelet boundary point. We multiply by the $\Delta_i$, integrate over $z$. Integrate the third and fourth term by parts, we have
+\[
+  \sum_j \left[O_{ij}(C^0)u_j -iO^L_{ij}(C^L)+iO^L_{ji}(C^R) +O''_{ij}(C^2)\right]u_j+\Gamma=\sum_j O_{ij}(w)b
+\]
+where $\Gamma=\left[\Delta_i(-C^2\partial_zf-iC^Rf)\right]^{z_{n-1}}_{z_{0}}$. For a Dirichelet boundary, this term just vanishes because every $\Delta_i$ is zero at any Dirichelet boundary.  For a Neumann boundary, the condition must be of the form $C^2\partial_z f=-iC^Rf$ to make $\Gamma$ vanish.
+
+Putting this into the form $Af= Mb$, or for an eigenvalue problem, $Af= \lambda M f$, we have
+\begin{equation}
+  A_{i,i-1}= \frac{C^0_{i-.5}dz_{i-.5}}{6}+\frac{i}{2}\left( C^L_{i-.5}+C^R_{i-.5} \right)-\frac{C^2_{i-.5}}{dz_{i-.5}}
+\end{equation}
+\begin{equation}
+  A_{i,i+1}= \frac{C^0_{i+.5}dz_{i+.5}}{6}-\frac{i}{2}\left( C^L_{i+.5}+C^R_{i+.5} \right)-\frac{C^2_{i+.5}}{dz_{i+.5}}
+\end{equation}
+\begin{multline*}
+  A_{i,i}=
+    \frac{C^0_{i-.5}dz_{i-.5}}{3}+\frac{C^0_{i+.5}dz_{i+.5}}{3}\\
+    +\frac{i}{2}\left( -C^L_{i-.5}+C^L_{i+.5} + C^R_{i-.5}-C^R_{i+.5}  \right)\\
+    +\frac{C^2_{i-.5}}{dz_{i-.5}}+\frac{C^2_{i+.5}}{dz_{i+.5}}
+\end{multline*}
+And
+\begin{equation*}
+  M_{i,i-1}= \frac{w_{i-.5}dz_{i-.5}}{6}
+\end{equation*}
+\begin{equation*}
+  M_{i,i+1}= \frac{w_{i+.5}dz_{i+.5}}{6}
+\end{equation*}
+\begin{equation*}
+  M_{i,i}= \frac{w_{i-.5}dz_{i-.5}}{3}+\frac{w_{i+.5}dz_{i+.5}}{3}
+\end{equation*}
+
+These come with the prescription that out-of-bound terms, which only appear in the first and last diagonal elements, should be removed.
+
+\subsection{Specific examples}
+\begin{itemize}
+  \item For the Poisson equation
+
+    Top boundary Dirichelet, bottom Neumann
+    \[C^2=\epsilon,\ C^L=C^R=C^0=0,\ w=1,\ b=\rho\]
+  \item For the electron Schrodinger equation,
+
+    All boundaries Dirichelet
+    \[C^2=\frac{\hbar^2}{2m_z},\ C^0=E_C+\frac{\hbar^2k_\perp}{2m_{xy}},\ C^L=C^R=0,\ \lambda=E, w=1\]
+  \item For the hole Schrodinger equation,
+
+    All boundaries Dirichelet
+    \[C^2=\frac{\hbar^2}{2m_z},\ C^0=-E_V+\frac{\hbar^2k_\perp}{2m_{xy}},\ C^L=C^R=0,\ \lambda=-E, w=1\]
+  \item For the 6x6 kp equation,
+
+    All boundaries Dirichelet
+
+  \item For the 3x3 elastic continuum equation
+
+    Top boundary Neumann, bottom Dirichelet
+
+\end{itemize}
+\end{document}

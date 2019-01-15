@@ -2,6 +2,7 @@ import numpy as np
 from pynitride.mesh import PointFunction, MidFunction, Function, ConstantFunction
 from pynitride.paramdb import pmdb, k, pi, hbar, m_e, nm
 from pynitride.maths import fd12, fd12p, assemble6x6
+from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
 from numpy.linalg import eigvalsh
@@ -115,11 +116,11 @@ class Semiclassical(CarrierModel):
 
         # Compute the carrier density and its derivative
         if 'electron' in self._carriers:
-            eta=((m.EF - Ec_eff).tmf() - m.cDE) / (k * m.T)
+            eta=((m.EF.tmf() - Ec_eff) - m.cDE) / (k * m.T)
             assign(m['n'],     np.sum(m.Nc * fd12(eta), axis=0).tpf())
             assign(m['nderiv'],np.sum(-(m.Nc/(k*m.T)) * fd12p(eta), axis=0).tpf())
         if 'hole' in self._carriers:
-            eta=((Ev_eff - m.EF).tmf() - m.vDE) / (k * m.T)
+            eta=((Ev_eff - m.EF.tmf()) - m.vDE) / (k * m.T)
             assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tpf())
             assign(m['pderiv'],np.sum((m.Nv/(k*m.T)) * fd12p(eta), axis=0).tpf())
 
@@ -171,13 +172,13 @@ class Schrodinger(CarrierModel):
         self._lkineticfactor=[]
         if 'electron' in self._carriers:
             self._nebands=m.mez.shape[0]
-            self._een=PointFunction(m, empty=(self._nebands, self._neig))
-            self._epsi=PointFunction(m, empty=(self._nebands, self._neig))
+            self._een=np.empty([self._nebands, self._neig+self._blend])
+            self._epsi=PointFunction(m, empty=(self._nebands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
         if 'hole' in self._carriers:
             self._nhbands=m.mhz.shape[0]
-            self._hen=PointFunction(m, empty=(self._nhbands, self._neig))
-            self._hpsi=PointFunction(m, empty=(self._nhbands, self._neig))
+            self._hen=np.empty([self._nhbands, self._neig+self._blend])
+            self._hpsi=PointFunction(m, empty=(self._nhbands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
 
         for sb in self._subbands:
@@ -185,40 +186,35 @@ class Schrodinger(CarrierModel):
             b= -1 if elec else 1
             mz=(m.mez if elec else m.mhz)[l,:]
             mxy=(m.mexy if elec else m.mhxy)[l,:]
-            diagonal=-b*(hbar**2/(mz*m._dzp)).tpf(interp='unweighted')/m._dzm
-            offdiagonal=b*(hbar**2/(2*mz*m._dzp *np.sqrt(m._dzm[:-1]*m._dzm[1:])))
-            sb['zkinetic']=\
-                diags([offdiagonal,diagonal,offdiagonal],[-1,0,1],format='csc')
-            sb['lkinetic']=\
-                diags(-b*(hbar**2/(2*mxy)).tpf(interp='unweighted'),format='csc')
+            kperp=0
+            sb['C0_kinetic']=np.expand_dims(np.expand_dims(hbar**2/(2*mxy)*kperp**2,0),0)
+            sb['C2']=np.expand_dims(np.expand_dims(hbar**2/(2*mz),0),0)
             sb['energies']=self._een if elec else self._hen
             sb['psi']=self._epsi if elec else self._hpsi
 
+        self._M=assemble_load_matrix(w=MidFunction(m,1),dzp=m._dzp,
+                              n=1,dirichelet1=True,dirichelet2=True)
+
     def solve(self):
-        kperp=0
         m=self._mesh
 
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'), sb['subband']
-            U= (m.Ec+m.cDE[l,:].tpf()) if elec else (m.Ev-m.vDE[l,:].tpf())
-            valley=np.min(U) if elec else np.max(U)
-            H=sb['zkinetic']+diags(U)+sb['lkinetic']*kperp**2
-            #sb['H']=H
-            #sb['valley']=valley
-            #sb['U']=U
-            #print("l: ",l," elec: ",elec)
-            #print('eigs0',eigsh(-H,k=self._neig+self._blend,sigma=-valley)[0])
-            if elec:
-                energies,eigenvectors=eigsh(H, k=self._neig+self._blend,sigma= valley)
-            else:
-                energies,eigenvectors=eigsh(-H,k=self._neig+self._blend,sigma=-valley)
-                energies=-energies
-                #print("EN: ", energies)
-                #print("V: ",valley)
-                #print("H:\n",H[:10,:10].todense())
-                #print(eigsh(-H,k=self._neig+self._blend,sigma=-valley)[0])
-            sb['energies'][l,:,:]=np.atleast_2d(energies[:self._neig]).T
-            sb['psi'][l,:,:]=(1/np.sqrt(m._dzm))*eigenvectors[:,:self._neig].T
+            U= (m.Ec+m.cDE[l,:]) if elec else -(m.Ev-m.vDE[l,:])
+            O=MidFunction(m,[[0.]])
+            H=assemble_stiffness_matrix(
+                C0=U+sb['C0_kinetic'],
+                Cl=None,Cr=None,
+                C2=sb['C2'],
+                dzp=m._dzp,
+                dirichelet1=True,dirichelet2=True
+            )
+            fem_eigsh(stiffness_matrix=H,load_matrix=self._M,
+                      eigval_out=sb['energies'][l],eigvec_out=sb['psi'][l,:,:],n=1,
+                      dirichelet1=True,dirichelet2=True,
+                      k=self._neig+self._blend,sigma=np.min(U))
+            if not elec:
+                sb['energies']*=-1
 
 
     def repopulate(self):
@@ -233,22 +229,20 @@ class Schrodinger(CarrierModel):
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'), sb['subband']
             b,mxy,g,dens,deriv= (-1,m.mexy[l],m.eg[l],m.n,m.nderiv) if elec else (1,m.mhxy[l],m.hg[l],m.p,m.pderiv)
-            en=sb['energies'][l,:,:]
+            en=np.expand_dims(sb['energies'][l,:],2)
             psi=sb['psi'][l,:,:]
 
             eta=b*(en-m.EF).tmf()/(k*m.T)
             psisq=abs(psi.tmf())**2
             mmean=np.atleast_2d((mxy*psisq).integrate(definite=True)).T
-            #print("dens ",dens[10])
             dens+= np.sum(  (g*mmean*k*m.T)/(2*pi*hbar**2)*psisq*np.log(1+np.exp(eta)),      axis=0).tpf()
             deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tpf()
-            #print("dens ",dens[10])
 
         if self._blend:
             if 'electron' in self._carriers:
-                self._sce.repopulate(Ec_eff=np.maximum(self._een[:,-1,:],m.Ec),addon=True)
+                self._sce.repopulate(Ec_eff=np.maximum(np.expand_dims(self._een[:,-1],1),m.Ec),addon=True)
             if 'hole' in self._carriers:
-                self._sch.repopulate(Ev_eff=np.minimum(self._hen[:,-1,:],m.Ev),addon=True)
+                self._sch.repopulate(Ev_eff=np.minimum(np.expand_dims(self._hen[:,-1],1),m.Ev),addon=True)
 
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
