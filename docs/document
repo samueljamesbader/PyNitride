@@ -25,7 +25,7 @@ shift
 done
 cd docs
 if $runapidoc ; then
-    sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct ../tests/dirty -f -e
+    sphinx-apidoc -o . ../ ../examples ../setup.py  ../pynitride/external ../pynitride/crystruct ../tests/old -f -e
 fi
 
 make html

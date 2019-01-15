@@ -31,3 +31,12 @@ docs/*.rst
 # Other special files
 *stats.txt
 parameters/1dp.txt
+
+
+# My junk
+scratch/
+
+# TeX
+*.aux
+*.log
+*.pdf

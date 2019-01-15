@@ -2,7 +2,7 @@ import matplotlib.pyplot as mpl
 mpl.interactive(True)
 from pynitride.mesh import UniformLayer, Mesh
 from pynitride.paramdb import nm,cm,eV
-from pynitride.material import AlGaN, AlGaN_SiO2
+from pynitride.material import AlGaN
 
 
 from pynitride.mesh import Mesh, PointFunction,DeltaFunction,MaterialFunction,RegionFunction,DeltaFunction

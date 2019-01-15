@@ -322,6 +322,11 @@ class Mesh():
         self.Np=len(self._zp)
         self.Nm=len(self._zm)
 
+        self.zeros_nod=NodFunction(self,0)
+        self.zeros_mid=MidFunction(self,0)
+        self.ones_nod=NodFunction(self,1)
+        self.ones_mid=MidFunction(self,1)
+
 
     def indexp(self, zp):
         r""" Finds the index of the point mesh location nearest to ``zp``.
@@ -754,7 +759,7 @@ class SubMesh(Mesh):
 class Function(np.ndarray):
     r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.
 
-    These classes all subclass Numpy's
+    This classes subclasses Numpy's
     `ndarray <https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html>`_ so vectorized math should
     just work.  Functions are arbitrarily shaped/dimensioned ``ndarray``'s, with the constraint that the last dimension
     matches the length of the (point or mid) mesh on which it is defined.
@@ -952,13 +957,15 @@ class Function(np.ndarray):
                            fill_value='extrapolate')(self.mesh.zm)
         return Function(self.mesh,pos='mid',value=arr,dtype=self.dtype)
 
-def PointFunction(mesh,value=np.NaN,dtype='float',empty=False):
+def NodFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the point mesh
 
     This is a convenience equivalent to calling :py:func:`~pynitride.poissolve.mesh.Function` with ``pos='point'``.
     All other arguments are the same.
     """
     return Function(mesh,pos='point',value=value,dtype=dtype,empty=empty)
+PointFunction=NodFunction
+
 def MidFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the mid mesh
 

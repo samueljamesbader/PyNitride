@@ -6,12 +6,12 @@ from scipy.sparse.linalg import eigsh
 from pynitride.paramdb import k,hbar,q,m_e, cm, pi
 from pynitride.maths import tdma, fd12, fd12p, idd,iddd
 from pynitride.mesh import MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
+from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_solve, fem_get_error
 from collections import OrderedDict
 from operator import mul
 from functools import reduce, lru_cache
 
 from pynitride.visual import log, sublog
-
 
 
 
@@ -40,12 +40,7 @@ class PoissonSolver():
             #    print(d,m[d+"g"])
             #    raise Exception("Non-uniform g not working yet because idd takes one g")
 
-        surface=m._boundary[0]
-        if isinstance(surface,numbers.Real):
-            self._phib=surface
-        else:
-            self._phib=m._matblocks[0].matsys.surface_barrier(m._matblocks[0].mesh)
-
+        self._sbh=PoissonSolver.get_sbh(m)
 
         m.ensure_function_exists('rho',0)
         m.ensure_function_exists('rhoderiv',0)
@@ -64,28 +59,31 @@ class PoissonSolver():
             self._left=np.empty(len(m.zp))
             self._right=np.empty(len(m.zp))
         self.update_epsfactor(epsfactor=1)
-        self._update_others(-m['phi'])
+        #self._update_others(-m.phi)
+        self.update_bands_to_potential(m,0,sbh=self._sbh)
         self.ionized_dopants(gotzloop=False)
+
+        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=1,
+                               dirichelet1=True,dirichelet2=False)
 
     def update_epsfactor(self,epsfactor):
         self._eps=epsfactor*self._mesh.eps
-        if len(self._mesh.zm)>1:
-            self.assemble_fixed()
 
-    def assemble_fixed(self):
-        m=self._mesh
-        eps=self._eps
-        self._left[1:]=eps/(m.dzp * m.dzm[1:])
-        self._right[:-1]=eps/(m.dzp * m._dzm[:-1])
-        self._center= -(eps/m.dzp).tpf(interp='unweighted') / m.dzm
-        self._center[-1]=self._center[-2]
-        self._left[-1]/=2
-        self._left[:2]=0
-        self._right[0]=0
-        self._right[-1:]=0
-        self._center[0]=1
-        self._center[1:-1]*=2
+        # Assemble stiffness from eps
+        O=np.expand_dims(np.expand_dims(self._mesh.zeros_mid,0),0)
+        eps=np.expand_dims(np.expand_dims(self._eps,0),0)
+        self._stiffness_matrix= \
+            assemble_stiffness_matrix(C0=O,Cl=None,Cr=None,
+                                      C2=eps,dzp=self._mesh.dzp,
+                                      dirichelet1=True,dirichelet2=False)
 
+    @staticmethod
+    def get_sbh(m):
+        surface=m._boundary[0]
+        if isinstance(surface,numbers.Real):
+            return surface
+        else:
+            return m._matblocks[0].matsys.surface_barrier(m._matblocks[0].mesh)
 
     def ionized_dopants(self,gotzloop=False):
         # Tiwari Compound Semiconductor Devices pg31-32
@@ -98,7 +96,7 @@ class PoissonSolver():
             g=MaterialFunction(m,d+'g',default=0)[0]
             conc=MaterialFunction(m,d+'Conc',default=0)
             E=MaterialFunction(m,d+'E',default=0)
-            eta=((m.EF-m.Ec).tmf()+E)/kT
+            eta=((m.EF.tmf()-m.Ec)+E)/kT
             m['Ndp']+=(conc*idd(eta,g)).tpf()
             m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tpf()
 
@@ -111,7 +109,7 @@ class PoissonSolver():
                 g=MaterialFunction(m,d+'g',default=0)[0]
                 conc=MaterialFunction(m,d+'Conc',default=0)
                 E=MaterialFunction(m,d+'E',default=0)
-                eta=((m.Ev-m.EF).tmf()+E)/kT
+                eta=((m.Ev-m.EF.tmf())+E)/kT
                 #m['Nam']+=(conc*idd(eta,g)).tpf()
                 Nam+=(conc*idd(eta,g)).tpf()
                 m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
@@ -128,7 +126,7 @@ class PoissonSolver():
                     f=2.1828
                     gotz=m[d+'gotzshift']=-m.gotz*f*(q**2)/(4*pi*m.eps)*(m.Nam.tmf())**(1/3)
                     #gotz=0
-                    eta=((m.Ev-m.EF).tmf()+E+gotz)/kT
+                    eta=((m.Ev-m.EF.tmf())+E+gotz)/kT
                     Nam+=(conc*idd(eta,g)).tpf()
                     m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
                     #log("Gotz max {:.6f}".format(float(np.max(np.abs(gotz)))),'debug')
@@ -141,120 +139,109 @@ class PoissonSolver():
 
 
     def solve(self):
+        r""" Solves the Poisson equation directly (not good for self-consistent looping)
+
+        The equation is :math:`-\partial_z\epsilon\partial_z\phi=\rho`.  Do not use this function in
+        a self-consistent poisson-carrier loop, because that's not super stable.  Instead
+        use :func:`pynitride.solvers.PoissonSolver.newton_step`.
+
+        """
         m=self._mesh
+
+        # Dopants
         self.ionized_dopants()
-        P=MaterialFunction(m,'P',default=0)
-        m['DP']=-P.differentiate(fill_value=0)
-        if 'p' in m:
-            p=m.p
-            pderiv=m.pderiv
-        else:
-            p=pderiv=0
-        if 'n' in m:
-            n=m.n
-            nderiv=m.nderiv
-        else:
-            n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
-        m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
+
+        # Polarization
+        P=MaterialFunction(m,'P',default=0)  # I don't like having to do this
+        m.DP=-P.differentiate(fill_value=0)
 
 
-        qrho=q*m.rho
-        qrho[0]=0
-        print("lcr")
-        print(sum(self._left))
-        print(sum(self._center))
-        print(sum(self._right))
-        mqV=PointFunction(m,tdma(self._left,self._center,self._right,qrho))
-        err=np.max(np.abs(m.phi+mqV))
-        m['phi']=-mqV
-        self._update_others(mqV)
-        return err
+        # Carriers
+        p=m.p if ('p' in m) else 0
+        n=m.n if ('n' in m) else 0
 
-    def _update_others(self, mqV):
+        # Total charge
+        m.rho=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
+
+        # Solve and update
+        fem_solve(self._stiffness_matrix,self._load_matrix,load_vec=m.rho,
+                  val_out=m.phi,dirichelet1=True, dirichelet2=False)
+        PoissonSolver.update_bands_to_potential(m,sbh=self._sbh)
+
+    def newton_step(self, activation=1, doplot=False):
+        r""" Solves the phi for one step of Newton iteration.
+
+        The equation is
+        :math:`-\left[\partial_z\epsilon\partial_z+\rho_0'\right]\delta\phi=\rho + \partial_z\epsilon\partial_z\phi_0`.
+
+        """
         m=self._mesh
-        self._mqV=mqV
-        m['phi']=-mqV
-        m['Ec']=mqV+m.EF[0]+self._phib+m.DE.tpf()-m.DE[0]+m['Ec-E0'].tpf()-m['Ec-E0'][0]
-        m['Ev']=m.Ec-m.Eg.tpf()
-        m['E']=mqV.differentiate()
-        m['D']=self._eps*m['E']
-        self._arho2=m['D'].differentiate()
+
+        # Dopants
+        self.ionized_dopants()
+
+        # Polarization
+        P=MaterialFunction(m,'P',default=0)  # I don't like having to do this
+        m.DP=-P.differentiate(fill_value=0)
+
+
+        # Carriers
+        p,pderiv=(m.p,m.pderiv) if ('p' in m) else (0,0)
+        n,nderiv=(m.n,m.nderiv) if ('n' in m) else (0,0)
+
+        # Total charge
+        m.rho=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
+        m.rhoderiv=pderiv-nderiv+m.Ndpderiv-m.Namderiv
+        drhodphi=-np.expand_dims(np.expand_dims(m.rhoderiv,0),0)
+
+        # Assemble stiffness from eps
+        eps=np.expand_dims(np.expand_dims(self._eps,0),0)
+        stiffness_matrix= \
+            assemble_stiffness_matrix(C0=-drhodphi,Cl=None,Cr=None,
+                                      C2=eps,dzp=self._mesh.dzp,
+                                      dirichelet1=True,dirichelet2=False)
+
+        # Solve and update
+        err0=fem_get_error(self._stiffness_matrix,self._load_matrix,load_vec=m.rho,test=m.phi,
+                           err_out=None,n=1,dirichelet1=True,dirichelet2=False)
+        dphi=self._recent_dphi=activation*fem_solve(stiffness_matrix,self._load_matrix,load_vec=err0,
+                      val_out=None,n=1,dirichelet1=True, dirichelet2=False)
+        PoissonSolver.update_bands_to_potential(m,phi=m.phi+dphi,sbh=self._sbh)
+
+        return np.max(np.abs(dphi))
+
+    @staticmethod
+    def update_bands_to_potential(m,phi=None,sbh=None):
+        """ Updates Ec, Ev, and phi to match the phi (potential) given.
+
+        Args:
+            m - the mesh
+            phi- the new phi to use (MidFunction or scalar), None to just use current
+            sbh- the surface potential, if not specified, will be calculated from the mesh
+        Returns:
+            None
+        """
+        m.ensure_function_exists('phi',0)
+        sbh=sbh if sbh is not None else PoissonSolver.get_sbh(m)
+        if phi is not None: m['phi']=phi
+        m['Ec']=-m.phi.tmf()+m.EF[0]+m.DE-m.DE[0]+m['Ec-E0']-m['Ec-E0'][0]+sbh
+        m['Ev']=m.Ec-m.Eg
+        m['E']=-m.phi.differentiate()
+
+    #def _update_others(self, mqV):
+    #    m=self._mesh
+    #    self._mqV=mqV
+    #    PoissonSolver.update_bands_to_potential(m,phi=-mqV+m['Ec-E0'][0],sbh=self._sbh)
+    #    m['E']=mqV.differentiate()
+    #    m['D']=self._eps*m['E']
+    #    self._arho2=m['D'].differentiate()
 
     def store_state(self):
-        self._storedmqV=self._mqV.copy()
+        self._storedphi=self._mesh.phi.copy()
     def restore_state(self):
-        self._mqV=self._storedmqV
-        self._update_others(self._mqV)
-
-    def isolve(self,visual=False,activation=1):
-        log("Poisson iSolve",level="debug")
-        m=self._mesh
-        P=MaterialFunction(m,'P',default=0)
-        m['DP']=-P.differentiate(fill_value=0)
-        self.ionized_dopants()
-        if 'p' in m:
-            p=m.p
-            pderiv=m.pderiv
-        else:
-            p=pderiv=0
-        if 'n' in m:
-            n=m.n
-            nderiv=m.nderiv
-        else:
-            n=nderiv=0
-        m['rho']=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
-        m['rhoderiv']=pderiv-nderiv+m.Ndpderiv-m.Namderiv
-        qrho=q*m['rho']
-        qrho[0]=0
-
-        # left right and center are for +d^2/dx^2, ie center is negative
-        # isolve uses -d^2/dx^2, ie center (without rhoderiv) is positive
-
-        diag = -self._center + q * self._mesh['rhoderiv']
-        diag[0] -= q * m['rhoderiv'][0]
-        diag[-1] -= q * m['rhoderiv'][-1]
-
-        a=-self._left
-        b=diag
-        c=-self._right
-
-        d= (q*self._arho2 - qrho)
-        d[0]=0
-        d[-1]=-m['D'][-1]/m._dzm[-1]
-
-        # What I had after redoing Neumann at bottom
-        d[-1]=-m['rho'][-1]-m['D'][-1]/m._dzm[-1]
-
-        ## Trying to just fix the last point of D at zero
-        d[-1]=-m['D'][-1]/m._dzm[-1]
-
-
-
-        import numpy as np
-        if visual:
-            import matplotlib.pyplot as mpl
-            mpl.figure()
-            mpl.subplot(311)
-            mpl.plot(m.zp, qrho - q * self._rhoprev)
-            #print(np.max(np.abs(qrho-q*self._rhoprev)))
-            mpl.title('rho- rhoprev')
-            mpl.subplot(312)
-            mpl.plot(m.zp, m['rhoderiv'])
-            mpl.title('rhoderiv')
-            mpl.tight_layout()
-
-        dqmV=tdma(a,b,c,d)
-        self._dqmV=activation*dqmV
-        #print(dqmV[-15:])
-        self._mqV+=self._dqmV
-        self._update_others(self._mqV)
-        self._rhoprev=m['rho'].copy() # delete this
-
-        return np.max(np.abs(dqmV))#np.sum(np.abs(dqmV))/np.sum(np.abs(m['mqV']))
-
+        PoissonSolver.update_bands_to_potential(self._mesh,self._storedphi,sbh=self._sbh)
     def shorten_last_step(self,factor):
-        self._update_others(self._mqV-(1-factor)*self._dqmV)
+        PoissonSolver.update_bands_to_potential(self._mesh,self._mesh.phi-(1-factor)*self._recent_dphi,sbh=self._sbh)
 
 class Equilibrium():
 
@@ -319,7 +306,7 @@ class SelfConsistentLoop():
         self._cs=carriersolvers
 
     def isolve_fields(self, activation=1):
-        return sum(fs.isolve(activation=activation) for fs in self._fs)
+        return sum(fs.newton_step(activation=activation) for fs in self._fs)
     def solve_fields(self):
         return sum(fs.solve() for fs in self._fs)
     def solve_carriers(self):
