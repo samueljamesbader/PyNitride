@@ -755,6 +755,14 @@ class SubMesh(Mesh):
         self.ztrans=mesh.ztrans
         self._subs=mesh._subs
 
+        self.Np=len(self._zp)
+        self.Nm=len(self._zm)
+
+        self.zeros_nod=NodFunction(self,0)
+        self.zeros_mid=MidFunction(self,0)
+        self.ones_nod=NodFunction(self,1)
+        self.ones_mid=MidFunction(self,1)
+
 
 class Function(np.ndarray):
     r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.

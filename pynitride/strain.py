@@ -1,4 +1,5 @@
 import numpy as np
+from pynitride.visual import sublog
 
 class Pseudomorphic():
 
@@ -13,13 +14,17 @@ class Pseudomorphic():
         return self
 
     def solve(self):
-        straincond=self._straincond
-        if straincond is None:
-            pos=-1 if (self._mesh.ztrans == -1 ) else 0
-            straincond=self._mesh._matblocks[pos].matsys.bulk_lattice_condition(self._mesh._matblocks[pos].mesh)
-        for matblock in self._mesh._matblocks:
-            matblock.matsys.strain_to(matblock.mesh,straincond=straincond)
+        with sublog("Solving strain"):
+            self._mesh.ensure_function_exists('exx',0,pos='mid')
+            self._mesh.ensure_function_exists('eyy',0,pos='mid')
+            self._mesh.ensure_function_exists('ezz',0,pos='mid')
+            straincond=self._straincond
+            if straincond is None:
+                pos=-1 if (self._mesh.ztrans == -1 ) else 0
+                straincond=self._mesh._matblocks[pos].matsys.bulk_lattice_condition(self._mesh._matblocks[pos].mesh)
+            for matblock in self._mesh._matblocks:
+                matblock.matsys.strain_to(matblock.mesh,straincond=straincond)
 
-        #for mb in self._mesh._matblocks:
-        #    mb.update('strain',self._mesh)
+            #for mb in self._mesh._matblocks:
+            #    mb.update('strain',self._mesh)
 

@@ -9,7 +9,7 @@ from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
-from pynitride.machine import Pool
+from pynitride.machine import Pool, globstore_attributes, FakePool
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -213,8 +213,9 @@ class Schrodinger(CarrierModel):
                       eigval_out=sb['energies'][l],eigvec_out=sb['psi'][l,:,:],n=1,
                       dirichelet1=True,dirichelet2=True,
                       k=self._neig+self._blend,sigma=np.min(U))
+
             if not elec:
-                sb['energies']*=-1
+                sb['energies'][l]*=-1
 
 
     def repopulate(self):
@@ -244,6 +245,8 @@ class Schrodinger(CarrierModel):
             if 'hole' in self._carriers:
                 self._sch.repopulate(Ev_eff=np.minimum(np.expand_dims(self._hen[:,-1],1),m.Ev),addon=True)
 
+# TODO: Blending for multiband kp
+@globstore_attributes('_mesh','_Cmats','_load_matrix','_normsqs','_kpen','_kppsi')
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
         """ Solves the multiband k.p problem for the valence bands.
@@ -283,50 +286,43 @@ class MultibandKP(CarrierModel):
             if isinstance(self._kmeshmethod,str):
                 if kmeshmethod=='1D':
                     self._kt=np.linspace(0,ktmax,num_kpoints)
-                    self._kx=1*self._kt
-                    self._ky=0*self._kt
-                elif kmeshmethod=='xy':
-                    if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                    if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                    kx=np.linspace(0,ktmax[0],num_kpoints[0])
-                    ky=np.linspace(0,ktmax[1],num_kpoints[1])
-                    self._kmeshman=KMesh2D(kx,ky)
-                    self._kt=self._kmeshman.kt
-                    self._kx=self._kmeshman.kx1
-                    self._ky=self._kmeshman.ky1
-                elif kmeshmethod=='xyfull':
-                    if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                    if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                    kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
-                    ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
-                    self._kmeshman=KMesh2D(kx,ky)
-                    self._kt=self._kmeshman.kt
-                    self._kx=self._kmeshman.kx1
-                    self._ky=self._kmeshman.ky1
-                elif kmeshmethod=='polar':
-                    raise NotImplementedError
-                kx,ky=self._kmeshman.kx,self._kmeshman.ky
+                    kx=self._kx=1*self._kt
+                    ky=self._ky=0*self._kt
+                else:
+                    if kmeshmethod=='xy':
+                        if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                        if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                        kx=np.linspace(0,ktmax[0],num_kpoints[0])
+                        ky=np.linspace(0,ktmax[1],num_kpoints[1])
+                        self._kmeshman=KMesh2D(kx,ky)
+                        self._kt=self._kmeshman.kt
+                        self._kx=self._kmeshman.kx1
+                        self._ky=self._kmeshman.ky1
+                    elif kmeshmethod=='xyfull':
+                        if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
+                        if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
+                        kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
+                        ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
+                        self._kmeshman=KMesh2D(kx,ky)
+                        self._kt=self._kmeshman.kt
+                        self._kx=self._kmeshman.kx1
+                        self._ky=self._kmeshman.ky1
+                    elif kmeshmethod=='polar':
+                        raise NotImplementedError
+                    kx,ky=self._kmeshman.kx,self._kmeshman.ky
             # otherwise kmeshmethod should be an iterable of ((kx1,ky1),(kx2,ky2),...)
             else :
                 self._kt=np.array(kmeshmethod)
                 self._kx,self._ky=np.hsplit(self._kt,2)
                 kx,ky=self._kx,self._ky
 
-            # Assemble k.p matrices
-            log("Assembling k.p matrices ...",level='info')
-            self._Cmats=Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
-            #self._H=[assemble6x6(C0,Cl,Cr,C2,m._dzm,m._dzp,periodic=False) for [C0,Cl,Cr,C2] in Cmats]
-            self._H=Pool.process_pool().starmap(assemble6x6,\
-                    [[C0,Cl,Cr,C2,m._dzm,m._dzp,False] for [C0,Cl,Cr,C2] in Cmats])
-            for H in self._H:
-                H[:6, :6] *= 2
-                H[-6:, -6:] *= 2
-            log("Done assembly.",level='info')
+            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
 
             # Initialize other functions
-            m['kppsi']=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
-            m['kpen']=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues,))
+            self._kppsi=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
+            self._kpen=np.empty((len(self._kt),self._neig))
             self._normsqs=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues))
+        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=6,dirichelet1=True,dirichelet2=True)
 
     #def remesh(self,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
     #    if 'kppsi' in self._mesh._functions:
@@ -342,49 +338,33 @@ class MultibandKP(CarrierModel):
     def solve(self):
         log("MBKP Solve",level="debug")
         m=self._mesh
-        kt=self._kt
-        pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
-        def save_one_solve(i,H):
-            m['kpen'][i,:,:],m['kppsi'][i,:,:,:],self._normsqs[i,:,:]=self.solve_one_k(None,None,pot=pot,H=H)
-        Pool.thread_pool().starmap(save_one_solve,
-            [(i,H) for i,(kti,H) in enumerate(zip(kt,self._H))])
+        Pool.process_pool(new=True)
+        def save_one_solve(ik):
+            self._kpen[ik,:],self._kppsi[ik,:,:,:],self._normsqs[ik,:,:]= \
+                Pool.process_pool().apply(self.solve_one_k,args=(None,None,ik))
+        Pool.thread_pool().map(save_one_solve,range(len(self._kt)))
 
     # kpen is eig, z
     # kppsi is eig, comp, z
     # normsqs is eig, z
-    def solve_one_k(self,kx,ky,pot=None,H=None):
-
+    def solve_one_k(self,kx,ky,ik=None):
         m=self._mesh
-        if pot is None:
-            pot=-np.reshape(np.reshape(np.tile(m.Ev+m.EvOffset.tpf(),6),(6,len(m.zp))).transpose(),(6*len(m.zp)))
-        if H is None:
-            C0,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])[0]
-            H=Pool.process_pool().apply(assemble6x6,
-                    args=(C0,Cl,Cr,C2,m._dzm,m._dzp),kwds=dict(periodic=False))
-            H[:6, :6] *= 2
-            H[-6:, -6:] *= 2
+        if ik is not None:
+            C0_kin,Cl,Cr,C2=self._Cmats[ik]
+        else:
+            C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])
 
-        Htot=-H+diags(pot)
-        energies,eigenvectors=Pool.process_pool().apply(
-            eigsh,args=(Htot,),kwds=dict(k=self._neig,sigma=np.min(pot),which='LM',tol=0,ncv=self._neig*2))
-
-        # Sort by energy
-        indarr=np.argsort(energies)
+        # TODO: pot can be a property of Multiband rather than re-forming for each k
+        pot=(m.Ev+m.EvOffset)
+        C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
+        H=-assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
+        eigvals=np.empty([self._neig])
+        eigvecs=np.empty([self._neig,6,m.Np],dtype=complex)
+        fem_eigsh(H,self._load_matrix,eigvals,eigvecs,6,dirichelet1=True,dirichelet2=True,
+                  k=self._neig,sigma=np.min(-pot),which='LM',tol=0,ncv=self._neig*2)
         # eig, z
-        kpen=-np.atleast_2d(energies[indarr]).T
-        # eig, comp, z
-        kppsi=PointFunction(m,value=np.swapaxes(np.reshape(
-            eigenvectors[:,indarr],
-            (len(m._zp),6,self._neig)),0,2) \
-                            /np.sqrt(m._dzm),dtype='complex')
-        #kppsi=(kppsi.T/np.sum(np.abs(kppsi)**2,axis=-2).integrate(definite=True).T).T
-        ###THESE ARE NOT NORMALIZED....
-
-        # eig, z
-        normsqs=np.sum(abs(kppsi)**2,axis=1)
-
-        return kpen,kppsi,normsqs
-
+        normsqs=np.sum(abs(eigvecs)**2,axis=1)
+        return -eigvals,eigvecs,normsqs
 
     def solve_point_as_bulk(self,zp):
         m=self._mesh
@@ -399,7 +379,7 @@ class MultibandKP(CarrierModel):
         kT=k*m.T
         kt=self._kt
         # kt, eig, z
-        eta=(m.kpen-m.EF)/kT.tpf()
+        eta=(np.expand_dims(self._kpen,2)-m.EF)/kT.tpf()
 
         if self._kmeshmethod=='1D':
             m['p']=np.sum(1/(2*np.pi)*np.trapz(kt*(self._normsqs/(1+np.exp(-eta))).T,x=kt),axis=1)
