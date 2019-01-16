@@ -1,7 +1,7 @@
 import numpy as np
 from pynitride.mesh import PointFunction, MidFunction, Function, ConstantFunction
 from pynitride.paramdb import pmdb, k, pi, hbar, m_e, nm
-from pynitride.maths import fd12, fd12p, assemble6x6
+from pynitride.maths import fd12, fd12p
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh

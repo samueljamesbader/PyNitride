@@ -1,6 +1,4 @@
 import numpy as np
-from pynitride.cython.assemblers.assemble3x3 import assemble3x3
-from pynitride.cython.assemblers.assemble2x2 import assemble2x2
 from pynitride.visual import log, sublog
 from scipy.sparse.linalg import eigsh
 from pynitride.mesh import PointFunction

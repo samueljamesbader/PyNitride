@@ -114,21 +114,21 @@ def glob_remove(key):
             del _storage[key]
             del _storagepids[key]
 def globstore_attributes(*attrs):
-    """ Decorator to make a class automatically store certain attributes in the glob_store system.
+    """ Class decorator to automatically store certain attributes in the glob_store system.
 
     For example:
 
-    .. code-block::
+    .. code-block:: python
 
         @globstore_attributes(big_obj)
         class MyClass:
             def __init__(self):
                 self.big_obj = np.empty([1e6,1e6])
 
-    `MyClass.big_obj` can be get and set like any other parameter, but behind the scenes a property is in place
-    to such that the object does not actually hold a reference to `big_obj`, thus if an instance of `MyClass` is
-    sent through a multiprocessing function and gets pickled, `big_obj` will not be shared through the pickling
-    but instead through process inheritance.
+    Now `MyClass.big_obj` can be get and set like any other parameter, but behind the scenes a property is in place
+    such that the MyClass instance does not actually hold a reference to `big_obj` (just the key to retreive it from
+    the glob_store system). Thus if an instance of `MyClass` is sent through a multiprocessing function and gets
+    pickled, `big_obj` will not be shared through the pickling but instead through process inheritance.
     """
 
     # wrapper is the function which gets called on the new class
