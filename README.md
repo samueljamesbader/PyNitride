@@ -1,5 +1,9 @@
 # PyNitride
 
+## Requirements
+
+For now, the parallelized Python code only works on *nix systems, so Windows users will have to set the configuration
+limit parallelization to C extensions only.
 
 ## Installation
 
@@ -12,9 +16,7 @@ Install the various Python dependencies of this project.  If you have `miniconda
     conda install numpy scipy cython anaconda matplotlib pytest
 
     conda install --channel https://conda.anaconda.org/acellera pint
-    conda install --channel https://conda.anaconda.org/samjbader xrayutilities
-    conda install --channel https://conda.anaconda.org/cbetters peakutils
-    pip install sk-video
+
 Then download this project via `github`
 
     cd DIRECTORY_WHERE_I_WANT_TO_INSTALL
