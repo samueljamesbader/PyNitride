@@ -16,7 +16,7 @@ PyNitride began as a fun side-project, building a 1D Schrodinger-Poisson solver,
 Contents
 =========
 
-Find out more about the :ref:`math_and_physics` of this solver or jump right into the :doc:`API reference <modules>`.
+Find out more about the :ref:`math_and_physics` of this solver or jump right into the :doc:`API reference <../auto/modules>`.
 
 
 .. toctree::
@@ -26,7 +26,7 @@ Find out more about the :ref:`math_and_physics` of this solver or jump right int
         Software Structure <overall_flow>
         Parameter Database <parameter_database>
         Units system <units>
-        API Reference <modules>
+        API Reference <../auto/modules>
         Source code on Github <https://github.com/samueljamesbader/PyNitride>
 
 

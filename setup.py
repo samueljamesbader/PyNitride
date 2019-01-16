@@ -18,10 +18,6 @@ setup(
     ext_modules = cythonize([
         "pynitride/fem.pyx",
         "pynitride/maths.pyx",
-        "pynitride/cython/assemblers/assemble1x1.pyx",
-        "pynitride/cython/assemblers/assemble2x2.pyx",
-        "pynitride/cython/assemblers/assemble3x3.pyx",
-
         "pynitride/cython_loops.pyx",
         #"tests/util/ctest_cython_loops.pyx",
         ], **ext_options),
