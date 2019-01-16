@@ -1,6 +1,7 @@
 """ Solves the thin sandwich of `Pokatilov 2003 <https://doi.org/10.1016/S0749-6036(03)00069-7>`_ for comparison."""
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from pynitride.mesh import Mesh, MaterialBlock, UniformLayer
 from pynitride.paramdb import to_unit
 from pynitride.material import AlGaN
@@ -27,15 +28,25 @@ if __name__=="__main__":
 
     plt.figure()
     plt.plot(ec._q,to_unit(y_en[:,:6],"meV"),'k')
-    plt.xlim(0,6.28)
-    plt.ylim(0,28)
+    plt.xlim(0,6.31)
+    plt.ylim(-1,27.93)
+    plt.gca().yaxis.set_major_locator(MultipleLocator(4))
+    plt.xticks(np.linspace(.31,6.26,num=6))
+    plt.grid(True)
     plt.title("Y-modes (Pokatilov 1b)")
+    plt.xlabel("Wavevector [nm$^{-1}$]")
+    plt.ylabel("Energy [meV]")
 
     plt.figure()
     plt.plot(ec._q,to_unit(sa_en[:,:6],"meV"),'k')
     plt.plot(ec._q,to_unit(as_en[:,:6],"meV"),'--k')
-    plt.xlim(0,6.28)
-    plt.ylim(0,34)
+    plt.xlim(0,6.31)
+    plt.ylim(-1,34.83)
+    plt.gca().yaxis.set_major_locator(MultipleLocator(4))
+    plt.xticks(np.linspace(.31,6.26,num=6))
+    plt.grid(True)
     plt.title("XZ-modes (Pokatilov 4b)")
+    plt.xlabel("Wavevector [nm$^{-1}$]")
+    plt.ylabel("Energy [meV]")
     plt.show()
 

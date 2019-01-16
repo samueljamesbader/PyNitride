@@ -2,6 +2,7 @@
 
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from pynitride.mesh import Mesh, MaterialBlock, UniformLayer
 from pynitride.paramdb import to_unit
 from pynitride.material import AlGaN
@@ -26,15 +27,25 @@ if __name__=="__main__":
 
     plt.figure()
     plt.plot(ec._q,to_unit(y_en[:,:6],"meV"),'k')
-    plt.xlim(0,6.28)
-    plt.ylim(0,20)
+    plt.xlim(0,6.31)
+    plt.ylim(0,20.3)
+    plt.gca().yaxis.set_major_locator(MultipleLocator(4))
+    plt.xticks(np.linspace(.31,6.26,num=6))
+    plt.grid(True)
     plt.title("Y-modes (Pokatilov 1a)")
+    plt.xlabel("Wavevector [nm$^{-1}$]")
+    plt.ylabel("Energy [meV]")
 
     plt.figure()
     plt.plot(ec._q,to_unit(sa_en[:,:6],"meV"),'k')
     plt.plot(ec._q,to_unit(as_en[:,:6],"meV"),'--k')
-    plt.xlim(0,6.28)
-    plt.ylim(0,27.5)
+    plt.xlim(0,6.31)
+    plt.ylim(0,27.8)
+    plt.gca().yaxis.set_major_locator(MultipleLocator(5))
+    plt.xticks(np.linspace(.31,6.26,num=6))
+    plt.grid(True)
     plt.title("XZ-modes (Pokatilov 4d)")
+    plt.xlabel("Wavevector [nm$^{-1}$]")
+    plt.ylabel("Energy [meV]")
     plt.show()
 
