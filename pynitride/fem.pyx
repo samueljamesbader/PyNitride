@@ -177,7 +177,7 @@ def fem_eigsh(stiffness_matrix,load_matrix,
     Returns:
         None
     """
-    evec_slice=slice(dirichelet1*n,dirichelet1*n+stiffness_matrix.shape[0])
+    evec_slice=slice(dirichelet1,eigvec_out.shape[-1]-dirichelet2)
     eigval_out[:],eigvecs=eigsh(A=stiffness_matrix,M=load_matrix,*args,**kwargs)
 
     # Re-order the energies
@@ -193,9 +193,9 @@ def fem_eigsh(stiffness_matrix,load_matrix,
 
     # Zeros at dirichelet boundaries
     if dirichelet1:
-        eigvec_out[:,:,:n]=0
+        eigvec_out[:,:,0]=0
     if dirichelet2:
-        eigvec_out[:,:,(stiffness_matrix.shape[0]-n):]=0
+        eigvec_out[:,:,-1]=0
 
 
 def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,

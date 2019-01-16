@@ -297,18 +297,18 @@ class Wurtzite(MaterialSystem):
                  double(MidFunction(m,[
                      [l1*m.exx+m1*m.eyy+m2*m.ezz,       n1*m.exy,                   n2*m.exz],
                      [       n1*m.exy,        m1*m.exx+l1*m.eyy+m2*m.ezz,           n2*m.eyz],
-                     [       n2*m.exz,              n2*m.eyz,            m3*m.exx+m3*m.eyy+l2*m.ezz]]))).tpf()
+                     [       n2*m.exz,              n2*m.eyz,            m3*m.exx+m3*m.eyy+l2*m.ezz]])))
 
             Cl= m.ztrans*\
                 double(MidFunction(m,[
                     [           O     ,             O    ,       kx*N2p     ],
                     [           O     ,             O    ,       ky*N2p     ],
-                    [       kx*N2m    ,         ky*N2m   ,         O        ]])).tpf()
+                    [       kx*N2m    ,         ky*N2m   ,         O        ]]))
             Cr= m.ztrans*\
                 double(MidFunction(m,[
                     [           O     ,             O    ,       N2m*kx     ],
                     [           O     ,             O    ,       N2m*ky     ],
-                    [       N2p*kx    ,         N2p*ky   ,         O        ]])).tpf()
+                    [       N2p*kx    ,         N2p*ky   ,         O        ]]))
 
             C2= \
                 double(MidFunction(m,[

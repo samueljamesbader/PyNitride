@@ -19,13 +19,11 @@ if __name__=="__main__":
     buff_t=100*nm
     m=Mesh([
         MaterialBlock("epi",AlGaN(),[
-            UniformLayer("barrier",  barr_t, x=barr_x),
-            #UniformLayer("buffer" ,  buff_t, x=     0, DeepDonorDonorConc=5e16/cm**3),
+            UniformLayer("barrier",  barr_t, x=barr_x, DeepDonorDonorConc=5e16/cm**3),
             UniformLayer("buffer" ,  buff_t, x=     0, DeepDonorDonorConc=5e16/cm**3),
         ])],
         max_dz=1*nm,
         refinements=[['barrier/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
-        #refinements=[['barrier/buffer',.02*nm,1.4],['buffer/subbuffer',.02*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
 
     schro,semi=m.submesh_cover([barr_t+30*nm])
 
@@ -37,8 +35,6 @@ if __name__=="__main__":
     ConstantT(m)
     Pseudomorphic(m)
     ps=PoissonSolver(m)
-
-    #ps.solve()
 
     scl=SelfConsistentLoop(
         fieldsolvers=[PoissonSolver(m)],

@@ -232,7 +232,7 @@ class PoissonSolver():
                       val_out=None,n=1,dirichelet1=True, dirichelet2=False)
         PoissonSolver.update_bands_to_potential(m,phi=m.phi+dphi,sbh=self._sbh)
 
-        return np.max(np.abs(dphi))/activation
+        return np.max(np.abs(dphi))#/activation
 
     @staticmethod
     def update_bands_to_potential(m,phi=None,sbh=None):
@@ -347,7 +347,7 @@ class SelfConsistentLoop():
             err=np.inf
             i=0
             a=1
-            while err>tol:
+            while err/a>tol:
                 if i>=max_iter:
                     raise Exception("Maximum iteration reached in SC loop")
                 self.solve_carriers()
