@@ -1,8 +1,0 @@
-conda skeleton pypi xrayutilities
-vim xrayutilities/meta.yaml
-	Add numpy to the build requirements
-	Add numpy, setuptools, scipy, h5py to the runtime requirements
-
-anaconda upload /home/sam/miniconda3/conda-bld/linux-64/xrayutilities-1.4.0-py35_0.tar.bz2
-
-conda install --use-local xrayutilities
