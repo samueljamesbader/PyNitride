@@ -158,7 +158,7 @@ cpdef assemble_load_matrix(
 
 def fem_eigsh(stiffness_matrix,load_matrix,
               eigval_out,eigvec_out,n,
-              dirichelet1=False,dirichelet2=False,*args,**kwargs):
+              dirichelet1=False,dirichelet2=False,pairwise_GS=False,*args,**kwargs):
     """ Solve the eigenvalue problem.
 
     For the mathematics/definitions of terms, see :ref:`FEM`.
@@ -170,6 +170,11 @@ def fem_eigsh(stiffness_matrix,load_matrix,
         eigvec_out: an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zp))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
+        pairwise_GS: in the case of near degeneracy, the eigensolver often returns eigenvectors which are not totally
+            orthogonal.  For instance in a 6x6 wurtzite k.p problem with small CR coupling term, the states form pairs
+            that are very close in energy.  This option breaks the eigenvectors into those pairs [note, it just assumes
+            the pairing 0-1, 2-3, 4-5, etc, it doesn't actually check the energies], and in each pair, performs a single
+            Gram-Schmidt to ensure the nearly-degenerate eigenvectors are orthogonal.
         *args,**kwargs: passed onto
             `scipy.sparse.eigsh <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
             along with the main arguments `A` (stiffness) and `M` (load)
@@ -183,20 +188,36 @@ def fem_eigsh(stiffness_matrix,load_matrix,
     # Re-order the energies
     indarr=np.argsort(eigval_out)
     eigval_out[:]=eigval_out[indarr]
+    eigvecs=eigvecs[:,indarr]
+
+    # If desired, re-orthogonalize within each pair of states
+    if pairwise_GS:
+        assert eigvecs.shape[1] % 2 == 0, \
+            "Number of eigenvalues must be even for pairwise reorthogonalization"
+        # Grab the first (A) and second (B) of every pair
+        A=eigvecs[:,0::2]
+        B=eigvecs[:,1::2]
+
+        # Gram-Schmidt them
+        M=load_matrix
+        C_=B-np.sum(A.conj()*(M@B),axis=0)*A
+        C=C_/np.sqrt(np.sum(C_.conj()*(M@C_),axis=0))
+
+        # Put the result back in
+        eigvecs[:,1::2]=C
 
     # Reshape the eigenvectors to axes of (z, comp, eig)
     eigvecs.shape=(int(eigvecs.shape[0]/n),n,eigvecs.shape[1])
 
     # Then assign it to the output in axes of (eig, comp, z)
     if n==1: eigvec_out=np.expand_dims(eigvec_out,1)
-    eigvec_out[:,:,evec_slice]=eigvecs.T[indarr,:,:]
+    eigvec_out[:,:,evec_slice]=eigvecs.T[:,:,:]
 
     # Zeros at dirichelet boundaries
     if dirichelet1:
         eigvec_out[:,:,0]=0
     if dirichelet2:
         eigvec_out[:,:,-1]=0
-
 
 def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,
               dirichelet1=False,dirichelet2=False,*args,**kwargs):
