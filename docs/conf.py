@@ -295,3 +295,14 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Don't output variable values
+# Simple variant of https://stackoverflow.com/a/25163963/2081118
+from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, SUPPRESS
+def add_directive_header(self, sig):
+    ModuleLevelDocumenter.add_directive_header(self, sig)
+    self.options.annotation = SUPPRESS
+DataDocumenter.add_directive_header = add_directive_header
+
+
+

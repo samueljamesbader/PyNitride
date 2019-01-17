@@ -57,16 +57,6 @@ For the conduction and valence bands respectively
 
 where the :math:`l` is a subband index, :math:`m_z` and :math:`m_t` are the longitudinal and transverse effective masses,
 and the :math:`\Delta E_{C/V}` are subband-specific offsets.
-These can be discretized and transformed into a discrete Hermitian eigenvalue problem with the help of `Tan's transform <http://dx.doi.org/10.1063/1.346245>`_:
-
-.. math::
-    \begin{align}
-      M_{\sigma,\ \sigma}&=\frac{-b\hbar^2}{2dz_\sigma}\left( \frac{1}{m^l_{z\sigma+.5}dz_{\sigma+.5}}+\frac{1}{m^l_{z\sigma-.5}dz_{\sigma-.5}} \right)-b\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}+U_{\sigma}\\
-      M_{\sigma,\ \sigma+1}&=\frac{b\hbar^2}{2m^l_{z\sigma+.5}\sqrt{dz_{\sigma}dz_{\sigma+1}} dz_{\sigma+.5}}\\
-      M_{\sigma,\ \sigma-1}&=\frac{b\hbar^2}{2m^l_{z\sigma-.5}\sqrt{dz_\sigma dz_{\sigma-1}} dz_{\sigma-.5}}
-      \label{}
-    \end{align}
-
 where for electrons :math:`b=-1,\ U_\sigma=E_C+\Delta E_{Ci}` and
 for holes :math:`b=+1,\ U_\sigma=E_V-\Delta E_{Vi}`.  These levels are occupied as
 
@@ -116,22 +106,4 @@ and the derivatives
     \end{align}
 
 with :math:`b` as above.
-
-Boundary conditions
-.......................
-
-Dirichelet
-,,,,,,,,,,,,,,,,,,
-
-Supposing :math:`\sigma` is the last index of the point mesh, then the Dirichlet boundary condition that :math:`\psi_{\sigma+1}=0` is given by
-
-.. math::
-    \begin{align}
-          M_{\sigma,\ \sigma}&=\frac{-b\hbar^2}{2dz_\sigma}\left( \frac{1}{m^l_{z\sigma+.5}dz_{\sigma+.5}}+\frac{1}{m^l_{z\sigma-.5}dz_{\sigma-.5}} \right)-b\frac{\hbar^2k_t^2}{2m^l_{t\sigma}}+U_{\sigma}\\
-          M_{\sigma,\ \sigma-1}&=\frac{b\hbar^2}{2m^l_{z\sigma-.5}\sqrt{dz_\sigma dz_{\sigma-1}} dz_{\sigma-.5}}
-          \label{}
-        \end{align}
-
-where any information required at :math:`\sigma+.5` is given by that at :math:`\sigma`.
-
 

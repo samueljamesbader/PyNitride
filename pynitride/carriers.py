@@ -10,6 +10,7 @@ from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
 from pynitride.machine import Pool, globstore_attributes, FakePool
+from pynitride.reciprocal_mesh import KMesh2D
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -51,6 +52,7 @@ class CarrierModel():
         raise NotImplementedError
 
     def solve_and_repopulate(self):
+        """ Calls :func:`~solve` and :func:`~repopulate`"""
         return (self.solve(),self.repopulate())
 
 class Semiclassical(CarrierModel):
@@ -60,10 +62,9 @@ class Semiclassical(CarrierModel):
     See :func:`solve` for details and see :ref:`Carrier Models <carriers_semiclassical>` for the physics.
 
     Arguments:
-        mesh (:class:`.mesh.Mesh`): the Mesh to populate
-
+        mesh (:class:`~mesh.Mesh`): the Mesh to populate
         carriers (list of strings): which carriers to populate,
-        eg ``["electron"]``, ``["hole"]``, or ``["electron","hole"]``
+            eg ``["electron"]``, ``["hole"]``, or ``["electron","hole"]``
     """
     def __init__(self,mesh,carriers=['electron','hole']):
         super().__init__(mesh)
@@ -85,23 +86,27 @@ class Semiclassical(CarrierModel):
             m['Nv']= m.hg * (m.mhdos*k*m.T/(2*pi*hbar**2))**(3/2)
 
     def solve(self):
-        """ Does nothing."""
+        """ Does nothing.
+
+        For Semiclassical, since there are no expensive eigenvalue calculations, all the work is done in
+        :func:`~repopulate`.
+        """
         pass
 
     def repopulate(self,Ec_eff=None, Ev_eff=None, addon=False):
         """ Populate carriers semi-classically into the mesh.  See :func:`CarrierModel.solve` for conditions,
         and see :ref:`Carrier Models <carriers_semiclassical>` for the physics.
 
-        Accepts effective condition and valence bands as optional arguments to use in place of the mesh Ec and Ev.
+        Accepts effective conduction and valence bands as optional arguments to use in place of the mesh `Ec` and `Ev`.
         For use as a stand-alone model, these should not be supplied, but they are convenient when this model is called
         by other models which may populate some levels quantum mechanically and then use this function to fill in the
         rest of the band semiclassically.  In this case, the addon option, which adds the computed density to whatever
         is on the mesh, rather than replacing it, may also come in handy.
 
         Arguments:
-            Ec_eff (Point :class:`.mesh.Function`): Effective conduction band level, optional.
+            Ec_eff (Node :class:`.mesh.Function`): Effective conduction band level, optional.
 
-            Ev_eff (Point :class:`.mesh.Function`): Effective valence band level, optional.
+            Ev_eff (Node :class:`.mesh.Function`): Effective valence band level, optional.
 
             addon (bool): Whether to add (True) the computed density to current mesh values or simply replace the
             current values (False).  Default False.
@@ -112,6 +117,7 @@ class Semiclassical(CarrierModel):
         Ec_eff = Ec_eff if (Ec_eff is not None) else m.Ec
         Ev_eff = Ev_eff if (Ev_eff is not None) else m.Ev
 
+        # A function which either adds the calculation to the mesh value or replaces it depending on addon
         assign= (lambda x,y: iadd(x,y)) if addon else (lambda x,y: setitem(x,slice(None),y))
 
         # Compute the carrier density and its derivative
@@ -402,40 +408,3 @@ class MultibandKP(CarrierModel):
         log("not blending",level="TODO")
 
 
-class KMesh2D:
-    def __init__(self,kx,ky):
-        self.kx1=kx
-        self.kx1p=kx[kx>=0]
-        self.ky1=ky
-        self.ky1p=ky[ky>=0]
-        self.lkx=len(self.kx1)
-        self.lky=len(self.ky1)
-        self.KX,self.KY=np.meshgrid(kx,ky)
-        self.KT=np.stack([self.KX,self.KY],axis=2)
-        self.kt=self.conv2flat(self.KT)
-        self.kx=self.kt[:,0]
-        self.ky=self.kt[:,1]
-        if len(kx)>1:
-            self.dkx=kx[1]-kx[0]
-        if len(ky)>1:
-            self.dky=ky[1]-ky[0]
-
-    def conv2grid(self,arr):
-        return np.reshape(arr,[self.lky,self.lkx]+list(arr.shape[1:]))
-    def conv2flat(self,arr):
-        return np.reshape(arr,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
-    def intflat(self,arr):
-        ig= self.conv2grid(arr).T
-        return np.trapz(np.trapz(ig,dx=self.dky),dx=self.dkx).T
-    def along(self,arr,dir='x',input='guess',onesided=True):
-        assert input=='flat' or (input=='guess' and arr.shape[0]==self.lkx*self.lky)
-        if dir=='x':
-            iy=np.argmax(self.ky1==0)
-            assert (self.ky1[iy]==0), "0 not in ky"
-            ix = np.argmax(self.kx1>=0) if onesided else 0
-            return arr[(iy*self.lkx+ix):(iy*self.lkx+self.lkx)]
-        elif dir=='y':
-            ix=np.argmax(self.kx1==0)
-            assert (self.kx1[ix]==0), "0 not in kx"
-            iy=np.argmax(self.ky1>=0) if onesided else 0
-            return arr[(ix+iy*self.lkx)::self.lkx]
