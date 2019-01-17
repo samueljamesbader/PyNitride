@@ -43,15 +43,23 @@ if __name__=="__main__":
                         Semiclassical(semi)])
     scl.ramp_epsfactor(start=1e3, max_iter=20, dlefmin=.005, tol=1e-5)
 
-    plt.plot(m.zm,m.Ec,'b')
-    plt.plot(m.zm,m.Ev,'g')
-    plt.plot(m.zp,m.EF,'r')
-    plt.plot(schro.zp,scl._cs[0]._epsi[0,0,:]+scl._cs[0]._een[0,0],'purple')
-    plt.plot(schro.zp,scl._cs[0]._epsi[0,1,:]+scl._cs[0]._een[0,1],'pink')
-    plt.plot(schro.zp,scl._cs[0]._epsi[0,2,:]+scl._cs[0]._een[0,2],'black')
-    plt.twinx()
-    plt.fill_between(m.zp,m.n,'b',alpha=.2)
-    plt.xlim(0,50*nm)
-    plt.ylim(0)
-    plt.show()
+    # Check normalization
+    wf0=scl._cs[0]._epsi[0,0,:]
+    wf1=scl._cs[0]._epsi[0,1,:]
+    from pynitride.mesh import inner_product
+    assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
+    assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+
+    if 1:
+        plt.plot(m.zm,m.Ec,'b')
+        plt.plot(m.zm,m.Ev,'g')
+        plt.plot(m.zp,m.EF,'r')
+        plt.plot(schro.zp,scl._cs[0]._epsi[0,0,:]+scl._cs[0]._een[0,0],'purple')
+        plt.plot(schro.zp,scl._cs[0]._epsi[0,1,:]+scl._cs[0]._een[0,1],'pink')
+        plt.plot(schro.zp,scl._cs[0]._epsi[0,2,:]+scl._cs[0]._een[0,2],'black')
+        plt.twinx()
+        plt.fill_between(m.zp,m.n,'b',alpha=.2)
+        plt.xlim(0,50*nm)
+        plt.ylim(0)
+        plt.show()
 
