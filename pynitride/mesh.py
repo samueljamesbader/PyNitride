@@ -12,6 +12,7 @@ from math import gcd,ceil
 from functools import reduce
 from pynitride.visual import log
 from scipy.special import lambertw as W
+from pynitride.fem import assemble_load_matrix
 
 class MaterialBlock():
     def __init__(self,name,matsys,layers):
@@ -326,6 +327,8 @@ class Mesh():
         self.zeros_mid=MidFunction(self,0)
         self.ones_nod=NodFunction(self,1)
         self.ones_mid=MidFunction(self,1)
+
+        self._metric=assemble_load_matrix(self.ones_mid,self.dzp,n=1,dirichelet1=False,dirichelet2=False)
 
 
     def indexp(self, zp):
@@ -763,6 +766,8 @@ class SubMesh(Mesh):
         self.ones_nod=NodFunction(self,1)
         self.ones_mid=MidFunction(self,1)
 
+        self._metric=assemble_load_matrix(self.ones_mid,self.dzp,n=1,dirichelet1=False,dirichelet2=False)
+
 
 class Function(np.ndarray):
     r""" Represents a generic function defined on a :py:class:`~pynitride.poissolve.mesh.Mesh`.
@@ -1053,3 +1058,13 @@ def DeltaFunction(mesh, z, integral=1, i=None, pos='point'):
     i={'point': mesh.indexp, 'mid': mesh.indexp}[pos](z) if i is None else i
     func[i]= integral / {'point':mesh._dzp[i], 'mid':mesh.dzm[i]}[pos]
     return func
+
+def inner_product(a,b):
+    assert a.mesh is b.mesh
+    assert a.pos=='point'
+    assert b.pos=='point'
+
+    metric=a.mesh._metric
+
+    return np.sum(a.conj().T*(metric @ b.T))
+

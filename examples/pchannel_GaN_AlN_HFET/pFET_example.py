@@ -50,6 +50,23 @@ if __name__=="__main__":
     print("kp loop took {:.1f} sec".format(endtime-starttime))
 
     print("Holes: {:.2f} x10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)),"1e13/cm^2")))
+
+    # Check normalization
+    wf0=mbkp._kppsi[0,0,:,:]
+    wf1=mbkp._kppsi[0,1,:,:]
+    wf2=mbkp._kppsi[0,2,:,:]
+    from pynitride.mesh import inner_product
+    print(inner_product(wf0,wf0))
+    print(inner_product(wf0,wf1))
+    print(inner_product(wf0,wf2))
+    print(inner_product(wf1,wf2))
+    print(wf0[:,-1])
+    print(wf0[:,-1])
+    print(wf0[:,-1])
+    #assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
+    #assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+
+
     plt.figure()
     plt.plot(m.zm,m.Ec,'b')
     plt.plot(m.zm,m.Ev,'g')
