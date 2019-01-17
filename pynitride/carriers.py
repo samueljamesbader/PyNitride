@@ -9,7 +9,7 @@ from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
-from pynitride.machine import Pool, globstore_attributes, FakePool
+from pynitride.machine import Pool, glob_store_attributes, FakePool
 from pynitride.reciprocal_mesh import KMesh2D
 
 class CarrierModel():
@@ -252,7 +252,7 @@ class Schrodinger(CarrierModel):
                 self._sch.repopulate(Ev_eff=np.minimum(np.expand_dims(self._hen[:,-1],1),m.Ev),addon=True)
 
 # TODO: Blending for multiband kp
-@globstore_attributes('_mesh','_Cmats','_load_matrix','_normsqs','_kpen','_kppsi')
+@glob_store_attributes('_mesh','_Cmats','_load_matrix','_normsqs','_kpen','_kppsi')
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
         """ Solves the multiband k.p problem for the valence bands.

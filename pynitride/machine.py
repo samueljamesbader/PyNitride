@@ -116,7 +116,7 @@ def glob_remove(key):
         if _storagepids[key]==os.getpid():
             del _storage[key]
             del _storagepids[key]
-def globstore_attributes(*attrs):
+def glob_store_attributes(*attrs):
     """ Class decorator to automatically store certain attributes in the glob_store system.
 
     For example:
