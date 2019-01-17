@@ -352,7 +352,7 @@ class MultibandKP(CarrierModel):
         if ik is not None:
             C0_kin,Cl,Cr,C2=self._Cmats[ik]
         else:
-            C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])
+            C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])[0]
 
         # TODO: pot can be a property of Multiband rather than re-forming for each k
         pot=(m.Ev+m.EvOffset)
