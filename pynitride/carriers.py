@@ -218,7 +218,7 @@ class Schrodinger(CarrierModel):
             fem_eigsh(stiffness_matrix=H,load_matrix=self._M,
                       eigval_out=sb['energies'][l],eigvec_out=sb['psi'][l,:,:],n=1,
                       dirichelet1=True,dirichelet2=True,
-                      k=self._neig+self._blend,sigma=np.min(U))
+                      k=self._neig+self._blend,sigma=float(np.min(U)))
 
             if not elec:
                 sb['energies'][l]*=-1
@@ -350,6 +350,16 @@ class MultibandKP(CarrierModel):
                 Pool.process_pool().apply(self.solve_one_k,args=(None,None,ik))
         Pool.thread_pool().map(save_one_solve,range(len(self._kt)))
 
+        # from pynitride.mesh import inner_product
+        # print("in so")
+        # #m=eigvecs.mesh
+        # wf0=self._kppsi[0,1,:,:]
+        # wf1=self._kppsi[0,0,:,:]
+        # print('should be one : ',np.sum(wf0.conj().T*(m._metric@wf0.T)))
+        # print('should be zero: ',np.sum(wf0.conj().T*(m._metric@wf1.T)))
+        # #print('should be one : ',inner_product(wf0,wf0))
+        # #print('should be zero: ',inner_product(wf0,wf1))
+
     # kpen is eig, z
     # kppsi is eig, comp, z
     # normsqs is eig, z
@@ -365,9 +375,11 @@ class MultibandKP(CarrierModel):
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
         H=-assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
         eigvals=np.empty([self._neig])
-        eigvecs=np.empty([self._neig,6,m.Np],dtype=complex)
-        fem_eigsh(H,self._load_matrix,eigvals,eigvecs,6,dirichelet1=True,dirichelet2=True,
-                  k=self._neig,sigma=np.min(-pot),which='LM',tol=0,ncv=self._neig*2)
+        eigvecs=PointFunction(m,np.empty([self._neig,6,m.Np],dtype=complex),dtype=complex)
+        # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
+        fem_eigsh(H,self._load_matrix,eigvals,eigvecs,6,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
+                  k=self._neig,sigma=float(np.min(-pot)),which='LM',tol=0,ncv=self._neig*2)
+
         # eig, z
         normsqs=np.sum(abs(eigvecs)**2,axis=1)
         return -eigvals,eigvecs,normsqs
@@ -406,5 +418,6 @@ class MultibandKP(CarrierModel):
             m['p']=np.sum(1/(2*np.pi)**2*self._kmeshman.intflat(ig),axis=0)
             m['pderiv']=np.sum(1/(4*np.pi**2*kT.tpf())*self._kmeshman.intflat(igd),axis=0)
         log("not blending",level="TODO")
+
 
 

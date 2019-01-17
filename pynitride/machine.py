@@ -90,6 +90,9 @@ class FakePool():
     def starmap(self,func,iterable,chunksize=1):
         assert chunksize==1, "Fake pool not implementend for non-unity chunksize"
         return [func(*i) for i in iterable]
+    def map(self,func,iterable,chunksize=1):
+        assert chunksize==1, "Fake pool not implementend for non-unity chunksize"
+        return [func(i) for i in iterable]
     def apply(self,func,args=(),kwds={}):
         return func(*args,**kwds)
 

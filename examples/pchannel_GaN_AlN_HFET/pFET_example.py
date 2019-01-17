@@ -1,4 +1,7 @@
 # GaN/AlN p-channel HFET
+
+from pynitride.machine import Pool; Pool.configure_onlycextparallel();
+
 import matplotlib.pyplot as plt
 from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
 from pynitride.material import AlGaN
@@ -44,7 +47,7 @@ if __name__=="__main__":
     scl.ramp_epsfactor(start=1e4, max_iter=20, dlefmin=.005, tol=1e-5)
 
     starttime=time()
-    mbkp=scl._cs[0]=MultibandKP(schro)
+    mbkp=scl._cs[0]=MultibandKP(schro,num_eigenvalues=6)
     scl.loop(tol=1e-5,min_activation=.05)
     endtime=time()
     print("kp loop took {:.1f} sec".format(endtime-starttime))
@@ -56,15 +59,12 @@ if __name__=="__main__":
     wf1=mbkp._kppsi[0,1,:,:]
     wf2=mbkp._kppsi[0,2,:,:]
     from pynitride.mesh import inner_product
-    print(inner_product(wf0,wf0))
-    print(inner_product(wf0,wf1))
-    print(inner_product(wf0,wf2))
-    print(inner_product(wf1,wf2))
-    print(wf0[:,-1])
-    print(wf0[:,-1])
-    print(wf0[:,-1])
-    #assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
-    #assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+    assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
+    assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+    assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)
+    assert np.isclose(inner_product(wf1,wf2),0,atol=1e-8)
+    assert np.isclose(inner_product(wf1,wf1),1,atol=1e-8)
+    assert np.isclose(inner_product(wf2,wf2),1,atol=1e-8)
 
 
     plt.figure()
@@ -78,9 +78,9 @@ if __name__=="__main__":
         plt.plot(schro.zp,mbkp._hpsi[i,2,:]+mbkp._hen[i,2],'black')
     if hasattr(mbkp,'_normsqs'):
         plt.plot(schro.zp,mbkp._normsqs[0,0,:]+mbkp._kpen[0,0],'purple')
-        plt.plot(schro.zp,mbkp._normsqs[0,2,:]+mbkp._kpen[0,2],'black')
+        plt.plot(schro.zp,mbkp._normsqs[0,2,:]+mbkp._kpen[0,2],'pink')
         plt.plot(schro.zp,mbkp._normsqs[0,4,:]+mbkp._kpen[0,2],'black')
-        plt.plot(schro.zp,mbkp._normsqs[0,6,:]+mbkp._kpen[0,2],'black')
+        #plt.plot(schro.zp,mbkp._normsqs[0,6,:]+mbkp._kpen[0,2],'black')
     plt.twinx()
     plt.fill_between(m.zp,m.p,'b',alpha=.2)
     plt.xlim(0,50*nm)
@@ -89,7 +89,7 @@ if __name__=="__main__":
     plt.plot(mbkp._kx,mbkp._kpen[:,0]*1e3)
     plt.plot(mbkp._kx,mbkp._kpen[:,2]*1e3)
     plt.plot(mbkp._kx,mbkp._kpen[:,4]*1e3)
-    plt.plot(mbkp._kx,mbkp._kpen[:,6]*1e3)
+    #plt.plot(mbkp._kx,mbkp._kpen[:,6]*1e3)
     plt.axhline(0,color='k')
     plt.xlim(0)
     plt.show()
