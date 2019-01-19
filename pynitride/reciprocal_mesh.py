@@ -297,6 +297,33 @@ class RMesh2D_Polar(RMesh):
         else:
             return arr
 
-    def exact_to_index(self, absk):
-        """ Returns the index into the absk1 array for a given k-point"""
-        return self._k2i[np.round(absk,self._exactdig)]
+    #def exact_to_index(self, absk):
+    #    """ Returns the index into the absk1 array for a given k-point"""
+    #    return self._k2i[np.round(absk,self._exactdig)]
+
+    def interpolator(self,func):
+
+        # Which if any side of theta is at the mod boundary
+        atedge0=np.isclose(theta1[ 0],-pi/d)
+        atedge1=np.isclose(theta1[-1],+pi/d)
+
+        # Extend theta with two points beyond the integration boundary on both sides
+        theta=np.concatenate([
+            self.theta1[(-3+atedge0):]-2*pi/d,
+            self.theta1,
+            self.theta1[:(+3-atedge1)]+2*pi/d])
+
+        # Join in the energ
+        fmain=self.conv2grid(self.en[:,eig])
+        f=np.hstack([fmain[:,(-3+atedge0):],fmain,fmain[:,:(+3-atedge1)]])
+        rbvs=RectBivariateSpline(self.absk1,theta,fmain,
+            bbox=[0,self.absk1[-1],theta[0],theta[-1]])
+
+        def interp(absk,theta,grid=False):
+            assert np.all(absk<self.absk1[-1])
+            theta=np.mod(np.mod(theta,2*pi/d)+pi/d,2*pi/d)-pi/d
+            return rbvs(absk,theta,grid=grid)
+        return interp
+
+
+

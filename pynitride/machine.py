@@ -100,13 +100,15 @@ class FakePool():
     def join(self):
         pass
 
-
+_nextkey=0
 _storage={}
 _storagepids={}
 _storagelock=RLock()
 def glob_store(obj):
+    global _nextkey
     with _storagelock:
-        key=len(_storage)
+        key=_nextkey
+        _nextkey+=1
         _storage[key]=obj
         _storagepids[key]=os.getpid()
     return key
@@ -155,7 +157,8 @@ def glob_store_attributes(*attrs):
         # Add this new __init__ to the class
         cls.__init__=__init__
 
-        # Make each attribute a property so the actually getting/setting is done via glob_read/glob_update
+        # Make each attribute a property so the actual getting/setting
+        # is done via glob_read/glob_update
         def getter(attr,self):
             return glob_read(self._globkeys[attr])
         def setter(attr,self,val):
