@@ -10,6 +10,7 @@ from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
 from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
+from examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
 from time import time
 import numpy as np
 
@@ -26,7 +27,7 @@ if __name__=="__main__":
             UniformLayer("buffer",  buff_t, x=1, DeepDonorDonorConc=5e16/cm**3),
         ])],
         max_dz=5*nm,
-        refinements=[['well/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
+        refinements=[[0,.05*nm,3],['well/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
 
     print("Mesh points: ",m.Np)
     schro,semi=m.submesh_cover([well_t+5*nm])
@@ -39,7 +40,7 @@ if __name__=="__main__":
 
     scl=SelfConsistentLoop(
         fieldsolvers=[PoissonSolver(m)],
-        carriersolvers=[Semiclassical  (schro,carriers=['hole']),
+        carriermodels=[Semiclassical  (schro,carriers=['hole']),
                         Semiclassical(schro,carriers=['electron']),
                         Semiclassical(semi)])
     scl.ramp_epsfactor(start=1e4, max_iter=20, dlefmin=.005, tol=1e-5)
@@ -47,7 +48,7 @@ if __name__=="__main__":
     starttime=time()
     from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
     #rmesh=RMesh1D.regular(kmax=2/nm,numabsk=25)
-    rmesh=RMesh2D_Polar.regular(kmax=2/nm,numabsk=24,numtheta=4,align_theta=True,d=4)
+    rmesh=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=4)
     mbkp=scl._cs[0]=MultibandKP(schro,num_eigenvalues=6,rmesh=rmesh)
     scl.loop(tol=1e-5,min_activation=.05)
     #scl.loop(tol=1e5,min_activation=.05)
@@ -69,7 +70,7 @@ if __name__=="__main__":
     assert np.isclose(inner_product(wf1,wf1),1,atol=1e-8)
     assert np.isclose(inner_product(wf2,wf2),1,atol=1e-8)
 
-    if 1:
+    if 0:
         plt.figure()
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
@@ -90,3 +91,5 @@ if __name__=="__main__":
         plt.xlim(0)
         plt.show()
 
+    valence_band_panels(m,mbkp)
+    plt.show()

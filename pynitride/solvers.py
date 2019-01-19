@@ -3,7 +3,7 @@ import numbers
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from pynitride.paramdb import k,hbar,q,m_e, cm, pi
+from pynitride.paramdb import kb,hbar,q,m_e, cm, pi
 from pynitride.cython_maths import tdma, fd12, fd12p, idd,iddd
 from pynitride.mesh import MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_solve, fem_get_error
@@ -104,7 +104,7 @@ class PoissonSolver():
     def ionized_dopants(self,gotzloop=False):
         # Tiwari Compound Semiconductor Devices pg31-32
         m=self._mesh
-        kT=k*m.T
+        kT= kb * m.T
 
         m['Ndp']=0
         m['Ndpderiv']=0

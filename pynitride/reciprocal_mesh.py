@@ -2,45 +2,7 @@ import numpy as np
 pi=np.pi
 from pynitride.machine import glob_store_attributes
 from pynitride.maths import polar2cart
-
-
-class KMesh2D:
-    def __init__(self,kx,ky):
-        self.kx1=kx
-        self.kx1p=kx[kx>=0]
-        self.ky1=ky
-        self.ky1p=ky[ky>=0]
-        self.lkx=len(self.kx1)
-        self.lky=len(self.ky1)
-        self.KX,self.KY=np.meshgrid(kx,ky)
-        self.KT=np.stack([self.KX,self.KY],axis=2)
-        self.kt=self.conv2flat(self.KT)
-        self.kx=self.kt[:,0]
-        self.ky=self.kt[:,1]
-        if len(kx)>1:
-            self.dkx=kx[1]-kx[0]
-        if len(ky)>1:
-            self.dky=ky[1]-ky[0]
-
-    def conv2grid(self,arr):
-        return np.reshape(arr,[self.lky,self.lkx]+list(arr.shape[1:]))
-    def conv2flat(self,arr):
-        return np.reshape(arr,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
-    def intflat(self,arr):
-        ig= self.conv2grid(arr).T
-        return np.trapz(np.trapz(ig,dx=self.dky),dx=self.dkx).T
-    def along(self,arr,dir='x',input='guess',onesided=True):
-        assert input=='flat' or (input=='guess' and arr.shape[0]==self.lkx*self.lky)
-        if dir=='x':
-            iy=np.argmax(self.ky1==0)
-            assert (self.ky1[iy]==0), "0 not in ky"
-            ix = np.argmax(self.kx1>=0) if onesided else 0
-            return arr[(iy*self.lkx+ix):(iy*self.lkx+self.lkx)]
-        elif dir=='y':
-            ix=np.argmax(self.kx1==0)
-            assert (self.kx1[ix]==0), "0 not in kx"
-            iy=np.argmax(self.ky1>=0) if onesided else 0
-            return arr[(ix+iy*self.lkx)::self.lkx]
+from scipy.interpolate import RectBivariateSpline
 
 @glob_store_attributes('_functions')
 class RMesh:
@@ -58,9 +20,15 @@ class RMesh:
         """ The integration area element assigned to each kpoint as a 1-D array"""
         self.N=None
         """ The number of points in the grid"""
+        self.d=None
+        """ The grid covers 1/d of the angular k-space"""
+        self.kmax=None
+        """ The maximum value of :math:`|k|`"""
 
+        # Place to store functions defined on this mesh
         self._functions={}
 
+    # Store/retrieve reciprocal mesh functions via [...] syntax
     def __setitem__(self, key, value):
         self._functions[key]=value
     def __getitem__(self, key):
@@ -79,7 +47,7 @@ class RMesh:
         Args:
             integrand: a 1-D array of length `RMesh.N`
         """
-        return np.sum(integrand.T*self.Omega,axis=-1).T
+        return self.d*np.sum(integrand.T*self.Omega,axis=-1).T
 
     def save(self,filename,keys=None):
         if keys is None:
@@ -101,7 +69,8 @@ class RMesh1D(RMesh):
         super().__init__()
 
         # k and dk
-        self.absk1=self.absk=absk
+        self.absk1=self.absk=np.sort(absk)
+        self.kmax=self.absk1[-1]
         dabsk=self.absk1[1:]-self.absk1[:-1]
 
         # lower bound of each bin, including zero for the first bin
@@ -117,6 +86,7 @@ class RMesh1D(RMesh):
 
         # Area to use for each when integrating
         self.Omega=pi*(self._abskbinu**2-self._abskbinl**2)
+        self.d=1
 
         # Mapping from absk1 values to their indices, used by exact_to_index
         self._exactdig=7
@@ -155,10 +125,12 @@ class RMesh2D_Polar(RMesh):
     def __init__(self,absk,theta,d=1,bzarea=None):
         super().__init__()
 
-        self.absk1=absk
-        self.theta1=theta
+        self.absk1=np.sort(absk)
+        self.kmax=self.absk1[-1]
+        self.theta1=np.sort(theta)
         self.numabsk=len(self.absk1)
         self.numtheta=len(self.theta1)
+        self.d=d
 
         ###
         # k bin boundaries
@@ -194,7 +166,7 @@ class RMesh2D_Polar(RMesh):
         ###
 
         # Form the actual grid
-        THETA,ABSK=np.meshgrid(self.theta1,self.absk1)
+        ABSK,THETA=np.meshgrid(self.absk1,self.theta1)
         self.absk=self.conv2flat(ABSK)
         self.theta=self.conv2flat(THETA)
         self.theta[0]=0
@@ -204,8 +176,8 @@ class RMesh2D_Polar(RMesh):
         # Area to use for each when integrating
         Oabsk=(self.abskbinu**2-self.abskbinl**2)/2
         Otheta=(dthetal+dthetar)/2
-        OTHETA,OABSK=np.meshgrid(Otheta,Oabsk)
-        self.Omega=d*self.conv2flat(OABSK*OTHETA)
+        OABSK,OTHETA=np.meshgrid(Oabsk,Otheta)
+        self.Omega=self.conv2flat(OABSK*OTHETA)
         if self.absk1[0]==0:
             self.Omega[0]*=self.numtheta
 
@@ -279,7 +251,7 @@ class RMesh2D_Polar(RMesh):
         """
         if self.absk1[0]==0:
             arr=np.concatenate([[arr[0]]*(self.numtheta-1),arr])
-        return np.reshape(arr,[self.numtheta,self.numabsk]+list(arr.shape[1:]))
+        return np.reshape(arr,[self.numabsk,self.numtheta]+list(arr.shape[1:])).T
 
     def conv2flat(self,arr):
         """ Convert a 2D grid to a 1D array consistent with the mesh conventions.
@@ -291,7 +263,7 @@ class RMesh2D_Polar(RMesh):
         Returns:
             an (numstates) 1D array + other dimensions
         """
-        arr=np.reshape(arr,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
+        arr=np.reshape(arr.T,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
         if self.absk1[0]==0:
             return arr[self.numtheta-1:]
         else:
@@ -302,10 +274,11 @@ class RMesh2D_Polar(RMesh):
     #    return self._k2i[np.round(absk,self._exactdig)]
 
     def interpolator(self,func):
+        d=self.d
 
         # Which if any side of theta is at the mod boundary
-        atedge0=np.isclose(theta1[ 0],-pi/d)
-        atedge1=np.isclose(theta1[-1],+pi/d)
+        atedge0=np.isclose(self.theta1[ 0],-pi/d)
+        atedge1=np.isclose(self.theta1[-1],+pi/d)
 
         # Extend theta with two points beyond the integration boundary on both sides
         theta=np.concatenate([
@@ -314,15 +287,15 @@ class RMesh2D_Polar(RMesh):
             self.theta1[:(+3-atedge1)]+2*pi/d])
 
         # Join in the energ
-        fmain=self.conv2grid(self.en[:,eig])
-        f=np.hstack([fmain[:,(-3+atedge0):],fmain,fmain[:,:(+3-atedge1)]])
-        rbvs=RectBivariateSpline(self.absk1,theta,fmain,
+        fmain=self.conv2grid(func)
+        f=np.vstack([fmain[(-3+atedge0):,:],fmain,fmain[:(+3-atedge1),:]])
+        rbvs=RectBivariateSpline(self.absk1,theta,f.T,
             bbox=[0,self.absk1[-1],theta[0],theta[-1]])
 
-        def interp(absk,theta,grid=False):
-            assert np.all(absk<self.absk1[-1])
+        def interp(absk,theta,grid=False, dabsk=0, dtheta=0):
+            assert np.all(absk<=self.absk1[-1])
             theta=np.mod(np.mod(theta,2*pi/d)+pi/d,2*pi/d)-pi/d
-            return rbvs(absk,theta,grid=grid)
+            return rbvs(absk,theta,grid=grid, dx=dabsk, dy=dtheta)
         return interp
 
 
