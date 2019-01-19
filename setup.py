@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from Cython.Build import cythonize
 import numpy
 import os.path
@@ -17,7 +17,7 @@ setup(
     description='Python utilities for 1D band diagrams and simulation',
     ext_modules = cythonize([
         "pynitride/fem.pyx",
-        "pynitride/maths.pyx",
+        "pynitride/cython_maths.pyx",
         "pynitride/cython_loops.pyx",
         #"tests/util/ctest_cython_loops.pyx",
         ], **ext_options),

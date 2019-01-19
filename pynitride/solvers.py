@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
 from pynitride.paramdb import k,hbar,q,m_e, cm, pi
-from pynitride.maths import tdma, fd12, fd12p, idd,iddd
+from pynitride.cython_maths import tdma, fd12, fd12p, idd,iddd
 from pynitride.mesh import MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_solve, fem_get_error
 from collections import OrderedDict
@@ -330,10 +330,17 @@ class Linear_Fermi():
 
 
 class SelfConsistentLoop():
-    def __init__(self,fieldsolvers=[],carriersolvers=[]):
+    def __init__(self,fieldsolvers=[],carriermodels=[]):
         self._fs=fieldsolvers
-        self._cs=carriersolvers
+        self._cs=carriermodels
 
+    def remove_carrier_model(self,cs):
+        self._cs.remove(cs)
+    def add_carrier_model(self,cs):
+        self._cs.append(cs)
+    def swap_carrier_model(self,remove,add):
+        self.remove_carrier_model(remove)
+        self.add_carrier_model(add)
     def isolve_fields(self, activation=1):
         return sum(fs.newton_step(activation=activation) for fs in self._fs)
     def solve_fields(self):

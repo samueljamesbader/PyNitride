@@ -1,7 +1,7 @@
 import numpy as np
 from pynitride.mesh import PointFunction, MidFunction, Function, ConstantFunction
 from pynitride.paramdb import pmdb, k, pi, hbar, m_e, nm
-from pynitride.maths import fd12, fd12p
+from pynitride.cython_maths import fd12, fd12p
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
@@ -11,6 +11,7 @@ from pynitride.visual import log, sublog
 from operator import iadd,setitem
 from pynitride.machine import Pool, glob_store_attributes, FakePool
 from pynitride.reciprocal_mesh import KMesh2D
+from operator import itemgetter
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -22,7 +23,7 @@ class CarrierModel():
     def __init__(self, mesh):
         """ Prep the mesh for any carrier model.
         """
-        self._mesh=mesh
+        self.mesh=mesh
 
     def solve(self):
         """ Performs any prep work needed (e.g. solving for wavefunctions) before the mesh can be populated.
@@ -68,7 +69,7 @@ class Semiclassical(CarrierModel):
     """
     def __init__(self,mesh,carriers=['electron','hole']):
         super().__init__(mesh)
-        m=self._mesh
+        m=self.mesh
         self._carriers=carriers
         if 'electron' in self._carriers:
             m.ensure_function_exists("n",value=0)
@@ -111,7 +112,7 @@ class Semiclassical(CarrierModel):
             addon (bool): Whether to add (True) the computed density to current mesh values or simply replace the
             current values (False).  Default False.
         """
-        m=self._mesh
+        m=self.mesh
 
         # Use effective band edges if provided, otherwise take from mesh
         Ec_eff = Ec_eff if (Ec_eff is not None) else m.Ec
@@ -202,7 +203,7 @@ class Schrodinger(CarrierModel):
                               n=1,dirichelet1=True,dirichelet2=True)
 
     def solve(self):
-        m=self._mesh
+        m=self.mesh
 
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'), sb['subband']
@@ -225,7 +226,7 @@ class Schrodinger(CarrierModel):
 
 
     def repopulate(self):
-        m=self._mesh
+        m=self.mesh
 
         for f in ['n','p','nderiv','pderiv']: m.ensure_function_exists(f)
         if 'electron' in self._carriers:
@@ -252,9 +253,9 @@ class Schrodinger(CarrierModel):
                 self._sch.repopulate(Ev_eff=np.minimum(np.expand_dims(self._hen[:,-1],1),m.Ev),addon=True)
 
 # TODO: Blending for multiband kp
-@glob_store_attributes('_mesh','_Cmats','_load_matrix','_normsqs','_kpen','_kppsi')
+@glob_store_attributes('mesh','rmesh','_Cmats','_load_matrix')
 class MultibandKP(CarrierModel):
-    def __init__(self,mesh,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
+    def __init__(self,mesh,rmesh=None,num_eigenvalues=20):
         """ Solves the multiband k.p problem for the valence bands.
 
         Can use either a 1D line of k-points or a rectangular 'xy' grid of k-points or a polar grid of k-points
@@ -263,108 +264,44 @@ class MultibandKP(CarrierModel):
 
         :param mesh: the :py:class:`pynitride.mesh.Mesh` on which to solve
         :param num_eigenvalues: (int) the number of eigenvalues to solve for at each k-point
-        :param ktmax: the max absolute k value to solve at, either (1) an int if just solving along just along one
-        direction in k-space or (2) a two-tuple of ints (for x and y directions) if solving the full in-plane k-space
-        with `kmeshmethod='xy'`.
-        :param num_kpoints: The number of points to solve for per direction, either (1) an int if just solving one
-        direction or (2) a two-tuple of ints if solving the full in-plane dispersion.  In the latter case, the
-        interpretation depends on `kmeshmethod`.
-        in-plane dispersion without spherical symmetry, the number of points goes as square of this value.)
-        :param kmeshmethod: Either '1D' or 'xy' or 'polar'. If (1) just solving in one-direction, specify '1D' and
-        supply single integers for ktmax and num_kpoints. If (2) solving the full-plane and 'xy' is specified, the two
-        integers of num_kpoints are taken to the be the number of k-points in the x and y directions.
-        If 'polar' is specified, the first num_kpoints value is the number of radial points and the second value is
-        the numer of angles along which to solve (within one quadrant).
         """
         super().__init__(mesh)
         m=mesh
         assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
         self._neig=num_eigenvalues
-        self._ktmax=ktmax
-        self._num_kpoints=num_kpoints
-        self._kmeshmethod=kmeshmethod
+        self.rmesh=rmesh
 
-        if num_kpoints!=0:
+        if rmesh is not None:
             m.ensure_function_exists("p",value=0)
             m.ensure_function_exists("pderiv",value=0)
 
-            # Make the k-mesh
-            if isinstance(self._kmeshmethod,str):
-                if kmeshmethod=='1D':
-                    self._kt=np.linspace(0,ktmax,num_kpoints)
-                    kx=self._kx=1*self._kt
-                    ky=self._ky=0*self._kt
-                else:
-                    if kmeshmethod=='xy':
-                        if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                        if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                        kx=np.linspace(0,ktmax[0],num_kpoints[0])
-                        ky=np.linspace(0,ktmax[1],num_kpoints[1])
-                        self._kmeshman=KMesh2D(kx,ky)
-                        self._kt=self._kmeshman.kt
-                        self._kx=self._kmeshman.kx1
-                        self._ky=self._kmeshman.ky1
-                    elif kmeshmethod=='xyfull':
-                        if not hasattr(ktmax,'__iter__'): ktmax=[ktmax,ktmax]
-                        if not hasattr(num_kpoints,'__iter__'): num_kpoints=[num_kpoints,num_kpoints]
-                        kx=np.linspace(-ktmax[0],ktmax[0],num_kpoints[0])
-                        ky=np.linspace(-ktmax[1],ktmax[1],num_kpoints[1])
-                        self._kmeshman=KMesh2D(kx,ky)
-                        self._kt=self._kmeshman.kt
-                        self._kx=self._kmeshman.kx1
-                        self._ky=self._kmeshman.ky1
-                    elif kmeshmethod=='polar':
-                        raise NotImplementedError
-                    kx,ky=self._kmeshman.kx,self._kmeshman.ky
-            # otherwise kmeshmethod should be an iterable of ((kx1,ky1),(kx2,ky2),...)
-            else :
-                self._kt=np.array(kmeshmethod)
-                self._kx,self._ky=np.hsplit(self._kt,2)
-                kx,ky=self._kx,self._ky
-
-            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m,kx=kx,ky=ky)
+            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky)
 
             # Initialize other functions
-            self._kppsi=PointFunction(m,dtype='complex',empty=(len(self._kt),num_eigenvalues,6,))
-            self._kpen=np.empty((len(self._kt),self._neig))
-            self._normsqs=PointFunction(m,dtype='float',empty=(len(self._kt),num_eigenvalues))
+            self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,6,))
+            self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
+            self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=6,dirichelet1=True,dirichelet2=True)
 
-    #def remesh(self,num_eigenvalues=20,ktmax=2/nm,num_kpoints=25, kmeshmethod='1D'):
-    #    if 'kppsi' in self._mesh._functions:
-    #        del self._mesh._functions['kppsi']
-    #    if 'kpen' in self._mesh._functions:
-    #        del self._mesh._functions['kpen']
-    #    self.__init__(self._mesh,num_eigenvalues,ktmax,num_kpoints,kmeshmethod)
-    #    self.initialize()
 
     # kpen is kt, eig, z
     # kppsi is kt, eig, comp, z
     # normsqs is kt, eig, z
     def solve(self):
         log("MBKP Solve",level="debug")
-        m=self._mesh
+        m=self.mesh
+        kpen,kppsi,normsqs=itemgetter('kpen','kppsi','normsqs')(self.rmesh)
         Pool.process_pool(new=True)
         def save_one_solve(ik):
-            self._kpen[ik,:],self._kppsi[ik,:,:,:],self._normsqs[ik,:,:]= \
+            kpen[ik,:],kppsi[ik,:,:,:],normsqs[ik,:,:]= \
                 Pool.process_pool().apply(self.solve_one_k,args=(None,None,ik))
-        Pool.thread_pool().map(save_one_solve,range(len(self._kt)))
-
-        # from pynitride.mesh import inner_product
-        # print("in so")
-        # #m=eigvecs.mesh
-        # wf0=self._kppsi[0,1,:,:]
-        # wf1=self._kppsi[0,0,:,:]
-        # print('should be one : ',np.sum(wf0.conj().T*(m._metric@wf0.T)))
-        # print('should be zero: ',np.sum(wf0.conj().T*(m._metric@wf1.T)))
-        # #print('should be one : ',inner_product(wf0,wf0))
-        # #print('should be zero: ',inner_product(wf0,wf1))
+        Pool.thread_pool().map(save_one_solve,range(self.rmesh.N))
 
     # kpen is eig, z
     # kppsi is eig, comp, z
     # normsqs is eig, z
     def solve_one_k(self,kx,ky,ik=None):
-        m=self._mesh
+        m=self.mesh
         if ik is not None:
             C0_kin,Cl,Cr,C2=self._Cmats[ik]
         else:
@@ -385,7 +322,7 @@ class MultibandKP(CarrierModel):
         return -eigvals,eigvecs,normsqs
 
     def solve_point_as_bulk(self,zp):
-        m=self._mesh
+        m=self.mesh
         kt=self._kt
         izp=m.indexp(zp)
 
@@ -393,30 +330,17 @@ class MultibandKP(CarrierModel):
 
 
     def repopulate(self):
-        m=self._mesh
+        m=self.mesh
         kT=k*m.T
-        kt=self._kt
         # kt, eig, z
-        eta=(np.expand_dims(self._kpen,2)-m.EF)/kT.tpf()
+        eta=(np.expand_dims(self.rmesh['kpen'],2)-m.EF)/kT.tpf()
 
-        if self._kmeshmethod=='1D':
-            m['p']=np.sum(1/(2*np.pi)*np.trapz(kt*(self._normsqs/(1+np.exp(-eta))).T,x=kt),axis=1)
-            m['pderiv']=np.sum(1/(2*np.pi*kT.tpf())*np.trapz(kt*(self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2).T,x=kt).T,axis=0)
-        elif self._kmeshmethod=='xy':
-            dkx,dky=self._kmeshman.dkx,self._kmeshman.dky
-            ig= self._normsqs/(1+np.exp(-eta))
-            igd=self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2
+        p=(1/(4*pi**2))*self.rmesh.integrate(self.rmesh['normsqs']/(1+np.exp(-eta)))
+        m['p']=(1/(4*pi**2))*self.rmesh.integrate(
+            np.sum(self.rmesh['normsqs']/(1+np.exp(-eta)),axis=1))
+        m['pderiv']=(1/(4*pi**2))*self.rmesh.integrate(
+            np.sum(self.rmesh['normsqs']*(np.exp(-eta))/(1+np.exp(-eta))**2/kT.tpf(),axis=1))
 
-            # x 4 for all quadrants
-            m['p']=4*np.sum(1/(2*np.pi)**2*self._kmeshman.intflat(ig),axis=0)
-            m['pderiv']=4*np.sum(1/(4*np.pi**2*kT.tpf())*self._kmeshman.intflat(igd),axis=0)
-        elif self._kmeshmethod=='xyfull':
-            dkx,dky=self._kmeshman.dkx,self._kmeshman.dky
-            ig= self._normsqs/(1+np.exp(-eta))
-            igd=self._normsqs*(np.exp(-eta))/(1+np.exp(-eta))**2
-
-            m['p']=np.sum(1/(2*np.pi)**2*self._kmeshman.intflat(ig),axis=0)
-            m['pderiv']=np.sum(1/(4*np.pi**2*kT.tpf())*self._kmeshman.intflat(igd),axis=0)
         log("not blending",level="TODO")
 
 

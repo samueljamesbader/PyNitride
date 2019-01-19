@@ -298,11 +298,14 @@ texinfo_documents = [
 
 # Don't output variable values
 # Simple variant of https://stackoverflow.com/a/25163963/2081118
-from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, SUPPRESS
+from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, ClassLevelDocumenter, InstanceAttributeDocumenter, SUPPRESS
 def add_directive_header(self, sig):
     ModuleLevelDocumenter.add_directive_header(self, sig)
+    if not self.options.annotation:
+        self.add_line(u'   :annotation:', '<autodoc>')
     self.options.annotation = SUPPRESS
 DataDocumenter.add_directive_header = add_directive_header
+InstanceAttributeDocumenter.add_directive_header = add_directive_header
 
 
 
