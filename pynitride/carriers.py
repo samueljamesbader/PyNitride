@@ -350,5 +350,10 @@ class MultibandKP(CarrierModel):
 
         log("not blending",level="TODO")
 
+    def interp_energy(self,absk,theta,eig):
+        if not hasattr(self,'_enbv'):
+            self._enbv=[self.rmesh.interpolator(rmesh['kpen'][:,eig])
+                    for eig in range(self._neig)]
+        return self._enbv[eig](absk,theta)
 
 
