@@ -55,7 +55,7 @@ class ParamDB(Brain):
     #            return np.array([self.quantity(a) for a in args[0]])
     #        return ParamDB._ureg.Quantity(*args).to_base_units().magnitude
 
-k,hbar,pi,m_e,cm,nm,eV,K,q =[parse(x) for x in "k,hbar,pi,m_e,cm,nm,eV,K,e".split(',')]
+kb, hbar, pi, m_e, cm, nm, eV, K, q =[parse(x) for x in "k,hbar,pi,m_e,cm,nm,eV,K,e".split(',')]
 pmdb=ParamDB(os.path.join(ROOT_DIR,"parameters"))
 pmdb.read("VM2003.txt")
 pmdb.read("BFV2001.txt")

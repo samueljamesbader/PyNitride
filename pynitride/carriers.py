@@ -1,6 +1,6 @@
 import numpy as np
 from pynitride.mesh import PointFunction, MidFunction, Function, ConstantFunction
-from pynitride.paramdb import pmdb, k, pi, hbar, m_e, nm
+from pynitride.paramdb import pmdb, kb, pi, hbar, m_e, nm
 from pynitride.cython_maths import fd12, fd12p
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from scipy.sparse import diags
@@ -10,7 +10,6 @@ from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
 from pynitride.machine import Pool, glob_store_attributes, FakePool
-from pynitride.reciprocal_mesh import KMesh2D
 from operator import itemgetter
 
 class CarrierModel():
@@ -81,10 +80,10 @@ class Semiclassical(CarrierModel):
         # Compute the effective density of states
         if 'electron' in self._carriers:
             m.ensure_function_exists("Nc",dim=m.medos.shape[:-1],pos='mid')
-            m['Nc']= m.eg * (m.medos*k*m.T/(2*pi*hbar**2))**(3/2)
+            m['Nc']= m.eg * (m.medos * kb * m.T / (2 * pi * hbar ** 2)) ** (3 / 2)
         if 'hole' in self._carriers:
             m.ensure_function_exists("Nv",dim=m.mhdos.shape[:-1],pos='mid')
-            m['Nv']= m.hg * (m.mhdos*k*m.T/(2*pi*hbar**2))**(3/2)
+            m['Nv']= m.hg * (m.mhdos * kb * m.T / (2 * pi * hbar ** 2)) ** (3 / 2)
 
     def solve(self):
         """ Does nothing.
@@ -123,13 +122,13 @@ class Semiclassical(CarrierModel):
 
         # Compute the carrier density and its derivative
         if 'electron' in self._carriers:
-            eta=((m.EF.tmf() - Ec_eff) - m.cDE) / (k * m.T)
+            eta=((m.EF.tmf() - Ec_eff) - m.cDE) / (kb * m.T)
             assign(m['n'],     np.sum(m.Nc * fd12(eta), axis=0).tpf())
-            assign(m['nderiv'],np.sum(-(m.Nc/(k*m.T)) * fd12p(eta), axis=0).tpf())
+            assign(m['nderiv'], np.sum(-(m.Nc / (kb * m.T)) * fd12p(eta), axis=0).tpf())
         if 'hole' in self._carriers:
-            eta=((Ev_eff - m.EF.tmf()) - m.vDE) / (k * m.T)
+            eta=((Ev_eff - m.EF.tmf()) - m.vDE) / (kb * m.T)
             assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tpf())
-            assign(m['pderiv'],np.sum((m.Nv/(k*m.T)) * fd12p(eta), axis=0).tpf())
+            assign(m['pderiv'], np.sum((m.Nv / (kb * m.T)) * fd12p(eta), axis=0).tpf())
 
 
 class Schrodinger(CarrierModel):
@@ -240,10 +239,10 @@ class Schrodinger(CarrierModel):
             en=np.expand_dims(sb['energies'][l,:],2)
             psi=sb['psi'][l,:,:]
 
-            eta=b*(en-m.EF).tmf()/(k*m.T)
+            eta=b*(en-m.EF).tmf()/(kb * m.T)
             psisq=abs(psi.tmf())**2
             mmean=np.atleast_2d((mxy*psisq).integrate(definite=True)).T
-            dens+= np.sum(  (g*mmean*k*m.T)/(2*pi*hbar**2)*psisq*np.log(1+np.exp(eta)),      axis=0).tpf()
+            dens+= np.sum((g * mmean * kb * m.T) / (2 * pi * hbar ** 2) * psisq * np.log(1 + np.exp(eta)), axis=0).tpf()
             deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tpf()
 
         if self._blend:
@@ -295,6 +294,7 @@ class MultibandKP(CarrierModel):
     # kppsi is kt, eig, comp, z
     # normsqs is kt, eig, z
     def solve(self):
+        if hasattr(self,'_enbv'): del self._enbv
         log("MBKP Solve",level="debug")
         m=self.mesh
         kpen,kppsi,normsqs=itemgetter('kpen','kppsi','normsqs')(self.rmesh)
@@ -338,7 +338,7 @@ class MultibandKP(CarrierModel):
 
     def repopulate(self):
         m=self.mesh
-        kT=k*m.T
+        kT= kb * m.T
         # kt, eig, z
         eta=(np.expand_dims(self.rmesh['kpen'],2)-m.EF)/kT.tpf()
 
@@ -350,10 +350,20 @@ class MultibandKP(CarrierModel):
 
         log("not blending",level="TODO")
 
-    def interp_energy(self,absk,theta,eig):
+    def _get_interpolation(self):
         if not hasattr(self,'_enbv'):
-            self._enbv=[self.rmesh.interpolator(rmesh['kpen'][:,eig])
-                    for eig in range(self._neig)]
+            self._enbv=[self.rmesh.interpolator(self.rmesh['kpen'][:,eig])
+                        for eig in range(self._neig)]
+
+    def interp_energy(self,absk,theta,eig):
+        self._get_interpolation()
         return self._enbv[eig](absk,theta)
 
+    def interp_radial_group_velocity(self,absk,theta,eig):
+        self._get_interpolation()
+        return 1/hbar*self._enbv[eig](absk,theta,dabsk=1)
+
+    def interp_radial_eff_mass(self,absk,theta,eig):
+        self._get_interpolation()
+        return -1/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2))
 
