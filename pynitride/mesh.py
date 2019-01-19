@@ -663,8 +663,11 @@ class Mesh():
         print("---------------------------")
 
 
-    def save(self,filename,keys):
-        res={k:self[k] for k in keys}
+    def save(self,filename,keys=None):
+        if keys is None:
+            res=self._functions
+        else:
+            res={k:self[k] for k in keys}
         np.savez_compressed(filename,**res)
     def read(self,filename):
         with np.load(filename) as data:

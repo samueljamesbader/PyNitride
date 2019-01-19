@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from multiprocessing import Pool as _ProcessPool
 from multiprocessing.dummy import Pool as _ThreadPool
 from operator import itemgetter
-from threading import Lock
+from threading import RLock
 from contextlib import contextmanager
 from functools import partial
 
@@ -27,7 +27,7 @@ class Pool():
 
         cls._kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
         cls._globs={}
-        cls._globlck=Lock()
+        cls._globlck=RLock()
         if cextthread is not None:
             os.environ["OMP_NUM_THREADS"] = str(cextthread)
             os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
@@ -95,11 +95,15 @@ class FakePool():
         return [func(i) for i in iterable]
     def apply(self,func,args=(),kwds={}):
         return func(*args,**kwds)
+    def close(self):
+        pass
+    def join(self):
+        pass
 
 
 _storage={}
 _storagepids={}
-_storagelock=Lock()
+_storagelock=RLock()
 def glob_store(obj):
     with _storagelock:
         key=len(_storage)
@@ -132,6 +136,7 @@ def glob_store_attributes(*attrs):
     such that the MyClass instance does not actually hold a reference to `big_obj` (just the key to retreive it from
     the glob_store system). Thus if an instance of `MyClass` is sent through a multiprocessing function and gets
     pickled, `big_obj` will not be shared through the pickling but instead through process inheritance.
+
     """
 
     # wrapper is the function which gets called on the new class
@@ -165,7 +170,7 @@ def glob_store_attributes(*attrs):
         # after calling the original __del__
         def __del__(self):
             odel(self)
-            for key in self._globkeys.values():
+            for k,key in self._globkeys.items():
                 glob_remove(key)
 
         # Add this new __del__ to the class
