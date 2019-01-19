@@ -283,6 +283,13 @@ class MultibandKP(CarrierModel):
             self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=6,dirichelet1=True,dirichelet2=True)
 
+    @property
+    def kppsi(self): return self.rmesh['kppsi']
+    @property
+    def kpen(self): return self.rmesh['kpen']
+    @property
+    def normsqs(self): return self.rmesh['normsqs']
+
 
     # kpen is kt, eig, z
     # kppsi is kt, eig, comp, z
