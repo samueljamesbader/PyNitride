@@ -41,7 +41,7 @@ def valence_band_panels(m,mbkp):
     # DOS(E)
     plt.subplot(gs2[5:, 0], sharey=axbs)
     kT=kb*m.T[0]
-    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 5000,retstep=True)]*2
+    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 2000,retstep=True)]*2
     KX,KY=np.meshgrid(kx,ky)
     ABSK,THETA=cart2polar(KX,KY)
     absk,theta=ABSK[ABSK<=rmesh.kmax],THETA[ABSK<=rmesh.kmax]

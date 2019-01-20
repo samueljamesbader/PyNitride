@@ -127,6 +127,7 @@ class Wurtzite(MaterialSystem):
             'vDE':      self.smcls_band_params,
             'hg':       self.smcls_band_params,
 
+            'EvOffset': self.bandedge_params,
             'A1':       self.kp_params,
             'A2':       self.kp_params,
             'A3':       self.kp_params,

@@ -275,6 +275,7 @@ class RMesh2D_Polar(RMesh):
 
     def interpolator(self,func):
         d=self.d
+        assert d==1, "Interpolation only provided for full k-space RMesh"
 
         # Which if any side of theta is at the mod boundary
         atedge0=np.isclose(self.theta1[ 0],-pi/d)
