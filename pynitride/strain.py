@@ -18,6 +18,9 @@ class Pseudomorphic():
             self._mesh.ensure_function_exists('exx',0,pos='mid')
             self._mesh.ensure_function_exists('eyy',0,pos='mid')
             self._mesh.ensure_function_exists('ezz',0,pos='mid')
+            self._mesh.ensure_function_exists('exy',0,pos='mid')
+            self._mesh.ensure_function_exists('exz',0,pos='mid')
+            self._mesh.ensure_function_exists('eyz',0,pos='mid')
             straincond=self._straincond
             if straincond is None:
                 pos=-1 if (self._mesh.ztrans == -1 ) else 0
