@@ -182,42 +182,48 @@ def fem_eigsh(stiffness_matrix,load_matrix,
     Returns:
         None
     """
-    evec_slice=slice(dirichelet1,eigvec_out.shape[-1]-dirichelet2)
-    eigval_out[:],eigvecs=eigsh(A=stiffness_matrix,M=load_matrix,*args,**kwargs)
+    do_eigvecs=(eigvec_out is not False)
+    if do_eigvecs:
+        evec_slice=slice(dirichelet1,eigvec_out.shape[-1]-dirichelet2)
+        eigval_out[:],eigvecs=eigsh(A=stiffness_matrix,M=load_matrix,*args,**kwargs)
+    else:
+        eigval_out[:]=eigsh(A=stiffness_matrix,M=load_matrix,return_eigenvectors=False,*args,**kwargs)
 
     # Re-order the energies
     indarr=np.argsort(eigval_out)
     eigval_out[:]=eigval_out[indarr]
-    eigvecs=eigvecs[:,indarr]
 
-    # If desired, re-orthogonalize within each pair of states
-    if pairwise_GS:
-        assert eigvecs.shape[1] % 2 == 0, \
-            "Number of eigenvalues must be even for pairwise reorthogonalization"
-        # Grab the first (A) and second (B) of every pair
-        A=eigvecs[:,0::2]
-        B=eigvecs[:,1::2]
+    if do_eigvecs:
+        eigvecs=eigvecs[:,indarr]
 
-        # Gram-Schmidt them
-        M=load_matrix
-        C_=B-np.sum(A.conj()*(M@B),axis=0)*A
-        C=C_/np.sqrt(np.sum(C_.conj()*(M@C_),axis=0))
+        # If desired, re-orthogonalize within each pair of states
+        if pairwise_GS:
+            assert eigvecs.shape[1] % 2 == 0, \
+                "Number of eigenvalues must be even for pairwise reorthogonalization"
+            # Grab the first (A) and second (B) of every pair
+            A=eigvecs[:,0::2]
+            B=eigvecs[:,1::2]
 
-        # Put the result back in
-        eigvecs[:,1::2]=C
+            # Gram-Schmidt them
+            M=load_matrix
+            C_=B-np.sum(A.conj()*(M@B),axis=0)*A
+            C=C_/np.sqrt(np.sum(C_.conj()*(M@C_),axis=0))
 
-    # Reshape the eigenvectors to axes of (z, comp, eig)
-    eigvecs.shape=(int(eigvecs.shape[0]/n),n,eigvecs.shape[1])
+            # Put the result back in
+            eigvecs[:,1::2]=C
 
-    # Then assign it to the output in axes of (eig, comp, z)
-    if n==1: eigvec_out=np.expand_dims(eigvec_out,1)
-    eigvec_out[:,:,evec_slice]=eigvecs.T[:,:,:]
+        # Reshape the eigenvectors to axes of (z, comp, eig)
+        eigvecs.shape=(int(eigvecs.shape[0]/n),n,eigvecs.shape[1])
 
-    # Zeros at dirichelet boundaries
-    if dirichelet1:
-        eigvec_out[:,:,0]=0
-    if dirichelet2:
-        eigvec_out[:,:,-1]=0
+        # Then assign it to the output in axes of (eig, comp, z)
+        if n==1: eigvec_out=np.expand_dims(eigvec_out,1)
+        eigvec_out[:,:,evec_slice]=eigvecs.T[:,:,:]
+
+        # Zeros at dirichelet boundaries
+        if dirichelet1:
+            eigvec_out[:,:,0]=0
+        if dirichelet2:
+            eigvec_out[:,:,-1]=0
 
 def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,
               dirichelet1=False,dirichelet2=False,*args,**kwargs):

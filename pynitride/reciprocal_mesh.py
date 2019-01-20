@@ -35,6 +35,8 @@ class RMesh:
         return self._functions[key]
     def __contains__(self, key):
         return (key in self._functions)
+    def __delitem__(self, key):
+        del self._functions[key]
 
 
     def integrate(self,integrand):
@@ -74,6 +76,7 @@ class RMesh1D(RMesh):
         self.absk1=self.absk=np.sort(absk)
         self.kmax=self.absk1[-1]
         dabsk=self.absk1[1:]-self.absk1[:-1]
+        self.bzarea=bzarea
 
         # lower bound of each bin, including zero for the first bin
         self._abskbinl=np.concatenate([[0],self.absk1[:-1]+dabsk/2])
@@ -121,6 +124,16 @@ class RMesh1D(RMesh):
         """ Returns the index into the absk1 array for a given k-point"""
         return self._k2i[np.round(absk,self._exactdig)]
 
+    def absk_subrmesh(self,indices):
+        assert not isinstance(indices,slice), "indices should be a list/array"
+        absk=self.absk1[indices]
+        
+        sub=RMesh1D(absk,bzarea=self.bzarea)
+
+        for key,val in self._functions.items():
+            sub._functions[key]=val[indices]
+        return sub
+
 
 class RMesh2D_Polar(RMesh):
     """ A 2-D mesh of k-space."""
@@ -133,7 +146,7 @@ class RMesh2D_Polar(RMesh):
         self.numabsk=len(self.absk1)
         self.numtheta=len(self.theta1)
         self.d=d
-        self.bzarea=None
+        self.bzarea=bzarea
 
         ###
         # k bin boundaries
