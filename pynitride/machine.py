@@ -3,7 +3,7 @@ from multiprocessing import cpu_count
 from multiprocessing import Pool as _ProcessPool
 from multiprocessing.dummy import Pool as _ThreadPool
 from operator import itemgetter
-from threading import RLock
+from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial
 
@@ -85,7 +85,8 @@ class Pool():
     @classmethod
     def dereference(cls,*args):
         return itemgetter(*args)(cls._globs)
-
+class FakeAsynchronousResult():
+    def wait(self,timeout=None): pass
 class FakePool():
     def starmap(self,func,iterable,chunksize=1):
         assert chunksize==1, "Fake pool not implementend for non-unity chunksize"
@@ -95,6 +96,10 @@ class FakePool():
         return [func(i) for i in iterable]
     def apply(self,func,args=(),kwds={}):
         return func(*args,**kwds)
+    def apply_async(self,func,args=(),kwds={},callback=None,error_callback=None):
+        ret=func(*args,**kwds)
+        callback(ret)
+        return FakeAsynchronousResult()
     def close(self):
         pass
     def join(self):
@@ -182,3 +187,14 @@ def glob_store_attributes(*attrs):
         return cls
     return wrapper
 
+class Counter():
+    def __init__(self, print_every=10, print_message="Count: {}"):
+        self._count=0
+        self._lock=Lock()
+        self._print_every=print_every
+        self._print_message=print_message+"\n"
+    def increment(self):
+        with self._lock:
+            self._count+=1
+            if (self._count+1) % self._print_every == 0:
+                print(self._print_message.format(self._count+1),flush=True,end='')
