@@ -11,6 +11,7 @@ from pynitride.visual import log, sublog
 from operator import iadd,setitem
 from pynitride.machine import Pool, glob_store_attributes, FakePool
 from operator import itemgetter
+from functools import partial
 
 class CarrierModel():
     """ Superclass for all carrier models.
@@ -296,14 +297,15 @@ class MultibandKP(CarrierModel):
     # normsqs is kt, eig, z
     def solve(self):
         if hasattr(self,'_enbv'): del self._enbv
-        log("MBKP Solve",level="debug")
-        m=self.mesh
-        kpen,kppsi,normsqs=itemgetter('kpen','kppsi','normsqs')(self.rmesh)
-        Pool.process_pool(new=True)
-        def save_one_solve(ik):
-            kpen[ik,:],kppsi[ik,:,:,:],normsqs[ik,:,:]= \
-                Pool.process_pool().apply(self.solve_one_k,args=(None,None,ik))
-        Pool.thread_pool().map(save_one_solve,range(self.rmesh.N))
+
+        def save_solve(ik,res):
+            self.kpen[ik,:],self.kppsi[ik,:,:,:],self.normsqs[ik,:,:]= res
+        pool=Pool.process_pool(new=True)
+        asyncs=[pool.apply_async(self.solve_one_k,args=(None,None,ik),
+                 callback=partial(save_solve,ik))
+            for ik in range(self.rmesh.N)]
+        for async in asyncs: async.wait()
+
 
     # kpen is eig, z
     # kppsi is eig, comp, z

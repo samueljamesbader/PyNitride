@@ -48,7 +48,7 @@ if __name__=="__main__":
     starttime=time()
     from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
     #rmesh=RMesh1D.regular(kmax=2/nm,numabsk=25)
-    rmesh=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=4)
+    rmesh=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
     mbkp=scl._cs[0]=MultibandKP(schro,num_eigenvalues=6,rmesh=rmesh)
     scl.loop(tol=1e-5,min_activation=.05)
     #scl.loop(tol=1e5,min_activation=.05)
