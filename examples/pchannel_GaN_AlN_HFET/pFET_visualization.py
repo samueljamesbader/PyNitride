@@ -34,18 +34,18 @@ def valence_band_panels(m,mbkp):
     plt.axhline(0, color='k', linestyle='--')
     plt.setp(axbs.get_yticklabels(), visible=False)
     plt.xlabel(r"$\leftarrow k_y\quad [1/nm]\quad k_x \rightarrow$")
-    axbs.xaxis.set_minor_locator(MultipleLocator(1))
+    #axbs.xaxis.set_minor_locator(MultipleLocator(1))
     plt.grid(True, which='both')
 
 
     # DOS(E)
     plt.subplot(gs2[5:, 0], sharey=axbs)
     kT=kb*m.T[0]
-    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 2000,retstep=True)]*2
+    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 1000,retstep=True)]*2
     KX,KY=np.meshgrid(kx,ky)
     ABSK,THETA=cart2polar(KX,KY)
     absk,theta=ABSK[ABSK<=rmesh.kmax],THETA[ABSK<=rmesh.kmax]
-    for i, c in zip([0, 2], ['b', 'r']):
+    for i, c in zip([0, 2, 4], ['b', 'r', 'g']):
         E = mbkp.interp_energy(absk,theta,eig=i)
         hist, bin_e = np.histogram(E, bins=100, range=(np.min(E), np.max(E) + .01))
         DOS = hist * dkx * dky / (4 * np.pi ** 2) / np.diff(bin_e)
@@ -55,7 +55,7 @@ def valence_band_panels(m,mbkp):
     plt.xlim(0, 6)
     #plt.yticks([25, 0, -25, -50, -75])
     plt.ylabel("Energy [meV]")
-    plt.xticks([0, 2, 4])
+    plt.xticks(plt.xticks()[0][:-1])
     plt.xlabel("DOS [eV$^{-1}$nm$^{-2}$]      $\ $", )
     plt.axhline(0, color='k', linestyle='--')
     #plt.annotate("Filled", (1.2, -30), xytext=(1.4, -50),
