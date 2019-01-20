@@ -277,9 +277,10 @@ class MultibandKP(CarrierModel):
             self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky)
 
             # Initialize other functions
-            self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,6,))
-            self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
-            self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
+            if 'kpen' not in self.rmesh:
+                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,6,))
+                self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
+                self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=6,dirichelet1=True,dirichelet2=True)
 
     @property
@@ -355,15 +356,15 @@ class MultibandKP(CarrierModel):
             self._enbv=[self.rmesh.interpolator(self.rmesh['kpen'][:,eig])
                         for eig in range(self._neig)]
 
-    def interp_energy(self,absk,theta,eig):
+    def interp_energy(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()
-        return self._enbv[eig](absk,theta)
+        return self._enbv[eig](absk,theta,bounds_check=bounds_check)
 
-    def interp_radial_group_velocity(self,absk,theta,eig):
+    def interp_radial_group_velocity(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()
-        return 1/hbar*self._enbv[eig](absk,theta,dabsk=1)
+        return 1/hbar*self._enbv[eig](absk,theta,dabsk=1,bounds_check=bounds_check)
 
-    def interp_radial_eff_mass(self,absk,theta,eig):
+    def interp_radial_eff_mass(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()
-        return -1/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2))
+        return -1/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2,bounds_check=bounds_check))
 

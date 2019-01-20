@@ -33,6 +33,8 @@ class RMesh:
         self._functions[key]=value
     def __getitem__(self, key):
         return self._functions[key]
+    def __contains__(self, key):
+        return (key in self._functions)
 
 
     def integrate(self,integrand):
@@ -131,6 +133,7 @@ class RMesh2D_Polar(RMesh):
         self.numabsk=len(self.absk1)
         self.numtheta=len(self.theta1)
         self.d=d
+        self.bzarea=None
 
         ###
         # k bin boundaries
@@ -287,17 +290,29 @@ class RMesh2D_Polar(RMesh):
             self.theta1,
             self.theta1[:(+3-atedge1)]+2*pi/d])
 
-        # Join in the energ
+        # Join in the energy
         fmain=self.conv2grid(func)
         f=np.vstack([fmain[(-3+atedge0):,:],fmain,fmain[:(+3-atedge1),:]])
         rbvs=RectBivariateSpline(self.absk1,theta,f.T,
             bbox=[0,self.absk1[-1],theta[0],theta[-1]])
 
-        def interp(absk,theta,grid=False, dabsk=0, dtheta=0):
-            assert np.all(absk<=self.absk1[-1])
+        def interp(absk,theta,grid=False, dabsk=0, dtheta=0, bounds_check=True):
+            if bounds_check:
+                assert np.all(absk<=self.absk1[-1]), "Out of interpolation range"
             theta=np.mod(np.mod(theta,2*pi/d)+pi/d,2*pi/d)-pi/d
             return rbvs(absk,theta,grid=grid, dx=dabsk, dy=dtheta)
         return interp
 
+    def absk_subrmesh(self,abskstart=1,abskstop=-1):
+        abskslice=slice(abskstart,abskstop)
+        absk=self.absk1[abskslice]
+        theta=self.theta1
+        
+        sub=RMesh2D_Polar(absk,theta,d=self.d,bzarea=self.bzarea)
 
+        start=list(self.absk).index(absk[0])
+        stop=self.N-list(self.absk[::-1]).index(absk[-1])
+        for key,val in self._functions.items():
+            sub._functions[key]=val[start:stop]
+        return sub
 
