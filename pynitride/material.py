@@ -234,6 +234,7 @@ class Wurtzite(MaterialSystem):
         m['Delta2']=m['Delta3']=1/3*m.DeltaSO
         return m[key]
 
+    kp_dim=6
     def kp_Cmats(self,m,kx,ky):
         """
 

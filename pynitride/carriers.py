@@ -268,6 +268,7 @@ class MultibandKP(CarrierModel):
         super().__init__(mesh)
         m=mesh
         assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
+        self._n=m._matblocks[0].matsys.kp_dim
         self._neig=num_eigenvalues
         self.rmesh=rmesh
 
@@ -279,10 +280,10 @@ class MultibandKP(CarrierModel):
 
             # Initialize other functions
             if 'kpen' not in self.rmesh:
-                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,6,))
+                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,self._n,))
                 self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
                 self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
-        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=6,dirichelet1=True,dirichelet2=True)
+        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
 
     @property
     def kppsi(self): return self.rmesh['kppsi']
@@ -322,9 +323,9 @@ class MultibandKP(CarrierModel):
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
         H=-assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
         eigvals=np.empty([self._neig])
-        eigvecs=PointFunction(m,np.empty([self._neig,6,m.Np],dtype=complex),dtype=complex)
+        eigvecs=PointFunction(m,np.empty([self._neig,self._n,m.Np],dtype=complex),dtype=complex)
         # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
-        fem_eigsh(H,self._load_matrix,eigvals,eigvecs,6,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
+        fem_eigsh(H,self._load_matrix,eigvals,eigvecs,self._n,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
                   k=self._neig,sigma=float(np.min(-pot)),which='LM',tol=0,ncv=self._neig*2)
 
         # eig, z
