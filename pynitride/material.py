@@ -1,6 +1,7 @@
 from pynitride.paramdb import pmdb, hbar, m_e, nm
 from pynitride.mesh import MidFunction, PointFunction, Function, SubMesh
 from pynitride.visual import log
+from pynitride.maths import double_mat
 import numpy as np
 
 class MaterialSystem():
@@ -257,69 +258,59 @@ class Wurtzite(MaterialSystem):
         N1p=3*m.A5-Atwid; N1m=-m.A5+Atwid
         N2p=np.sqrt(2)*m.A6-Ahat
         N2m=Ahat
-        l1=m.D2+m.D4+m.D5; l2=m.D1
-        m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
-        n1=2*m.D5; n2=np.sqrt(2)*m.D6
         L1u=L1+U; L2u=L2+U
         M1u=M1+U; M2u=M2+U; M3u=M3+U
         Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
 
-        def double(arr):
-            if len(arr.shape)>2:
-                n=arr.shape[0]
-                out=Function(m,value=np.zeros((2*n,2*n,arr.shape[2]),dtype='complex'),dtype='complex',pos=arr.pos)
-                out[:n,:n,:]=arr
-                out[n:,n:,:]=arr
-                return out
-            else:
-                n=arr.shape[0]
-                out=Function(m,value=np.zeros((2*n,2*n),dtype='complex'),dtype='complex',pos=arr.pos)
-                out[:n,:n]=arr
-                out[n:,n:]=arr
-                return out
-
-        #print("FAKING N2p,N2m=0")
-        #N2p*=0
-        #N2m*=0
+        strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz)
 
         Cmats=[]
         for kx,ky in zip(kx,ky):
             C0= \
-                (double(MidFunction(m,[
+                double_mat(MidFunction(m, [
                     [kx*L1u*kx+ky*M1u*ky , kx*N1p*ky+ky*N1m*kx,         O           ],
                     [ky*N1p*kx+kx*N1m*ky , kx*M1u*kx+ky*L1u*ky,         O           ],
-                    [         O          ,          O         ,  kx*M3u*kx+ky*M3u*ky]]))+ \
-                 MidFunction(m,[
+                    [         O          ,          O         ,  kx*M3u*kx+ky*M3u*ky]])) + \
+                MidFunction(m,[
                      [   Delta1,   -1j*Delta2,          O,          O,         O,     Delta3],
                      [1j*Delta2,       Delta1,          O,          O,         O, -1j*Delta3],
                      [        O,            O,          O,    -Delta3, 1j*Delta3,          O],
                      [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
                      [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
-                     [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex')+ \
-                 double(MidFunction(m,[
-                     [l1*m.exx+m1*m.eyy+m2*m.ezz,       n1*m.exy,                   n2*m.exz],
-                     [       n1*m.exy,        m1*m.exx+l1*m.eyy+m2*m.ezz,           n2*m.eyz],
-                     [       n2*m.exz,              n2*m.eyz,            m3*m.exx+m3*m.eyy+l2*m.ezz]])))
+                     [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
+                strainmat
 
-            Cl= m.ztrans*\
-                double(MidFunction(m,[
+            Cl= m.ztrans * \
+                double_mat(MidFunction(m, [
                     [           O     ,             O    ,       kx*N2p     ],
                     [           O     ,             O    ,       ky*N2p     ],
                     [       kx*N2m    ,         ky*N2m   ,         O        ]]))
-            Cr= m.ztrans*\
-                double(MidFunction(m,[
+            Cr= m.ztrans * \
+                double_mat(MidFunction(m, [
                     [           O     ,             O    ,       N2m*kx     ],
                     [           O     ,             O    ,       N2m*ky     ],
                     [       N2p*kx    ,         N2p*ky   ,         O        ]]))
 
             C2= \
-                double(MidFunction(m,[
+                double_mat(MidFunction(m, [
                     [           M2u   ,             O    ,        O     ],
                     [           O     ,           M2u    ,        O     ],
                     [           O     ,              O   ,       L2u    ]]))
             Cmats+=[[C0,Cl,Cr,C2]]
         return Cmats
 
+    def kp_strain_mat(self,m,**strains):
+        s=strains.copy()
+        for sij in ['exx','exy','exz','eyy','eyz','ezz']:
+            if sij not in s: s[sij]=m[sij]
+
+        l1=m.D2+m.D4+m.D5; l2=m.D1
+        m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
+        n1=2*m.D5; n2=np.sqrt(2)*m.D6
+        return double_mat(MidFunction(m, [
+            [l1*s['exx']+m1*s['eyy']+m2*s['ezz'],       n1*s['exy'],                   n2*s['exz']],
+            [       n1*s['exy'],        m1*s['exx']+l1*s['eyy']+m2*s['ezz'],           n2*s['eyz']],
+            [       n2*s['exz'],                        n2*s['eyz'],            m3*s['exx']+m3*s['eyy']+l2*s['ezz']]]))
 
     def ec_Cmats(self,m,q):
         q=np.reshape(q,(len(q),1,1,1))
