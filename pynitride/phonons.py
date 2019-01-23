@@ -103,7 +103,6 @@ class ElasticContinuum(PhononModel):
         for asyn in asyncs: asyn.wait()
 
     def solve_one_q(self,q,iq=None,just_energies=False):
-        ref_en=self.rmesh['ref_en']
         m=self._mesh
         if iq is None:
             C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_Cmats(m,np.array([q]))[0]
@@ -115,6 +114,7 @@ class ElasticContinuum(PhononModel):
             mid_eig=0
             neig_ext=self._neig
         else:
+            ref_en=self.rmesh['ref_en']
             mid_eig=(np.mean(ref_en[iq,self._first_level-1:self._first_level+1])/hbar)**2
             neig_ext=self._neig+6
 
