@@ -1,13 +1,11 @@
 import numpy as np
-from pynitride.machine import Pool, glob_store_attributes, FakePool, Counter
+from pynitride.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
 from pynitride.visual import log, sublog
 from scipy.sparse.linalg import eigsh
 from pynitride.mesh import PointFunction
 from pynitride.paramdb import hbar
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from functools import partial
-
-def raiser(e): raise e
 
 class PhononModel():
     """ Superclass for all phonon models.
@@ -20,6 +18,7 @@ class PhononModel():
         """
         self._mesh=mesh
         self.rmesh=rmesh
+        self._interp_ready=False
 
     def solve(self):
         raise NotImplementedError
@@ -31,7 +30,22 @@ class PhononModel():
     @property
     def vecs(self): return self.rmesh['vecs']
 
-@glob_store_attributes('_mesh','_load_matrix','_stiffness_matrices','rmesh')
+    def _get_interpolation(self):
+        if not self._interp_ready:
+            self._splines=[self.rmesh.interpolator(self.rmesh['en'][:,eig])
+                        for eig in range(self._neig)]
+            self._interp_ready=True
+
+    def interp_energy(self,absk,eig,bounds_check=True):
+        self._get_interpolation()
+        return self._splines[eig](absk,bounds_check=bounds_check)
+
+    def interp_radial_group_velocity(self,absk,eig,bounds_check=True):
+        self._get_interpolation()
+        return 1/hbar*self._splines[eig](absk,dabsk=1,bounds_check=bounds_check)
+
+# TODO: Figure out how to move the glob_store _splines safely to superclass
+@glob_store_attributes('_mesh','_load_matrix','_stiffness_matrices','rmesh','_splines')
 class ElasticContinuum(PhononModel):
     def __init__(self,mesh,rmesh,num_eigenvalues,justXZ=False,first_level=0,parallel=True):
         """ Note: this parallel is not the same as the one in solve()"""
@@ -42,9 +56,11 @@ class ElasticContinuum(PhononModel):
         self._n=3-justXZ
         self._first_level=first_level
 
-        assert len(mesh._matblocks)==1, "ElasticContinuum only works on a mesh with a single material system for now"
+        assert len(mesh._matblocks)==1,\
+            "ElasticContinuum only works on a mesh with a single material system for now"
 
-        self._load_matrix=assemble_load_matrix(w=m.density,dzp=m.dzp,n=self._n,dirichelet1=False,dirichelet2=False)
+        self._load_matrix=assemble_load_matrix(w=m.density,dzp=m.dzp,n=self._n,
+                dirichelet1=False,dirichelet2=False)
 
         if rmesh is not None:
 
@@ -57,9 +73,10 @@ class ElasticContinuum(PhononModel):
                 Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
             else:
                 Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
-            self._stiffness_matrices=Pool.process_pool(new=True).starmap(assemble_stiffness_matrix,\
-                    [(C0,Cl,Cr,C2,m._dzp,False,False)
-                        for [C0,Cl,Cr,C2] in Cmats])
+            self._stiffness_matrices=Pool.process_pool(new=True).starmap(
+                    assemble_stiffness_matrix,\
+                        [(C0,Cl,Cr,C2,m._dzp,False,False)
+                            for [C0,Cl,Cr,C2] in Cmats])
             log("Done assembly.",level='info')
 
 
@@ -69,7 +86,8 @@ class ElasticContinuum(PhononModel):
         if 'en' not in self.rmesh:
             self.rmesh['en']   =np.empty((len(self.q),self._neig))
         if 'vecs' not in self.rmesh and not just_energies:
-            self.rmesh['vecs'] =PointFunction(self._mesh,empty=(len(self.q),self._neig,self._n),dtype='complex')
+            self.rmesh['vecs'] =PointFunction(self._mesh,
+                    empty=(len(self.q),self._neig,self._n),dtype='complex')
 
         counter=Counter(print_message="Count: {{:5d}}/{}".format(self.rmesh.N))
         def save_solve(iq,res):
@@ -82,7 +100,7 @@ class ElasticContinuum(PhononModel):
         asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
                 callback=partial(save_solve,iq), error_callback=raiser)
                 for iq in range(self.rmesh.N)]
-        for async in asyncs: async.wait()
+        for asyn in asyncs: asyn.wait()
 
     def solve_one_q(self,q,iq=None,just_energies=False):
         ref_en=self.rmesh['ref_en']
