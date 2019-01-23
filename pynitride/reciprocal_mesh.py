@@ -2,7 +2,7 @@ import numpy as np
 pi=np.pi
 from pynitride.machine import glob_store_attributes
 from pynitride.maths import polar2cart
-from scipy.interpolate import RectBivariateSpline
+from scipy.interpolate import RectBivariateSpline, splrep, splev
 
 @glob_store_attributes('_functions')
 class RMesh:
@@ -134,6 +134,18 @@ class RMesh1D(RMesh):
             sub._functions[key]=val[indices]
         return sub
 
+    def interpolator(self,func):
+ 
+        # Get the spline interpolation using splrep/splev instead of
+        # interp1d because it can also provide derivatives
+        tck, fp, ier, msg=splrep(self.absk1,func,full_output=True)
+        assert ier<=0, msg
+
+        def interp(absk, dabsk=0, bounds_check=True):
+            # for out of bounds, ext=0 extrapolates, ext=2 raises an error
+            return splev(absk,tck,der=dabsk,ext=bounds_check*2)
+        return interp
+
 
 class RMesh2D_Polar(RMesh):
     """ A 2-D mesh of k-space."""
@@ -185,14 +197,15 @@ class RMesh2D_Polar(RMesh):
         ABSK,THETA=np.meshgrid(self.absk1,self.theta1)
         self.absk=self.conv2flat(ABSK)
         self.theta=self.conv2flat(THETA)
-        self.theta[0]=0
+        if self.absk1[0]==0:
+            self.theta[0]=0
         self.kx,self.ky=polar2cart(self.absk,self.theta)
         self.N=len(self.absk)
 
         # Area to use for each when integrating
         Oabsk=(self.abskbinu**2-self.abskbinl**2)/2
-        Otheta=(dthetal+dthetar)/2
-        OABSK,OTHETA=np.meshgrid(Oabsk,Otheta)
+        self.dtheta=(dthetal+dthetar)/2
+        OABSK,OTHETA=np.meshgrid(Oabsk,self.dtheta)
         self.Omega=self.conv2flat(OABSK*OTHETA)
         if self.absk1[0]==0:
             self.Omega[0]*=self.numtheta
@@ -200,6 +213,7 @@ class RMesh2D_Polar(RMesh):
         # Mapping from absk1 values to their indices
         self._exactdig=7
         self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
+        self._ikit2i=self.conv2grid(np.arange(self.N))
 
     @classmethod
     def regular(cls,kmax,numabsk,numtheta,include_kzero=True,align_theta=False,d=1):
@@ -329,3 +343,5 @@ class RMesh2D_Polar(RMesh):
             sub._functions[key]=val[start:stop]
         return sub
 
+    def partial_indices_to_index(self,iabsk,itheta):
+        return self._ikit2i[itheta,iabsk]

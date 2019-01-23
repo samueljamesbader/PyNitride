@@ -9,7 +9,7 @@ from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from operator import iadd,setitem
-from pynitride.machine import Pool, glob_store_attributes, FakePool
+from pynitride.machine import Pool, glob_store_attributes, FakePool, raiser
 from operator import itemgetter
 from functools import partial
 
@@ -253,7 +253,7 @@ class Schrodinger(CarrierModel):
                 self._sch.repopulate(Ev_eff=np.minimum(np.expand_dims(self._hen[:,-1],1),m.Ev),addon=True)
 
 # TODO: Blending for multiband kp
-@glob_store_attributes('mesh','rmesh','_Cmats','_load_matrix')
+@glob_store_attributes('mesh','rmesh','_Cmats','_load_matrix','_enbv')
 class MultibandKP(CarrierModel):
     def __init__(self,mesh,rmesh=None,num_eigenvalues=20):
         """ Solves the multiband k.p problem for the valence bands.
@@ -285,6 +285,8 @@ class MultibandKP(CarrierModel):
                 self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
 
+        self._interp_ready=False
+
     @property
     def kppsi(self): return self.rmesh['kppsi']
     @property
@@ -297,15 +299,15 @@ class MultibandKP(CarrierModel):
     # kppsi is kt, eig, comp, z
     # normsqs is kt, eig, z
     def solve(self):
-        if hasattr(self,'_enbv'): del self._enbv
+        self._interp_ready=False
 
         def save_solve(ik,res):
             self.kpen[ik,:],self.kppsi[ik,:,:,:],self.normsqs[ik,:,:]= res
         pool=Pool.process_pool(new=True)
         asyncs=[pool.apply_async(self.solve_one_k,args=(None,None,ik),
-                 callback=partial(save_solve,ik))
+                 callback=partial(save_solve,ik),error_callback=raiser)
             for ik in range(self.rmesh.N)]
-        for async in asyncs: async.wait()
+        for asyn in asyncs: asyn.wait()
 
 
     # kpen is eig, z
@@ -355,17 +357,18 @@ class MultibandKP(CarrierModel):
         log("not blending",level="TODO")
 
     def _get_interpolation(self):
-        if not hasattr(self,'_enbv'):
+        if not self._interp_ready:
             self._enbv=[self.rmesh.interpolator(self.rmesh['kpen'][:,eig])
                         for eig in range(self._neig)]
+            self._interp_ready=True
 
-    def interp_energy(self,absk,theta,eig,bounds_check=True):
+    def interp_energy(self,absk,theta,eig,bounds_check=True,grid=False):
         self._get_interpolation()
-        return self._enbv[eig](absk,theta,bounds_check=bounds_check)
+        return self._enbv[eig](absk,theta,bounds_check=bounds_check,grid=grid)
 
-    def interp_radial_group_velocity(self,absk,theta,eig,bounds_check=True):
+    def interp_radial_group_velocity(self,absk,theta,eig,bounds_check=True,grid=False):
         self._get_interpolation()
-        return 1/hbar*self._enbv[eig](absk,theta,dabsk=1,bounds_check=bounds_check)
+        return 1/hbar*self._enbv[eig](absk,theta,dabsk=1,bounds_check=bounds_check,grid=grid)
 
     def interp_radial_eff_mass(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()

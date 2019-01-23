@@ -198,3 +198,5 @@ class Counter():
             self._count+=1
             if (self._count+1) % self._print_every == 0:
                 print(self._print_message.format(self._count+1),flush=True,end='')
+
+def raiser(e): raise e
