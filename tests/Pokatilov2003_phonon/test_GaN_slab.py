@@ -22,7 +22,7 @@ if __name__=="__main__":
     print("Mesh points: ",m.Np)
 
     ec=ElasticContinuum(m,num_eigenvalues=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm))
-    ec.solve()
+    ec.solve(just_energies=False,parallel=True)
 
     (y_en,y_vec),(as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en,ec.vecs, [is_Y, is_AS])
 
