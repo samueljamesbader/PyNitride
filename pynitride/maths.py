@@ -1,4 +1,5 @@
 import numpy as np
+from pynitride.mesh import Function
 
 def polar2cart(rho,theta):
     """ Converts a polar rho,theta coordinate to a Cartesian x,y coordinate.
@@ -29,3 +30,21 @@ def cart2polar(x,y):
         tuple of (rho, theta)
     """
     return np.sqrt(x**2+y**2),np.arctan2(y,x)
+
+
+
+def double_mat(arr, dtype='complex'):
+    m=arr.mesh
+    if len(arr.shape)>2:
+        n=arr.shape[0]
+        out=Function(m,value=np.zeros((2*n,2*n,arr.shape[2]),dtype=dtype),dtype=dtype,pos=arr.pos)
+        out[:n,:n,:]=arr
+        out[n:,n:,:]=arr
+        return out
+    else:
+        n=arr.shape[0]
+        out=Function(m,value=np.zeros((2*n,2*n),dtype=dtype),dtype=dtype,pos=arr.pos)
+        out[:n,:n]=arr
+        out[n:,n:]=arr
+        return out
+
