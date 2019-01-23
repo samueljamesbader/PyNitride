@@ -5,6 +5,7 @@ from scipy.sparse.linalg import eigsh
 from pynitride.mesh import PointFunction
 from pynitride.paramdb import hbar
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
+from pynitride.maths import polar2cart
 from functools import partial
 
 class PhononModel():
@@ -19,6 +20,9 @@ class PhononModel():
         self._mesh=mesh
         self.rmesh=rmesh
         self._interp_ready=False
+
+        self.vecform = None
+        """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
 
     def solve(self):
         raise NotImplementedError
@@ -44,6 +48,38 @@ class PhononModel():
         self._get_interpolation()
         return 1/hbar*self._splines[eig](absk,dabsk=1,bounds_check=bounds_check)
 
+
+    def u(self,i,thetaq,l):
+
+        vec0=self.vecs[i,l]
+        if self.vecform=='XZ':
+            ux= vec0[0,:]*np.cos(thetaq)
+            uy= vec0[0,:]*np.sin(thetaq)
+            uz= vec0[1,:]
+        elif self.vecform=='XYZ':
+            ux= vec0[0,:]*np.cos(thetaq) - vec0[1,:]*np.sin(thetaq)
+            uy= vec0[0,:]*np.sin(thetaq) + vec0[1,:]*np.cos(thetaq)
+            uz= vec0[2,:]
+        else:
+            raise NotImplementedError("Y Modes")
+
+        return ux,uy,uz
+
+    def strain(self,i,thetaq,l):
+        ux,uy,uz=self.u(i,thetaq,l)
+        q=self.q[i]
+
+        qx,qy=polar2cart(q,thetaq)
+        exx=1j*qx*ux.tmf()
+        exy=.5*1j*qx*uy.tmf()+.5*1j*qy*ux.tmf()
+        exz=.5*1j*qx*uz.tmf()+.5*ux.derivative()
+        eyy=1j*qy*uy.tmf()
+        eyz=.5*1j*qy*uz.tmf()+.5*uy.derivative()
+        ezz=uz.derivative()
+
+        return exx,exy,exz,eyy,eyz,ezz
+
+
 # TODO: Figure out how to move the glob_store _splines safely to superclass
 @glob_store_attributes('_mesh','_load_matrix','_stiffness_matrices','rmesh','_splines')
 class ElasticContinuum(PhononModel):
@@ -54,6 +90,7 @@ class ElasticContinuum(PhononModel):
         self._neig=num_eigenvalues
         self._justXZ=justXZ
         self._n=3-justXZ
+        self.vecform='XZ' if justXZ else 'XYZ'
         self._first_level=first_level
 
         assert len(mesh._matblocks)==1,\
