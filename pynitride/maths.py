@@ -48,3 +48,7 @@ def double_mat(arr, dtype='complex'):
         out[n:,n:]=arr
         return out
 
+def chunks(lst, n): 
+    """Yield successive n-sized chunks from lst."""
+    return [list(lst[i:i + n]) for i in range(0,len(lst),n)]
+

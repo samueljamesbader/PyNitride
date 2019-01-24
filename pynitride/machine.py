@@ -62,7 +62,7 @@ class Pool():
         if globalprocesses>1:
             cls._procpool.close()
             cls._procpool.join()
-            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=10)
+            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=100)
     
     @classmethod
     @contextmanager
