@@ -72,10 +72,10 @@ class PhononModel():
         qx,qy=polar2cart(q,thetaq)
         exx=1j*qx*ux.tmf()
         exy=.5*1j*qx*uy.tmf()+.5*1j*qy*ux.tmf()
-        exz=.5*1j*qx*uz.tmf()+.5*ux.derivative()
+        exz=.5*1j*qx*uz.tmf()+.5*ux.differentiate()
         eyy=1j*qy*uy.tmf()
-        eyz=.5*1j*qy*uz.tmf()+.5*uy.derivative()
-        ezz=uz.derivative()
+        eyz=.5*1j*qy*uz.tmf()+.5*uy.differentiate()
+        ezz=uz.differentiate()
 
         return exx,exy,exz,eyy,eyz,ezz
 
@@ -89,7 +89,7 @@ class ElasticContinuum(PhononModel):
         m=mesh
         self._neig=num_eigenvalues
         self._justXZ=justXZ
-        self._n=3-justXZ
+        self._n=3-(justXZ is not False)
         self.vecform='XZ' if justXZ else 'XYZ'
         self._first_level=first_level
 
@@ -167,7 +167,7 @@ class ElasticContinuum(PhononModel):
         if self._first_level!=0:
             ref_slice=slice(self._first_level,self._first_level+self._neig)
             for ioffset in [0,1,-1,2,-2,3,-3,None]:
-                assert ioffset is not None, "Coulnd't match reference energies"\
+                assert ioffset is not None, "Couldn't match reference energies"\
                     +" iq "+str(iq) + "\nen\n"+str(en_out)+"\nref\n"+\
                         str(ref_en[iq,ref_slice])
                 off_slice=slice((3+ioffset),(neig_ext-3+ioffset))
