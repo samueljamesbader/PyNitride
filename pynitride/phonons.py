@@ -34,6 +34,19 @@ class PhononModel():
     @property
     def vecs(self): return self.rmesh['vecs']
 
+    def save(self,filename,just_energies=False):
+        keys= ['en'] if just_energies else ['en','vecs']
+        self.rmesh.save(filename,keys=keys)
+    def read(self,name):
+        self.rmesh.read(name)
+        if 'en' in self.rmesh:
+            assert self.en.shape==(self.rmesh.N,self._neig),\
+                "Loaded PhononModel does not match current"
+        if 'vecs' in self.rmesh:
+            assert self.vecs.shape==(self.rmesh.N,self._neig,self._n,self._mesh.Np),\
+                "Loaded PhononModel does not match current"
+
+
     def _get_interpolation(self):
         if not self._interp_ready:
             self._splines=[self.rmesh.interpolator(self.rmesh['en'][:,eig])
