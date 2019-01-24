@@ -280,8 +280,10 @@ class MultibandKP(CarrierModel):
 
             # Initialize other functions
             if 'kpen' not in self.rmesh:
-                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,self._n,))
                 self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
+            if 'kppsi' not in self.rmesh:
+                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,self._n,))
+            if 'normsqs' not in self.rmesh:
                 self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
 
