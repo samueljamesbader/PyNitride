@@ -58,17 +58,29 @@ class RMesh:
             res=self._functions
         else:
             res={k:self[k] for k in keys}
-        np.savez_compressed(filename,**res)
+        res['absk']=self.absk
+        res['theta']=self.theta
+        np.savez(filename,**res)
     def read(self,filename):
         with np.load(filename) as data:
             for k,v in data.items():
-                self[k]=v
+                # Check grid coordinates
+                if k=='absk':
+                    assert np.allclose(v,self.absk),\
+                        "Loaded rmesh does not match current."
+                elif k=='theta':
+                    assert np.allclose(v,self.theta),\
+                        "Loaded rmesh does not match current."
+                # Store functions
+                else:
+                    self[k]=v
 
 class RMesh1D(RMesh):
     """ A 1-D mesh of k-space.
 
-    Note that when integrating over the mesh via :func:`RMesh.integrate`, it will behave as a 2D integral, ie
-    the increased weighting of points at higher radius is already accounted for."""
+    Note that when integrating over the mesh via :func:`RMesh.integrate`,
+    it will behave as a 2D integral, ie the increased weighting of points
+    at higher radius is accounted for intrinsically by this function."""
     def __init__(self,absk,bzarea=None):
         super().__init__()
 
