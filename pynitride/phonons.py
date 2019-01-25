@@ -45,6 +45,7 @@ class PhononModel():
         if 'vecs' in self.rmesh:
             assert self.vecs.shape==(self.rmesh.N,self._neig,self._n,self._mesh.Np),\
                 "Loaded PhononModel does not match current"
+            self.rmesh['vecs']=PointFunction(self._mesh,self.vecs,dtype=self.vecs.dtype)
 
 
     def _get_interpolation(self):
