@@ -42,6 +42,7 @@ def double_mat(arr, dtype='complex'):
         out[n:,n:,:]=arr
         return out
     else:
+        # this branch actually doesn't work but is never used, should delete
         n=arr.shape[0]
         out=Function(m,value=np.zeros((2*n,2*n),dtype=dtype),dtype=dtype,pos=arr.pos)
         out[:n,:n]=arr

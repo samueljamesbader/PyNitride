@@ -226,6 +226,8 @@ class RMesh2D_Polar(RMesh):
         self._exactdig=7
         self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
         self._ikit2i=self.conv2grid(np.arange(self.N))
+        self._i2ik=self.conv2flat(np.meshgrid(np.arange(len(self.absk1)),np.arange(len(self.theta1)))[0])
+        self._i2it=self.conv2flat(np.meshgrid(np.arange(len(self.absk1)),np.arange(len(self.theta1)))[1])
 
     @classmethod
     def regular(cls,kmax,numabsk,numtheta,include_kzero=True,align_theta=False,d=1):
@@ -357,3 +359,5 @@ class RMesh2D_Polar(RMesh):
 
     def partial_indices_to_index(self,iabsk,itheta):
         return self._ikit2i[itheta,iabsk]
+    def index_to_partial_indices(self,i):
+        return self._i2ik[i],self._i2it[i]
