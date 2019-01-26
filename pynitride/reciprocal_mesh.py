@@ -358,6 +358,7 @@ class RMesh2D_Polar(RMesh):
         stop=self.N-list(self.absk[::-1]).index(absk[-1])
         for key,val in self._functions.items():
             sub._functions[key]=val[start:stop]
+        sub.supermesh=self
         return sub
 
     def partial_indices_to_index(self,iabsk,itheta):
