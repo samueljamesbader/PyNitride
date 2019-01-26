@@ -8,8 +8,9 @@ from scipy.sparse.linalg import eigsh
 from numpy.linalg import eigvalsh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
-from operator import iadd,setitem
 from pynitride.machine import Pool, glob_store_attributes, FakePool, raiser
+from pynitride.maths import polar2cart
+from operator import iadd,setitem
 from operator import itemgetter
 from functools import partial
 
@@ -371,6 +372,14 @@ class MultibandKP(CarrierModel):
     def interp_radial_group_velocity(self,absk,theta,eig,bounds_check=True,grid=False):
         self._get_interpolation()
         return 1/hbar*self._enbv[eig](absk,theta,dabsk=1,bounds_check=bounds_check,grid=grid)
+
+    def interp_group_velocity(self,absk,theta,eig,bounds_check=True,grid=False):
+        self._get_interpolation()
+        v_r=1/hbar*self._enbv[eig](absk,theta,dabsk=1 ,bounds_check=bounds_check,grid=grid)
+        v_t=1/hbar*self._enbv[eig](absk,theta,dtheta=1,bounds_check=bounds_check,grid=grid)/self.rmesh.absk
+        v_x=v_r*np.cos(theta)-v_t*np.sin(theta)
+        v_y=v_r*np.sin(theta)+v_t*np.cos(theta)
+        return v_x,v_y
 
     def interp_radial_eff_mass(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()
