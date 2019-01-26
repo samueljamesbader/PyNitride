@@ -106,7 +106,6 @@ class RMesh1D(RMesh):
         self.d=1
 
         # Mapping from absk1 values to their indices, used by exact_to_index
-        self._exactdig=7
         self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
 
         # Define the other parts of the parameterization
@@ -114,6 +113,8 @@ class RMesh1D(RMesh):
         self.kx=self.absk
         self.ky=np.zeros_like(self.absk)
         self.N=len(self.absk)
+
+    _exactdig=7
 
     @classmethod
     def regular(cls,kmax,numabsk,abskshift=0):

@@ -193,10 +193,11 @@ class Counter():
         self._lock=Lock()
         self._print_every=print_every
         self._print_message=print_message+"\n"
-    def increment(self):
+    def increment(self,inc=1):
         with self._lock:
-            self._count+=1
-            if (self._count+1) % self._print_every == 0:
-                print(self._print_message.format(self._count+1),flush=True,end='')
+            next_milestone=int(self._count/self._print_every)*self._print_every+self._print_every
+            self._count+=inc
+            if self._count>=next_milestone:
+                print(self._print_message.format(self._count),flush=True,end='')
 
 def raiser(e): raise e
