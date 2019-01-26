@@ -1,8 +1,10 @@
 import numpy as np
 pi=np.pi
 from pynitride.machine import glob_store_attributes
-from pynitride.maths import polar2cart
+from pynitride.maths import polar2cart, cart2polar
 from scipy.interpolate import RectBivariateSpline, splrep, splev
+from pynitride.visual import white2red
+import matplotlib.pyplot as plt
 
 @glob_store_attributes('_functions')
 class RMesh:
@@ -362,3 +364,44 @@ class RMesh2D_Polar(RMesh):
         return self._ikit2i[itheta,iabsk]
     def index_to_partial_indices(self,i):
         return self._i2ik[i],self._i2it[i]
+
+    def show_func(self,func,style='balanced'):
+
+        kx=np.linspace(-self.kmax,self.kmax,1000)
+        ky=np.linspace(-self.kmax,self.kmax,1000)
+        
+        KX,KY=np.meshgrid(kx,ky)
+        ABSK,THETA=cart2polar(KX,KY)
+        
+        iabsk=np.digitize(ABSK,self.abskbinu)
+        valid=iabsk<self.numabsk
+        iabsk[~valid]=0
+        itheta=np.mod(np.digitize(THETA,self.thetabinu),self.numtheta)
+        
+        i=self.partial_indices_to_index(iabsk,itheta)
+        F=func[i]
+        F[~valid]=np.NaN
+        
+        if style=='balanced':
+            vmin=np.nanmin(F)
+            vmax=np.nanmax(F)
+            vmin,vmax=np.array([-1,1])*np.max(np.abs([vmin,vmax]))
+            cmap='seismic'
+        if style=='positive':
+            vmin=0
+            vmax=np.nanmax(F)
+            cmap=white2red
+        plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap)
+
+        plt.plot(self.kx,self.ky,'o',markersize=3)
+
+        plt.axis('square')
+        plt.xlim(-self.kmax,self.kmax)
+        plt.ylim(-self.kmax,self.kmax)
+
+        plt.colorbar()
+
+        for t in self.thetabinl:
+            plt.plot([0,10*np.cos(t)],[0,10*np.sin(t)],color='gray',linewidth=.5)
+        for k in self.abskbinl:
+            plt.plot(*polar2cart(k,np.linspace(0,2*pi,endpoint=True)),color='gray',linewidth=.5)
