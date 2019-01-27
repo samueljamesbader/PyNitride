@@ -310,7 +310,7 @@ class Wurtzite(MaterialSystem):
         return double_mat(MidFunction(m, [
             [l1*s['exx']+m1*s['eyy']+m2*s['ezz'],       n1*s['exy'],                   n2*s['exz']],
             [       n1*s['exy'],        m1*s['exx']+l1*s['eyy']+m2*s['ezz'],           n2*s['eyz']],
-            [       n2*s['exz'],                        n2*s['eyz'],            m3*s['exx']+m3*s['eyy']+l2*s['ezz']]]))
+            [       n2*s['exz'],                        n2*s['eyz'],            m3*s['exx']+m3*s['eyy']+l2*s['ezz']]],dtype='complex'))
 
     def ec_Cmats(self,m,q):
         q=np.reshape(q,(len(q),1,1,1))
