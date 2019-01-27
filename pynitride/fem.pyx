@@ -199,7 +199,7 @@ def fem_eigsh(stiffness_matrix,load_matrix,
         # If desired, re-orthogonalize within each pair of states
         if pairwise_GS:
             assert eigvecs.shape[1] % 2 == 0, \
-                "Number of eigenvalues must be even for pairwise reorthogonalization"
+                "Number of eigenvalues must be even for pairwise re-orthogonalization"
             # Grab the first (A) and second (B) of every pair
             A=eigvecs[:,0::2]
             B=eigvecs[:,1::2]

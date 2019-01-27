@@ -366,7 +366,7 @@ class RMesh2D_Polar(RMesh):
     def index_to_partial_indices(self,i):
         return self._i2ik[i],self._i2it[i]
 
-    def show_func(self,func,style='balanced'):
+    def show_func(self,func,style='balanced',points=True):
 
         kx=np.linspace(-self.kmax,self.kmax,1000)
         ky=np.linspace(-self.kmax,self.kmax,1000)
@@ -394,7 +394,8 @@ class RMesh2D_Polar(RMesh):
             cmap=white2red
         plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap)
 
-        plt.plot(self.kx,self.ky,'o',markersize=3)
+        if points:
+            plt.plot(self.kx,self.ky,'o',markersize=3)
 
         plt.axis('square')
         plt.xlim(-self.kmax,self.kmax)
@@ -406,3 +407,5 @@ class RMesh2D_Polar(RMesh):
             plt.plot([0,10*np.cos(t)],[0,10*np.sin(t)],color='gray',linewidth=.5)
         for k in self.abskbinl:
             plt.plot(*polar2cart(k,np.linspace(0,2*pi,endpoint=True)),color='gray',linewidth=.5)
+        plt.xlabel("$k_x$ [1/nm]")
+        plt.ylabel("$k_y$ [1/nm]")
