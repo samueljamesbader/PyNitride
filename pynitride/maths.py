@@ -1,5 +1,7 @@
 import numpy as np
 from pynitride.mesh import Function
+from functools import partial
+from pynitride.machine import glob_store_attributes
 
 def polar2cart(rho,theta):
     """ Converts a polar rho,theta coordinate to a Cartesian x,y coordinate.
@@ -53,3 +55,30 @@ def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     return [list(lst[i:i + n]) for i in range(0,len(lst),n)]
 
+def dephase(vec):
+    i=np.argmax(np.abs(vec),axis=-1)
+    phase=vec.T[i]/np.abs(vec.T[i])
+    return (vec.T/phase).T
+
+@glob_store_attributes("_cache")
+class Memoizer:
+    def __init__(self):
+        self._cache={}
+    def mfunc(self,func,name,*args,**kwargs):
+        class hashabledict(dict):
+            def __key(self):
+                return tuple((k,self[k]) for k in sorted(self))
+            def __hash__(self):
+                return hash(self.__key())
+            def __eq__(self, other):
+                return self.__key() == other.__key()
+        key=(args,hashabledict(kwargs))
+        if key not in self._cache[name]:
+            self._cache[name][key]=func(*args,**kwargs)
+        else:
+            print("Got {} from cache".format(name))
+        return self._cache[name][key]
+    def memoize(self,func,name):
+        if name not in self._cache: self._cache[name]={}
+        return partial(self.mfunc,func,name)
+memoizer=Memoizer()
