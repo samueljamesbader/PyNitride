@@ -40,8 +40,11 @@ class PhononModel():
     def save(self,filename,just_energies=False):
         keys= ['en'] if just_energies else ['en','vecs']
         self.rmesh.save(filename,keys=keys)
-    def read(self,name):
-        self.rmesh.read(name)
+    def read(self,name,just_energies=False):
+        if just_energies:
+            self.rmesh.read(name,keys='en')
+        else:
+            self.rmesh.read(name)
         if 'en' in self.rmesh:
             print("En shape ",self.en.shape)
             assert self.en.shape==(self.rmesh.N,self._neig),\
@@ -139,7 +142,7 @@ class ElasticContinuum(PhononModel):
             log("Done assembly.",level='info')
 
 
-    def solve(self, just_energies=False, parallel=True):
+    def solve(self, just_energies=False, parallel=True, print_count=True):
 
         # Initialize other functions
         if 'en' not in self.rmesh:
@@ -154,7 +157,8 @@ class ElasticContinuum(PhononModel):
                 self.en[iq,:]= res
             else:
                 self.en[iq,:],self.vecs[iq,:,:,:]= res
-            counter.increment()
+            if print_count:
+                counter.increment()
         pool=Pool.process_pool(new=True) if parallel else FakePool()
         asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
                 callback=partial(save_solve,iq), error_callback=raiser)

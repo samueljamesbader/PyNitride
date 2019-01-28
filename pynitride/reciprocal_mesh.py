@@ -63,7 +63,7 @@ class RMesh:
         res['absk']=self.absk
         res['theta']=self.theta
         np.savez(filename,**res)
-    def read(self,filename):
+    def read(self,filename,keys=None):
         with np.load(filename) as data:
             for k,v in data.items():
                 # Check grid coordinates
@@ -75,7 +75,8 @@ class RMesh:
                         "Loaded rmesh does not match current."
                 # Store functions
                 else:
-                    self[k]=v
+                    if keys is None or k in keys: 
+                        self[k]=v
 
 class RMesh1D(RMesh):
     """ A 1-D mesh of k-space.

@@ -564,12 +564,13 @@ class Mesh():
             #assert restricted or (self._supermesh==None), "Cannot set functions on submeshes"
             assert isinstance(value,Function), "Must be a mesh.functions.Function"
             self._functions[key] = value
-            def submeshesview(m):
+            def submeshesview(m,value):
                 if not len(m._submeshes): return
                 for sm in m._submeshes:
-                    sm._functions[key]=value.restrict(sm)
-                    submeshesview(sm)
-            submeshesview(self)
+                    vres=value.restrict(sm)
+                    sm._functions[key]=vres
+                    submeshesview(sm,vres)
+            submeshesview(self,value)
 
     def create_restricted_function(self,key,value):
         self.__setitem__(key,value,restricted=True)
@@ -722,6 +723,11 @@ class SubMesh(Mesh):
 
     def __init__(self, mesh, start, stop):
 
+        self._supermesh = mesh
+        self._submeshes = []
+        if self not in mesh._submeshes:
+            mesh._submeshes += [self]
+
         if start is None: start=0
         if stop is None: stop=len(mesh.zp)
 
@@ -746,10 +752,6 @@ class SubMesh(Mesh):
         self._attrs = mesh._attrs.copy()
         self._requested_functions = {}
 
-        self._supermesh = mesh
-        self._submeshes = []
-        if self not in mesh._submeshes:
-            mesh._submeshes += [self]
 
         if len(self._zm)>1:
             # interpolate the zp -> index mapping
@@ -921,6 +923,7 @@ class Function(np.ndarray):
         """
         if submesh==self.mesh:
             return self
+        assert submesh in self.mesh._submeshes, "Haven't implemented recursive submeshing"
         if self.pos=='point':
             return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T,dtype=self.dtype)
         if self.pos=='mid':
