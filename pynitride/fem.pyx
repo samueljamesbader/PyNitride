@@ -216,7 +216,9 @@ def fem_eigsh(stiffness_matrix,load_matrix,
         eigvecs.shape=(int(eigvecs.shape[0]/n),n,eigvecs.shape[1])
 
         # Then assign it to the output in axes of (eig, comp, z)
-        if n==1: eigvec_out=np.expand_dims(eigvec_out,1)
+        #if n==1: eigvec_out=np.expand_dims(eigvec_out,1)
+        if len(eigvec_out.shape)!=len(eigvecs.shape):
+            eigvec_out=np.expand_dims(eigvec_out,1) 
         eigvec_out[:,:,evec_slice]=eigvecs.T[:,:,:]
 
         # Zeros at dirichelet boundaries

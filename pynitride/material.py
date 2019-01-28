@@ -318,15 +318,15 @@ class Wurtzite(MaterialSystem):
         C0=MidFunction(m,q**2*(np.array([
             [    m.C11,               O,         O],
             [        O, (m.C11-m.C12)/2,         O],
-            [        O,               O,     m.C44]]))).tpf()
+            [        O,               O,     m.C44]])))
         Cl=(m.ztrans*MidFunction(m,q*np.array([
             [        O,               O,     m.C13],
             [        O,               O,         O],
-            [    m.C44,               O,         O]]))).tpf()
+            [    m.C44,               O,         O]])))
         Cr=(m.ztrans*MidFunction(m,q*np.array([
             [        O,               O,     m.C44],
             [        O,               O,         O],
-            [    m.C13,               O,         O]]))).tpf()
+            [    m.C13,               O,         O]])))
         C2=0*q+np.array([
             [    m.C44,               O,         O],
             [        O,           m.C44,         O],
@@ -338,16 +338,25 @@ class Wurtzite(MaterialSystem):
         O=MidFunction(m,0)
         C0=MidFunction(m,q**2*(np.array([
             [    m.C11,         O],
-            [        O,     m.C44]]))).tpf()
+            [        O,     m.C44]])))
         Cl=(m.ztrans*MidFunction(m,q*np.array([
             [        O,     m.C13],
-            [    m.C44,         O]]))).tpf()
+            [    m.C44,         O]])))
         Cr=(m.ztrans*MidFunction(m,q*np.array([
             [        O,     m.C44],
-            [    m.C13,         O]]))).tpf()
+            [    m.C13,         O]])))
         C2=0*q+np.array([
             [    m.C44,         O],
             [        O,     m.C33]])
+        return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
+
+    def ec_CmatsY(self,m,q):
+        q=np.reshape(q,(len(q),1,1,1))
+        O=MidFunction(m,0)
+        C0=MidFunction(m,q**2*(np.array([[(m.C11-m.C12)/2]])))
+        Cl=0*q+MidFunction(m,np.array([[O]]))
+        Cr=0*q+MidFunction(m,np.array([[O]]))
+        C2=0*q+np.array([[m.C44]])
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
 
