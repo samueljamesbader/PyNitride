@@ -36,7 +36,7 @@ class Pool():
             os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
 
         if globalprocesses>1:
-            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=10)
+            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
         else: cls._procpool=FakePool()
         if globalthreads>1:
             cls._thrdpool=_ThreadPool(processes=globalprocesses)
@@ -62,7 +62,7 @@ class Pool():
         if globalprocesses>1:
             cls._procpool.close()
             cls._procpool.join()
-            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=100)
+            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
     
     @classmethod
     @contextmanager
