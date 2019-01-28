@@ -14,15 +14,18 @@ class PhononModel():
     A phonon model implements a :func:`solve()` function
     """
 
-    def __init__(self, mesh, rmesh):
+    def __init__(self, mesh, rmesh, vecform, keepmesh=None):
         """ Prep the mesh for any phonon model.
         """
         self._mesh=mesh
+        self._keepmesh=mesh if keepmesh is None else keepmesh
         self.rmesh=rmesh
         self._interp_ready=False
 
-        self.vecform = None
+        self.vecform = vecform
         """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
+
+        self._n=len(vecform)
 
     def solve(self):
         raise NotImplementedError
@@ -40,12 +43,15 @@ class PhononModel():
     def read(self,name):
         self.rmesh.read(name)
         if 'en' in self.rmesh:
+            print("En shape ",self.en.shape)
             assert self.en.shape==(self.rmesh.N,self._neig),\
                 "Loaded PhononModel does not match current"
         if 'vecs' in self.rmesh:
-            assert self.vecs.shape==(self.rmesh.N,self._neig,self._n,self._mesh.Np),\
+            print("Vecs shape ",self.vecs.shape)
+            print("Not checking vecs")
+            assert self.vecs.shape==(self.rmesh.N,self._neig,self._n,self._keepmesh.Np),\
                 "Loaded PhononModel does not match current"
-            self.rmesh['vecs']=PointFunction(self._mesh,self.vecs,dtype=self.vecs.dtype)
+            self.rmesh['vecs']=PointFunction(self._keepmesh,self.vecs,dtype=self.vecs.dtype)
 
 
     def _get_interpolation(self):
@@ -74,8 +80,10 @@ class PhononModel():
             ux= vec0[0,:]*np.cos(thetaq) - vec0[1,:]*np.sin(thetaq)
             uy= vec0[0,:]*np.sin(thetaq) + vec0[1,:]*np.cos(thetaq)
             uz= vec0[2,:]
-        else:
-            raise NotImplementedError("Y Modes")
+        elif self.vecform=='Y':
+            ux=-vec0[0,:]*np.sin(thetaq)
+            uy= vec0[0,:]*np.cos(thetaq)
+            uz= vec0[0,:]*0
 
         return ux,uy,uz
 
@@ -95,16 +103,14 @@ class PhononModel():
 
 
 # TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_mesh','_load_matrix','_stiffness_matrices','rmesh','_splines')
+@glob_store_attributes('_mesh','_keepmesh','_load_matrix','_stiffness_matrices','rmesh','_splines')
 class ElasticContinuum(PhononModel):
-    def __init__(self,mesh,rmesh,num_eigenvalues,justXZ=False,first_level=0,parallel=True):
+    def __init__(self,mesh,rmesh,num_eigenvalues,keepmesh=None,
+            vecform='XYZ',first_level=0,parallel=True):
         """ Note: this parallel is not the same as the one in solve()"""
-        super().__init__(mesh,rmesh)
+        super().__init__(mesh,rmesh,vecform,keepmesh=keepmesh)
         m=mesh
         self._neig=num_eigenvalues
-        self._justXZ=justXZ
-        self._n=3-(justXZ is not False)
-        self.vecform='XZ' if justXZ else 'XYZ'
         self._first_level=first_level
 
         assert len(mesh._matblocks)==1,\
@@ -120,8 +126,10 @@ class ElasticContinuum(PhononModel):
                 del self.rmesh['en']
 
             log("Assembling EC matrices ...",level='info')
-            if self._justXZ:
+            if self.vecform=='XZ':
                 Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
+            elif self.vecform=='Y':
+                Cmats=m._matblocks[0].matsys.ec_CmatsY(m,self.q)
             else:
                 Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
             self._stiffness_matrices=Pool.process_pool(new=True).starmap(
@@ -137,7 +145,7 @@ class ElasticContinuum(PhononModel):
         if 'en' not in self.rmesh:
             self.rmesh['en']   =np.empty((len(self.q),self._neig))
         if 'vecs' not in self.rmesh and not just_energies:
-            self.rmesh['vecs'] =PointFunction(self._mesh,
+            self.rmesh['vecs'] =PointFunction(self._keepmesh,
                     empty=(len(self.q),self._neig,self._n),dtype='complex')
 
         counter=Counter(print_message="Count: {{:5d}}/{}".format(self.rmesh.N))
@@ -193,5 +201,6 @@ class ElasticContinuum(PhononModel):
             return en_out[off_slice]
         else:
             vec_out[:]=(vec_out.T*np.sqrt(hbar**2/(2*en_out))).T
-            return en_out[off_slice],vec_out[off_slice]
+            return en_out[off_slice],\
+                PointFunction(m,vec_out[off_slice,],dtype='complex').restrict(self._keepmesh)
 
