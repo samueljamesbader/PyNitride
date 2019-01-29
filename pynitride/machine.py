@@ -6,6 +6,7 @@ from operator import itemgetter
 from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial
+from pynitride.visual import log
 
 class Pool():
 
@@ -22,7 +23,7 @@ class Pool():
         kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
-            print("Pool was already configured with the given arguments.")
+            log("Pool was already configured with the given arguments.")
             return
 
         cls._kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
@@ -192,12 +193,12 @@ class Counter():
         self._count=0
         self._lock=Lock()
         self._print_every=print_every
-        self._print_message=print_message+"\n"
+        self._print_message=print_message
     def increment(self,inc=1):
         with self._lock:
             next_milestone=int(self._count/self._print_every)*self._print_every+self._print_every
             self._count+=inc
             if self._count>=next_milestone:
-                print(self._print_message.format(self._count),flush=True,end='')
+                log(self._print_message.format(self._count))
 
 def raiser(e): raise e
