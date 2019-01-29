@@ -84,7 +84,7 @@ class RMesh1D(RMesh):
     Note that when integrating over the mesh via :func:`RMesh.integrate`,
     it will behave as a 2D integral, ie the increased weighting of points
     at higher radius is accounted for intrinsically by this function."""
-    def __init__(self,absk,bzarea=None):
+    def __init__(self,absk,bzarea=None,exact_digits=None):
         super().__init__()
 
         # k and dk
@@ -109,6 +109,7 @@ class RMesh1D(RMesh):
         self.d=1
 
         # Mapping from absk1 values to their indices, used by exact_to_index
+        self._exactdig=exact_digits
         self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
 
         # Define the other parts of the parameterization
@@ -117,7 +118,6 @@ class RMesh1D(RMesh):
         self.ky=np.zeros_like(self.absk)
         self.N=len(self.absk)
 
-    _exactdig=7
 
     @classmethod
     def regular(cls,kmax,numabsk,abskshift=0):
@@ -144,10 +144,13 @@ class RMesh1D(RMesh):
         assert not isinstance(indices,slice), "indices should be a list/array"
         absk=self.absk1[indices]
         
-        sub=RMesh1D(absk,bzarea=self.bzarea)
+        sub=RMesh1D(absk,bzarea=self.bzarea,exact_digits=self._exactdig)
 
         for key,val in self._functions.items():
-            sub._functions[key]=val[indices]
+            try:
+                sub._functions[key]=val[indices]
+            except:
+                sub._functions[key]=[val[iq] for iq in indices]
         return sub
 
     def interpolator(self,func):

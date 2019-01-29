@@ -106,7 +106,7 @@ class PhononModel():
 
 
 # TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_mesh','_keepmesh','_load_matrix','_stiffness_matrices','rmesh','_splines')
+@glob_store_attributes('_mesh','_keepmesh','_load_matrix','rmesh','_splines')
 class ElasticContinuum(PhononModel):
     def __init__(self,mesh,rmesh,num_eigenvalues,keepmesh=None,
             vecform='XYZ',first_level=0,parallel=True):
@@ -128,18 +128,24 @@ class ElasticContinuum(PhononModel):
                 self.rmesh['ref_en']=self.rmesh['en']
                 del self.rmesh['en']
 
-            log("Assembling EC matrices ...",level='info')
-            if self.vecform=='XZ':
-                Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
-            elif self.vecform=='Y':
-                Cmats=m._matblocks[0].matsys.ec_CmatsY(m,self.q)
-            else:
-                Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
-            self._stiffness_matrices=Pool.process_pool(new=True).starmap(
-                    assemble_stiffness_matrix,\
-                        [(C0,Cl,Cr,C2,m._dzp,False,False)
-                            for [C0,Cl,Cr,C2] in Cmats])
-            log("Done assembly.",level='info')
+            if 'stiffness_matrices' not in rmesh:
+                log("Assembling EC matrices ...",level='info')
+                if self.vecform=='XZ':
+                    Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
+                elif self.vecform=='Y':
+                    Cmats=m._matblocks[0].matsys.ec_CmatsY(m,self.q)
+                else:
+                    Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
+
+                if parallel: pool=Pool.process_pool(new=True)
+                else: pool=Pool.FakePool()
+                self.rmesh['stiffness_matrices']=pool.starmap(
+                        assemble_stiffness_matrix,\
+                            [(C0,Cl,Cr,C2,m._dzp,False,False)
+                                for [C0,Cl,Cr,C2] in Cmats])
+                log("Done assembly.",level='info')
+    @property
+    def _stiffness_matrices(self): return self.rmesh['stiffness_matrices']
 
 
     def solve(self, just_energies=False, parallel=True, print_count=True):
@@ -187,7 +193,7 @@ class ElasticContinuum(PhononModel):
 
         fem_eigsh(A,self._load_matrix,en_out,vec_out,n=self._n,
              dirichelet1=False,dirichelet2=False,
-             k=neig_ext,sigma=mid_eig-1e-10,which='LA',tol=0,ncv=neig_ext*2)
+             k=neig_ext,sigma=mid_eig-1e-10,which='LA',tol=0,ncv=max(neig_ext*2,neig_ext+2))
         en_out[:]=hbar*np.sqrt(en_out)
 
         if self._first_level!=0:

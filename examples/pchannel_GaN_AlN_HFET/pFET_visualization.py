@@ -16,7 +16,7 @@ def valence_band_panels(m,mbkp):
     """ Custom plot of the dispersion, band diagram, DOS, and effective masses."""
     rmesh = mbkp.rmesh
     energy = mbkp.kpen
-    print("{:.3g} x 10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)), "1/cm^2") / 1e13))
+    #print("{:.3g} x 10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)), "1/cm^2") / 1e13))
     plt.figure(figsize=(8, 8))
 
     # Three joined subplots
