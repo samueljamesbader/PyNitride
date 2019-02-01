@@ -8,7 +8,8 @@ class MaterialSystem():
 
     def __init__(self):
         self._attrs={
-            'eps':      self.vergard('dielectric.eps'),
+            'eps':      self.vergard('dielectric.eps_z'),
+            'epsperp':  self.vergard('dielectric.eps_perp'),
             'DE' :      self.vergard('DE'),
             'Eg':       self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
@@ -110,6 +111,7 @@ class Wurtzite(MaterialSystem):
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
             'e31':      self.vergard('polarization.e31'),
+            'e51':      self.vergard('polarization.e51'),
             'C11':      self.vergard('stiffness.C11'),
             'C12':      self.vergard('stiffness.C12'),
             'C13':      self.vergard('stiffness.C13'),
