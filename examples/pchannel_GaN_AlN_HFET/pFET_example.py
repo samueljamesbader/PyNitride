@@ -8,55 +8,69 @@ from pynitride.material import AlGaN
 from pynitride.paramdb import to_unit, nm, eV, m_e, cm
 from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
 from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
+from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
+from pynitride.visual import log
 from examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
 from time import time
 import numpy as np
 
+def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV):
 
-if __name__=="__main__":
-
-
-    # Set up the mesh
-    well_t=15*nm
-    buff_t=200*nm
-    m=Mesh([
+    # Set up the main mesh
+    m=sim.dmeshes['main']=Mesh([
         MaterialBlock("epi",AlGaN(),[
-            UniformLayer("well"  ,  well_t, x=0, DeepDonorDonorConc=5e16/cm**3),
-            UniformLayer("buffer",  buff_t, x=1, DeepDonorDonorConc=5e16/cm**3),
+            UniformLayer("well"  ,  well_t, x=0, DeepDonorDonorConc=Ndd),
+            UniformLayer("buffer",  buff_t, x=1, DeepDonorDonorConc=Ndd),
         ])],
-        max_dz=5*nm,
-        refinements=[[0,.05*nm,3],['well/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
+        max_dz=max_dz,
+        refinements=[[0,.03*nm,2],['well/buffer',.01*nm,1.5]],
+        uniform=False,boundary=[sbh,"thick"])
 
-    print("Mesh points: ",m.Np)
-    schro,semi=m.submesh_cover([well_t+5*nm])
+    # Set up a quantum mesh
+    sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm])
+    log("Mesh points "+str(m.Np))
 
+    # Set up the reciprocal space mesh for MBKP
+    sim.rmeshes['mbkp']=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
 
+    sim.extras['well_t']=well_t
+
+def solve_flow(sim):
+    m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
     Equilibrium(m)
     ConstantT(m)
     Pseudomorphic(m)
     ps=PoissonSolver(m)
+    print(quantum._matblocks[0].matsys.kp_Cmats(quantum,[0],[0])[0][3])
 
     scl=SelfConsistentLoop(
         fieldsolvers=[PoissonSolver(m)],
-        carriermodels=[Semiclassical  (schro,carriers=['hole']),
-                        Semiclassical(schro,carriers=['electron']),
-                        Semiclassical(semi)])
+        carriermodels=[Semiclassical  (quantum,carriers=['hole']),
+                       Semiclassical(quantum,carriers=['electron']),
+                       Semiclassical(semi)])
     scl.ramp_epsfactor(start=1e4, max_iter=20, dlefmin=.005, tol=1e-5)
 
     starttime=time()
-    from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
-    #rmesh=RMesh1D.regular(kmax=2/nm,numabsk=25)
-    rmesh=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
-    mbkp=scl._cs[0]=MultibandKP(schro,num_eigenvalues=6,rmesh=rmesh)
+    mbkp=scl._cs[0]=MultibandKP(quantum,num_eigenvalues=6,rmesh=sim.rmeshes['mbkp'])
     scl.loop(tol=1e-5,min_activation=.05)
     #scl.loop(tol=1e5,min_activation=.05)
     endtime=time()
-    print("kp loop took {:.1f} sec".format(endtime-starttime))
+    log("kp loop took {:.1f} sec".format(endtime-starttime))
+
+if __name__=="__main__":
+
+    from pynitride.sim import Simulation
+    sim=Simulation('pFET',define_mesh=define_mesh,solve_flow=solve_flow)
+    sim._define_mesh(sim)
+    sim._solve_flow(sim)
+    m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
+    rmesh=sim.rmeshes['mbkp']
+
 
     print("Holes: {:.2f} x10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)),"1e13/cm^2")))
-    print("EV-EF [meV]: {:.2f} meV",to_unit(float((m.Ev-m.EF.tmf())[m.indexm(well_t)]),"meV"))
+    print("EV-EF [meV]: {:.2f} meV",to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV"))
 
     # Check normalization
     wf0=rmesh['kppsi'][0,0,:,:]
@@ -76,9 +90,9 @@ if __name__=="__main__":
         plt.plot(m.zm,m.Ev,'g')
         plt.plot(m.zp,m.EF,'r')
         i=1
-        plt.plot(schro.zp,rmesh['normsqs'][0,0,:]+rmesh['kpen'][0,0],'purple')
-        plt.plot(schro.zp,rmesh['normsqs'][0,2,:]+rmesh['kpen'][0,2],'pink')
-        plt.plot(schro.zp,rmesh['normsqs'][0,4,:]+rmesh['kpen'][0,2],'black')
+        plt.plot(quantum.zp,rmesh['normsqs'][0,0,:]+rmesh['kpen'][0,0],'purple')
+        plt.plot(quantum.zp,rmesh['normsqs'][0,2,:]+rmesh['kpen'][0,2],'pink')
+        plt.plot(quantum.zp,rmesh['normsqs'][0,4,:]+rmesh['kpen'][0,2],'black')
         plt.twinx()
         plt.fill_between(m.zp,m.p,color='b',alpha=.2)
         plt.xlim(0,50*nm)
@@ -91,5 +105,6 @@ if __name__=="__main__":
         plt.xlim(0)
         plt.show()
 
+    mbkp=MultibandKP(quantum,rmesh,num_eigenvalues=6)
     valence_band_panels(m,mbkp)
     plt.show()

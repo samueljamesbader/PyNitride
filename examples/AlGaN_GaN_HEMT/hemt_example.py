@@ -28,8 +28,8 @@ if __name__=="__main__":
     schro,semi=m.submesh_cover([barr_t+30*nm])
 
     print("Mesh points: ",m.Np)
-    #m.plot_mesh()
-    #plt.show()
+    m.plot_mesh()
+    plt.tight_layout()
 
     Equilibrium(m)
     ConstantT(m)
@@ -38,7 +38,7 @@ if __name__=="__main__":
 
     scl=SelfConsistentLoop(
         fieldsolvers=[PoissonSolver(m)],
-        carriersolvers=[Schrodinger  (schro,carriers=['electron'],num_eigenvalues=20),
+        carriermodels=[Schrodinger  (schro,carriers=['electron'],num_eigenvalues=20),
                         Semiclassical(schro,carriers=['hole']),
                         Semiclassical(semi)])
     scl.ramp_epsfactor(start=1e3, max_iter=20, dlefmin=.005, tol=1e-5)
@@ -51,15 +51,20 @@ if __name__=="__main__":
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
 
     if 1:
+        plt.figure()
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
         plt.plot(m.zp,m.EF,'r')
         plt.plot(schro.zp,scl._cs[0]._epsi[0,0,:]+scl._cs[0]._een[0,0],'purple')
         plt.plot(schro.zp,scl._cs[0]._epsi[0,1,:]+scl._cs[0]._een[0,1],'pink')
         plt.plot(schro.zp,scl._cs[0]._epsi[0,2,:]+scl._cs[0]._een[0,2],'black')
+        plt.ylabel("Energy [eV]")
+        plt.xlabel("Depth [nm]")
         plt.twinx()
-        plt.fill_between(m.zp,m.n,'b',alpha=.2)
+        plt.fill_between(m.zp,m.n,color='b',alpha=.2)
         plt.xlim(0,50*nm)
         plt.ylim(0)
+        plt.yticks([])
+        plt.tight_layout()
         plt.show()
 
