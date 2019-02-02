@@ -70,13 +70,15 @@ class MaterialSystem():
                 self._funcs=matsys._defaults.copy()
 
                 # Default strains to 0
-                kwargs2={k:0 for k in ['exx','eyy','exy','exz','eyz']}
+                assert ('exx' not in kwargs) and ('eyy' not in kwargs)
+                kwargs2={k:0 for k in ['exx','eyy','exy','exz','eyz','ezz']}
                 kwargs2.update(kwargs)
 
                 # Other specials supplied
                 self._funcs.update({k:np.array(v) for k,v in kwargs2.items()})
-
-                self._funcs['ezz']=-2*self.C13/self.C33*self['exx']
+                #try:
+                #    self._funcs['ezz']=-2*self.C13/self.C33*self['exx']
+                #except: pass
 
             def __getitem__(self,item):
                 if item in self._funcs:

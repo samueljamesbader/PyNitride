@@ -17,11 +17,11 @@ where $i$ and $j$ run over $x, y, z$.  Hooke's law relates the stress tensor bac
 \begin{equation}
   T_{ij}=c_{ijkl}\epsilon_{kl}
 \end{equation}
-where the strain $\epsilon_{ij}=\frac{1}{2}\left( \pdv{u_i}{r_j}+\pdv{u_j}{r_i} \right)$.  The fourth-rank tensor $c_{ijkl}$ is highly redundant under symmetry which allows this equation to be rewritten with Voight notation:
+where the strain $\epsilon_{ij}=\frac{1}{2}\left( \pdv{u_i}{r_j}+\pdv{u_j}{r_i} \right)$.  The fourth-rank tensor $c_{ijkl}$ is highly redundant under symmetry which allows this equation to be rewritten with Voigt notation:
 \begin{equation}
   T_{\alpha}=c_{\alpha \beta}\epsilon_\beta
 \end{equation}
-where $\alpha, \beta$ run from 1 to 6 and the Voight vectors are related to the actual tensors by
+where $\alpha, \beta$ run from 1 to 6 and the Voigt vectors are related to the actual tensors by [see Wikipedia ``Voigt Notation'' for factors of 2 in this equation]
 \begin{align}
   T_{1}=T_{xx}&,\quad
   \epsilon_{1}=\epsilon_{xx}\\
@@ -268,4 +268,66 @@ This expression only affects the first 2x2 submatrix $W_{0 0}$:
     +\frac{iq}{dz_{0+}}\left[ G_0^L-G_{0}^R\right]-\frac{\alpha}{dz_0}G^2_{0}
   \end{align}
   Note, though we said this only affects the submatrix $W_{00}$, that it is important to make sure that the same definition $dz_0=dz_{\sigma+}/2$ is employed in $W_{01}$ and $W_{10}$.
+
+\section{Piezoelectric potential} 
+A phonon in a piezoelectric material induces a charge
+\begin{equation}
+  \rho=-\nabla \cdot \vec P= -\nabla \cdot \left[ \overset\leftrightarrow{e} \epsilon \right]
+\end{equation}
+where $\overset\leftrightarrow{e}$ is the piezoelastic modulus.
+\begin{align}
+  \rho=-\nabla \cdot \vec P&= -\nabla \cdot \left[
+  \begin{pmatrix}
+    0 & 0 & 0 & 0 & e_{15} & 0\\
+    0 & 0 & 0 &  e_{15} & 0 & 0\\
+    e_{31} & e_{31} & e_{33} & 0 & 0 & 0
+  \end{pmatrix}
+  \begin{pmatrix}
+    \epsilon_{xx}\\
+    \epsilon_{yy}\\
+    \epsilon_{zz}\\
+    2\epsilon_{yz}\\
+    2\epsilon_{xz}\\
+    2\epsilon_{xy}
+  \end{pmatrix} \right]\\
+  &=-\nabla \cdot 
+    \begin{pmatrix}
+      e_{15}\epsilon_{xz}\\
+      e_{15}\epsilon_{yz}\\
+      e_{31}\epsilon_{xx}+e_{31}\epsilon_{yy}+e_{33}\epsilon_{zz}\\
+    \end{pmatrix}\\
+    &=-e_{15}(iq_x\epsilon_{xz}+iq_y\epsilon_{yz})
+    - \partial_z [e_{31}(\epsilon_{xx}+\epsilon_{yy})+e_{33}\epsilon_{zz}]\\
+    &=-e_{15}(iq_x\partial_zu_x-q_x^2u_z+iq_y\partial_zu_y-q_y^2u_z)
+    - \partial_z [ie_{31}(q_xu_x+q_yu_y)+e_{33}\partial_zu_z]\\
+    &=-e_{15}(iq\partial_zu_L-q^2u_z)
+    - \partial_z [iqe_{31}u_L+e_{33}\partial_zu_z]\\
+    &=q^2e_{15}u_z-iqe_{15}\partial_zu_L
+    - iq\partial_z e_{31}u_L- \partial_ze_{33}\partial_zu_z
+\end{align}
+where $u_L$ is the in-plane longitudinal component of the displacement. Plugging this into the Poisson equation, we find a potential
+\begin{align}
+  -\nabla \left[\varepsilon \nabla \phi \right]= \rho \\
+  q^2\varepsilon_L\phi -\partial_z\varepsilon_z \partial_z \phi = \rho 
+\end{align}
+So
+\begin{equation}
+  q^2\varepsilon_L\phi -\partial_z\varepsilon_z \partial_z \phi 
+    =q^2e_{15}u_z-iqe_{15}\partial_zu_L
+    -iq \partial_z e_{31}u_L- \partial_ze_{33}\partial_zu_z
+\end{equation}
+\begin{equation}
+  C^0\phi -\partial_z C^2\partial_z\phi = C^{0'}u_z-iC^{L'}u_x-iC^{R'}u_x-\partial_zC^{2'}\partial_zu_z
+\end{equation}
+where
+\begin{equation}
+  C_0=q^2\epsilon_L, \quad C_2=\epsilon_z
+\end{equation}
+\begin{equation}
+  C^{0'}=q^2e_{15},
+  C^{L'}=qe_{15}, 
+  C^{R'}=qe_{31}, 
+  C^{2'}=e_{33}
+\end{equation}
+Note, this disagrees with Pokatilov by a factor of two in every term that includes an $e_{15}$.  I think they, like DJ and Stroscio, forgot the factors of times-two engineering strains above.  Those factors should be there according to Yang (https://doi.org/10.1007/978-3-030-03137-4) and Nye (Physical Properties of Crystals: Their Representation by Tensors and Matrices).
 \end{document}
