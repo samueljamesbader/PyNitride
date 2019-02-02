@@ -12,6 +12,9 @@ ctypedef fused CMat:
     cnp.ndarray[cnp.complex128_t,ndim=3]
     cnp.ndarray[cnp.float64_t,ndim=3]
 
+ctypedef fused scalar_var:
+    cnp.ndarray[cnp.complex128_t,ndim=1]
+    cnp.ndarray[cnp.float64_t,ndim=1]
 
 
 #@cython.boundscheck(False)
@@ -103,7 +106,7 @@ cpdef assemble_stiffness_matrix(
 #@cython.wraparound(False)
 #@cython.cdivision(True)
 cpdef assemble_load_matrix(
-        cnp.ndarray[cnp.float64_t   ,ndim=1] w,
+        scalar_var w,
         cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
         int n, bool dirichelet1=False, bool dirichelet2=False):
     r""" Assemble a load matrix from the coefficients of the differential equation.
@@ -127,7 +130,11 @@ cpdef assemble_load_matrix(
         double tmp
         list rinds, rdata
     nz=dzp.shape[0]+1
-    lil=lil_matrix((n*(nz-dirichelet1-dirichelet2),n*(nz-dirichelet1-dirichelet2)),dtype='float')
+
+    if w.dtype == np.float64:
+        lil=lil_matrix((n*(nz-dirichelet1-dirichelet2),n*(nz-dirichelet1-dirichelet2)),dtype='float')
+    else:
+        lil=lil_matrix((n*(nz-dirichelet1-dirichelet2),n*(nz-dirichelet1-dirichelet2)),dtype='complex')
     for z in range(dirichelet1,nz-dirichelet2):
         for i in range(n):
             zmat=z-dirichelet1
@@ -142,12 +149,8 @@ cpdef assemble_load_matrix(
 
             #put in diag
             rinds+=[n*zmat+i]
-            tmp=0
-            if z>0:
-                tmp+=w[z-1]*dzp[z-1]/3
-            if z<nz-1:
-                tmp+=w[z  ]*dzp[z  ]/3
-            rdata+=[tmp]
+            rdata+=[(w[z-1]*dzp[z-1]/3 if z>0    else 0)+ 
+                    (w[z  ]*dzp[z  ]/3 if z<nz-1 else 0)] 
 
             #put in right
             if z<nz-1-dirichelet2:
@@ -248,10 +251,18 @@ def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,
         the solution (same shape as `load_vec`)
     """
     vslice=slice(dirichelet1*n,dirichelet1*n+stiffness_matrix.shape[0])
-    load=load_matrix @ load_vec[vslice]
+    if load_matrix is None:
+        load= load_vec#[vslice]
+    else:
+        load=load_matrix @ load_vec[vslice]
     if val_out is None:
         val_out=np.zeros_like(load_vec,dtype=stiffness_matrix.dtype)
     val_out[vslice]=spsolve(stiffness_matrix,load,*args,**kwargs)
+    # Zeros at dirichelet boundaries
+    if dirichelet1:
+        val_out[0]=0
+    if dirichelet2:
+        val_out[-1]=0
     return val_out
 
 
