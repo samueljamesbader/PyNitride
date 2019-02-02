@@ -277,6 +277,10 @@ class PiezoPotential():
 
     def solve_one_q(self,q,iq,vec):
         m=self._mesh
+    
+        # Purely transverse modes have no piezo potential
+        if self.vecform=='Y':
+            return PointFunction(m,np.zeros((self._neig,m.Np),dtype='complex'))
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
@@ -293,9 +297,9 @@ class PiezoPotential():
         phi=PointFunction(m,empty=(self._neig,),dtype='complex')
         vslice=slice(1,-1) # dirichelet top, neumann bottom
         for e in range(self._neig):
-            b_pz=(Mx_pz @ vec[e,0])[vslice] # comp 0 will be x or y
+            b_pz=(Mx_pz @ vec[e,0])[vslice] 
             if 'Z' in self.vecform:
-                b_pz+=(Mz_pz @ vec[e,-1])[vslice] # comp -1 will be z
+                b_pz+=(Mz_pz @ vec[e,-1])[vslice]
             fem_solve(A_pz,None,b_pz,phi[e],1,True,True)
         return phi
 
