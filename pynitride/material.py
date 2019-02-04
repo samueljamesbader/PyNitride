@@ -147,11 +147,17 @@ class Wurtzite(MaterialSystem):
             'D6':       self.kp_params,
             'DeltaSO':  self.kp_params,
             'DeltaCR':  self.kp_params,
-            'Delta1':  self.kp_params,
-            'Delta2':  self.kp_params,
-            'Delta3':  self.kp_params,
+            'Delta1':   self.kp_params,
+            'Delta2':   self.kp_params,
+            'Delta3':   self.kp_params,
             'a1':       self.kp_params,
             'a2':       self.kp_params,
+
+            'eps_inf':  self.vergard('dielectric.eps_inf'),
+            'wLO_para': self.vergard('raman.wLO_para'),
+            'wLO_perp': self.vergard('raman.wLO_perp'),
+            'wTO_para': self.vergard('raman.wTO_para'),
+            'wTO_perp': self.vergard('raman.wTO_perp'),
 
             'density':  self.vergard('density'),
         })
