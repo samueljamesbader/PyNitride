@@ -1,6 +1,17 @@
 Omniscient v1
 
 ######
+######
+##
+## This parameter file represents Sam Bader's preferred parameter
+## set for simulating the III-Nitrides, drawn from a wide variety
+## of referenced works and occassionally involving some additional
+## computation.
+##
+######
+######
+
+######
 ## Polarization
 #####
 
@@ -71,14 +82,42 @@ material=AlN
 #####
 
 
+# Kane 2001: http://dx.doi.org/10.1088/0268-1242/26/8/085006
 material=GaN
     dielectric
-        # Kane 2001: http://dx.doi.org/10.1088/0268-1242/26/8/085006
         eps_z:    10.6 epsilon_0
         eps_perp:  9.5 epsilon_0
 
+# Kazan 2009: https://doi.org/10.1063/1.3177323
 material=AlN
     dielectric
-        # Kazan 2009: https://doi.org/10.1063/1.3177323
         eps_z:     8.6 epsilon_0
         eps_perp:  7.4 epsilon_0
+
+######
+## Optical phonons
+######
+
+# Conveniently compiled in Komirenko 1999
+# http://dx.doi.org/10.1103/PhysRevB.59.5013
+
+# Note all wLO etc as parsed into PyNitride
+# are in units of angular frequency
+
+material=GaN
+    raman
+        wLO_para:   735     2*pi*c/cm
+        wLO_perp:   743     2*pi*c/cm
+        wTO_para:   533     2*pi*c/cm
+        wTO_perp:   561     2*pi*c/cm
+    dielectric
+        eps_inf:    5.29    epsilon_0
+
+material=AlN
+    raman
+        wLO_para:   893     2*pi*c/cm
+        wLO_perp:   916     2*pi*c/cm
+        wTO_para:   660     2*pi*c/cm
+        wTO_perp:   673     2*pi*c/cm
+    dielectric
+        eps_inf:    4.68    epsilon_0
