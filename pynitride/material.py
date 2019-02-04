@@ -304,6 +304,28 @@ class Wurtzite(MaterialSystem):
         return Cmats
 
     def kp_strain_mat(self,m,**strains):
+        r"""
+        .. math::
+
+            \begin{pmatrix}
+                l_1 e_{xx} +m_1 e_{yy} +m_2 e_{zz} & n_1 e_{xy} & n_2 e_{xz}\\
+                n_1 e_{xy} & m_1 e_{xx} +l_1 e_{yy} +m_2 e_{zz} & n_2 e_{yz}\\
+                n_2 e_{xz} & n_2 e_{yz} &  m_3 e_{xx} +m_3 e_{yy} +l_2 e_{zz}\\
+            \end{pmatrix}
+
+        .. math::
+
+            \begin{gather}
+                l_1=D_2+D_4+D_5, \quad l_2=D_1\\
+                m_1=D_2+D_4-D_5, \quad m_2=D_1+D_3 \quad m_3=D_2\\
+                n_1=2 D_5 \quad n_2=\sqrt{2} D_6
+            \end{gather}
+
+
+        :param m:
+        :param strains:
+        :return:
+        """
         s=strains.copy()
         for sij in ['exx','exy','exz','eyy','eyz','ezz']:
             if sij not in s: s[sij]=m[sij]

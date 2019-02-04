@@ -330,4 +330,124 @@ where
   C^{2'}=e_{33}
 \end{equation}
 Note, this disagrees with Pokatilov by a factor of two in every term that includes an $e_{15}$.  I think they, like DJ and Stroscio, forgot the factors of times-two engineering strains above.  Those factors should be there according to Yang (https://doi.org/10.1007/978-3-030-03137-4) and Nye (Physical Properties of Crystals: Their Representation by Tensors and Matrices).
+
+\section{Optical phonons}
+\subsection{Equation of motion}
+If the system is described by a driven oscillator equation
+\begin{equation}
+  \mu\partial_t^2u_i =-\mu\omega_{0i}^2u_i+e^* E_i
+\end{equation}
+where $\mu$ and $i$ runs over $\perp, \parallel$. Then $P_i=\frac{e^*}{V_u}u_i$, giving
+\begin{align}
+  P_i =\chi_iE_i, \quad \chi_i=\frac{e^{*2}}{\mu V_u}\frac{1}{\omega_{0i}^2-\omega^2} 
+\end{align}
+Defining an $\varepsilon_i$ so that $D_i=\varepsilon_i E_i=\varepsilon^\infty E_i +P=(\varepsilon^\infty +\chi_i) E_i$ leads to 
+\begin{equation}
+  \varepsilon_\perp=\frac{\omega_{LO\perp}^2-\omega^2}{\omega_{TO\perp}^2-\omega^2},
+  \quad\quad
+  \varepsilon_\parallel=\frac{\omega_{LO\parallel}^2-\omega^2}{\omega_{TO\parallel}^2-\omega^2}
+\end{equation}
+where $\omega_{TO,i}^2=\omega_{0i}^2$ and $\omega_{LO, i}^2=\omega_{0i}^2+\frac{e^{*2}}{\mu V_u\varepsilon^\infty}$
+The phonons are found by solving
+\begin{equation}
+  -\nabla\cdot\overset\leftrightarrow{\epsilon}\nabla\phi=0
+\end{equation}
+which can be framed as an eigenvalue problem in $q$ at fixed $\omega$
+\begin{equation}
+  \partial_z\epsilon_\parallel\partial_z\phi=q^2\epsilon_\perp\phi
+\end{equation}
+\subsection{Normalization}
+The $\phi$ must then be normalized by the prescription $\int dz\frac{\mu}{V_u}\abs{\vec u}^2=\frac{\hbar}{2\omega}$.  To do this, we'll need to extra $\vec u$ from the $\phi$:
+\begin{align}
+  \vec u = \frac{V_u}{e^*}\vec P=\frac{V_u}{e^*}\chi\vec E=-\frac{V_u}{e^*}\chi\nabla\phi
+\end{align}
+So
+\begin{align}
+  \vec u = -\frac{V_u}{e^*}\left( \chi_\parallel \partial_z\phi \hat{z} +iq\chi_\perp\phi\hat{q} \right)
+\end{align}
+\begin{align}
+  \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{\mu V_u}{e^{*2}}\left( (\chi_\parallel \partial_z\phi)^2 +q^2(\chi_\perp\phi)^2 \right)
+\end{align}
+\begin{align}
+  \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{e^{*2}}{\mu V_u}\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
+\end{align}
+\begin{align}
+  \frac{\mu}{V_u}\abs{\vec u}^2 = \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
+\end{align}
+where, since $\omega_{LO\perp}$ et al are taken from experiment, we'll average the $(\omega_{LO}^2-\omega_{TO}^2)$ factor over $\perp, \parallel$.
+Thus the normalization condition is written in terms of the potential as
+\begin{align}
+  \frac{\hbar}{2\omega} = \int dz \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
+\end{align}
+
+
+
+\subsection{Binary III-Nitride Heterojunction}
+We will solve a single heterojunction structure 1/2 where materials 1 and 2 are GaN or AlN in either order, and the bottom material is semi-infinite.  The top surface at $z=0$ is assumed Dirichelet.  The thickness of the top layer is $t_1$ and the normalization thickness for the bottom layer which will be used to break the continuum of states by an artificial Dirichelet condition is $t_2$.
+
+In a given region, solutions are oscillating if $\varepsilon_\perp\varepsilon_\parallel<0$ and exponential if $\varepsilon_\perp\varepsilon_\parallel>0$.  At an interface, the derivative switches signs iff $\varepsilon_{1\parallel}\varepsilon_{2\parallel}<0$.
+
+We  will use the following convenient definitions, similar to the notation of (Komirenko 1999) but for a factor of two in $\alpha$
+\begin{equation}
+  \chi_{i}=\sqrt{\abs{\varepsilon_{i\perp}\varepsilon_{i\parallel}}},\quad
+  \alpha_i=\sqrt{\abs{\varepsilon_{i\perp}/\varepsilon_{i\parallel}}}
+\end{equation}
+Then the vertical wavevector of a mode in a given region is $k_i=q\alpha_i$.
+
+If the solution is written in Region 1 with a normalization constant $A$ and Region 2 with a normalization constant $B$, then the first matching condition gives us $A/B$, and the normalization condition will be written
+\begin{equation}
+  A^2=\frac{\hbar}{2\omega}\big/\left[ \beta_{\parallel 1}\gamma_{\parallel 1}+\beta_{\perp 1}\gamma_{\perp 1} + \left(\frac{B}{A}\right)^2\left(\beta_{\parallel 2}\gamma_{\parallel 2}+\beta_{\perp 2}\gamma_{\perp 2} \right) \right]
+\end{equation}
+with 
+\begin{equation}
+  \beta_{\parallel i}=\varepsilon^\infty_i\left( \omega_{LOi}^2-\omega_{TOi}^2 \right)\left( \frac{k_i^2}{\omega_{TO\parallel i}^2-\omega^2} \right)
+\end{equation}
+\begin{equation}
+  \beta_{\perp     i}=\varepsilon^\infty_i\left( \omega_{LOi}^2-\omega_{TOi}^2 \right)\left( \frac{  q^2}{\omega_{TO\perp i}^2-\omega^2} \right)
+\end{equation}
+and 
+\begin{equation}
+  \gamma_{\parallel i}=\int_{i} dz \left(\frac{\partial_z \phi}{A k_i}\right)^2, \quad
+  \gamma_{\perp i}=\int_{i} dz \left(\frac{\phi}{B}\right)^2
+\end{equation}
+
+\subsubsection{Confined to Region 1}
+If the solution is oscillating in Region 1 and decaying in Region 2, we can write
+\begin{align}
+  \phi_1=A\sin(k_1 z), \quad \phi_2=Be^{-k_2z}
+\end{align}
+Matching interface conditions gives
+\begin{equation}
+  q=\frac{1}{\alpha t_1}\left[ \tan^{-1}\left( -\xi_1/\xi_2 \right) +\pi (n+1) \right]
+\end{equation}
+with $B/A=\sin(k_1 t_1)e^{k_2t_1}$ and
+\begin{equation}
+  \gamma_{\parallel 1}=\frac{1}{2}(t_1+\frac{1}{2k_1}\sin(2k_1t_1)), \quad 
+  \gamma_{\perp     1}=\frac{1}{2}(t_1-\frac{1}{2k_1}\sin(2k_1t_1))
+\end{equation}
+\begin{equation}
+  \gamma_{\parallel 2}=\frac{1}{2k_2}e^{-2k_2t_1}, \quad 
+  \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
+\end{equation}
+
+
+
+\subsubsection{Confined to Interface}
+If the solution is decaying in both regions, we can write
+\begin{align}
+  \phi_1=A\sinh(k_1 z), \quad \phi_2=Be^{-k_2z}
+\end{align}
+Matching interface conditions gives
+\begin{equation}
+  q=\frac{1}{2\alpha t_1}\log\left[ \frac{\xi_2+\xi_1}{\xi_2-\xi_1} \right]
+\end{equation}
+with $B/A=\sinh(k_1t_1)e^{k_2t_1}$ and
+\begin{equation}
+  \gamma_{\parallel 1}=\frac{1}{2}\left(\frac{1}{2k_1}\sinh(2k_1t_1)+t_1\right), \quad 
+  \gamma_{\perp     1}=\frac{1}{2}\left(\frac{1}{2k_1}\sinh(2k_1t_1)-t_1\right)
+\end{equation}
+\begin{equation}
+  \gamma_{\parallel 2}=\frac{1}{2k_2}e^{-2k_2t_1}, \quad 
+  \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
+\end{equation}
 \end{document}
