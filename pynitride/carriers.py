@@ -256,7 +256,7 @@ class Schrodinger(CarrierModel):
 # TODO: Blending for multiband kp
 @glob_store_attributes('mesh','rmesh','_Cmats','_load_matrix','_enbv')
 class MultibandKP(CarrierModel):
-    def __init__(self,mesh,rmesh=None,num_eigenvalues=20):
+    def __init__(self,mesh,rmesh=None,num_eigenvalues=20,carriers=['hole']):
         """ Solves the multiband k.p problem for the valence bands.
 
         Can use either a 1D line of k-points or a rectangular 'xy' grid of k-points or a polar grid of k-points
@@ -268,22 +268,29 @@ class MultibandKP(CarrierModel):
         """
         super().__init__(mesh)
         m=mesh
+        assert len(carriers)==1, "kp only works with one type of carrier at a time right now"
+        self._carrier=carriers[0]
+
         assert len(m._matblocks)==1, "kp only works on a mesh with a single material system for now"
-        self._n=m._matblocks[0].matsys.kp_dim
+        self._n=m._matblocks[0].matsys.kp_dim[self._carrier]
         self._neig=num_eigenvalues
         self.rmesh=rmesh
 
         if rmesh is not None:
-            m.ensure_function_exists("p",value=0)
-            m.ensure_function_exists("pderiv",value=0)
+            if self._carrier=='electron':
+                m.ensure_function_exists("n",value=0)
+                m.ensure_function_exists("nderiv",value=0)
+            if self._carrier=='hole':
+                m.ensure_function_exists("p",value=0)
+                m.ensure_function_exists("pderiv",value=0)
 
-            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky)
+            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky, carrier=self._carrier)
 
             # Initialize other functions
             if 'kpen' not in self.rmesh:
                 self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
             if 'kppsi' not in self.rmesh:
-                self.rmesh['kppsi']=PointFunction(m,dtype='complex',empty=(self.rmesh.N,num_eigenvalues,self._n,))
+                self.rmesh['kppsi']=PointFunction(m,dtype=self._Cmats[0][0].dtype,empty=(self.rmesh.N,num_eigenvalues,self._n,))
             if 'normsqs' not in self.rmesh:
                 self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
@@ -321,21 +328,28 @@ class MultibandKP(CarrierModel):
         if ik is not None:
             C0_kin,Cl,Cr,C2=self._Cmats[ik]
         else:
-            C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky])[0]
+            C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky],carrier=self._carrier)[0]
 
         # TODO: pot can be a property of Multiband rather than re-forming for each k
-        pot=(m.Ev+m.EvOffset)
+        if self._carrier=='hole':
+            pot=(m.Ev+m.EvOffset)
+            ascending=False
+            sigma=float(np.max(pot))
+        if self._carrier=='electron':
+            pot=(m.Ec+m.EcOffset)
+            ascending=True
+            sigma=float(np.min(pot))
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
-        H=-assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
+        H=assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
         eigvals=np.empty([self._neig])
-        eigvecs=PointFunction(m,np.empty([self._neig,self._n,m.Np],dtype=complex),dtype=complex)
+        eigvecs=PointFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
         # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
         fem_eigsh(H,self._load_matrix,eigvals,eigvecs,self._n,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
-                  k=self._neig,sigma=float(np.min(-pot)),which='LM',tol=0,ncv=self._neig*2)
+            ascending=ascending,k=self._neig,sigma=sigma,which='LM',tol=0,ncv=self._neig*2)
 
         # eig, z
         normsqs=np.sum(abs(eigvecs)**2,axis=1)
-        return -eigvals,eigvecs,normsqs
+        return eigvals,eigvecs,normsqs
 
     def solve_point_as_bulk(self,zp):
         m=self.mesh
@@ -348,14 +362,13 @@ class MultibandKP(CarrierModel):
     def repopulate(self):
         m=self.mesh
         kT= kb * m.T
-        # kt, eig, z
-        eta=(np.expand_dims(self.rmesh['kpen'],2)-m.EF)/kT.tpf()
 
-        p=(1/(4*pi**2))*self.rmesh.integrate(self.rmesh['normsqs']/(1+np.exp(-eta)))
-        m['p']=(1/(4*pi**2))*self.rmesh.integrate(
-            np.sum(self.rmesh['normsqs']/(1+np.exp(-eta)),axis=1))
-        m['pderiv']=(1/(4*pi**2))*self.rmesh.integrate(
-            np.sum(self.rmesh['normsqs']*(np.exp(-eta))/(1+np.exp(-eta))**2/kT.tpf(),axis=1))
+        c,cderiv,sign=['n','nderiv',-1] if self._carrier=='electron' else ['p','pderiv',+1]
+        eta=sign*(m.EF-np.expand_dims(self.rmesh['kpen'],2))/kT.tpf()
+        m[c]=(1/(4*pi**2))*self.rmesh.integrate(
+            np.sum(self.rmesh['normsqs']/(1+np.exp(eta)),axis=1))
+        m[cderiv]=(1/(4*pi**2))*self.rmesh.integrate(
+            sign*np.sum(self.rmesh['normsqs']*(np.exp(eta))/(1+np.exp(eta))**2/kT.tpf(),axis=1))
 
         log("not blending",level="TODO")
 
@@ -383,5 +396,6 @@ class MultibandKP(CarrierModel):
 
     def interp_radial_eff_mass(self,absk,theta,eig,bounds_check=True):
         self._get_interpolation()
-        return -1/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2,bounds_check=bounds_check))
+        sign= 1 if self._carrier=='electron' else -1
+        return sign/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2,bounds_check=bounds_check))
 

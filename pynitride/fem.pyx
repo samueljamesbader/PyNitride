@@ -161,7 +161,7 @@ cpdef assemble_load_matrix(
 
 def fem_eigsh(stiffness_matrix,load_matrix,
               eigval_out,eigvec_out,n,
-              dirichelet1=False,dirichelet2=False,pairwise_GS=False,*args,**kwargs):
+              dirichelet1=False,dirichelet2=False,pairwise_GS=False,ascending=True,*args,**kwargs):
     """ Solve the eigenvalue problem.
 
     For the mathematics/definitions of terms, see :ref:`FEM`.
@@ -178,6 +178,8 @@ def fem_eigsh(stiffness_matrix,load_matrix,
             that are very close in energy.  This option breaks the eigenvectors into those pairs [note, it just assumes
             the pairing 0-1, 2-3, 4-5, etc, it doesn't actually check the energies], and in each pair, performs a single
             Gram-Schmidt to ensure the nearly-degenerate eigenvectors are orthogonal.
+        ascending (bool): by default, energies are sorted from min to max, but for valence band problems,
+            you want the highest absolute energies first, so set `ascending=False`
         *args,**kwargs: passed onto
             `scipy.sparse.eigsh <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
             along with the main arguments `A` (stiffness) and `M` (load)
@@ -193,7 +195,7 @@ def fem_eigsh(stiffness_matrix,load_matrix,
         eigval_out[:]=eigsh(A=stiffness_matrix,M=load_matrix,return_eigenvectors=False,*args,**kwargs)
 
     # Re-order the energies
-    indarr=np.argsort(eigval_out)
+    indarr=np.argsort(eigval_out if ascending else -eigval_out)
     eigval_out[:]=eigval_out[indarr]
 
     if do_eigvecs:

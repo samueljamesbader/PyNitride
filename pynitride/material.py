@@ -174,9 +174,6 @@ class Wurtzite(MaterialSystem):
 
 
         s=(m.exx+m.eyy)/2
-        #print('M.exx',m.exx)
-        #print('M.eyy',m.eyy)
-        #print('M.ezz',m.ezz)
         Sigma2=(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*2*s
         Sigmac=(m.a1+m.D1)*m.ezz+(m.a2+m.D2)*2*s
 
@@ -190,6 +187,10 @@ class Wurtzite(MaterialSystem):
         # Also, the bandedge in the Hamiltonian is not zero, it's max(Delta1+Delta2,Delta1-Delta2,0)
         # So let's set Ev_raw to Ev minus that amount to make sure the bulk solution top energy is Ev
         m['EvOffset']=-Sigma2-np.maximum(m.Delta1+m.Delta2,m.Delta1-m.Delta2,MidFunction(m,0))
+
+        # Similarly, here's the thing to add to Ec before solving kp
+        # so that strain shift is included directly into kp Hamiltonian not Ec
+        m['EcOffset']=-Sigmac
 
         if key:
             return m[key]
@@ -245,8 +246,8 @@ class Wurtzite(MaterialSystem):
         m['Delta2']=m['Delta3']=1/3*m.DeltaSO
         return m[key]
 
-    kp_dim=6
-    def kp_Cmats(self,m,kx,ky):
+    kp_dim={'hole':6,'electron':2}
+    def kp_Cmats(self,m,kx,ky,carrier):
         """
 
         The matrices match the conventions in Birner, {X^,Y^,Z^, Xv, Yv, Zv} basis.  The strain is included by means of
@@ -259,58 +260,95 @@ class Wurtzite(MaterialSystem):
         :param ky:
         :return:
         """
-        U=MidFunction(m,hbar**2/(2*m_e))
-        O=MidFunction(m,0)
 
-        Atwid=m.A2+m.A4-U; Ahat=m.A1+m.A3-U
-        L1=m.A5+Atwid; L2=m.A1-U
-        M1=-m.A5+Atwid; M2=Ahat; M3=m.A2-U
-        N1p=3*m.A5-Atwid; N1m=-m.A5+Atwid
-        N2p=np.sqrt(2)*m.A6-Ahat
-        N2m=Ahat
-        L1u=L1+U; L2u=L2+U
-        M1u=M1+U; M2u=M2+U; M3u=M3+U
-        Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
+        if carrier=='electron':
+            S1=hbar**2/(2*m.mez[0])
+            S2=hbar**2/(2*m.mexy[0])
+            strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
+            Cmats = []
+            for kx_, ky_ in zip(kx, ky):
+                k =  np.sqrt(kx_**2+ky_**2)
+                C0 = double_mat(MidFunction(m, [[S2 * k ** 2]]), dtype='float')+strainmat
+                C0[1, 1] += 5e-6; C0[0, 0] -= 5e-6  # Break degeneracy by 1ueV
+                #Cl = double_mat(MidFunction(m, [[O]], dtype='complex'))
+                #Cr = double_mat(MidFunction(m, [[O]], dtype='complex'))
+                C2 = double_mat(MidFunction(m, [[S1]]), dtype='float')
+                #Cmats += [[C0, Cl, Cr, C2]]
+                Cmats += [[C0, None, None, C2]]
+            return Cmats
 
-        strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz)
+        if carrier=='hole':
+            U=MidFunction(m,hbar**2/(2*m_e))
+            O=MidFunction(m,0)
+            Atwid=m.A2+m.A4-U; Ahat=m.A1+m.A3-U
+            L1=m.A5+Atwid; L2=m.A1-U
+            M1=-m.A5+Atwid; M2=Ahat; M3=m.A2-U
+            N1p=3*m.A5-Atwid; N1m=-m.A5+Atwid
+            N2p=np.sqrt(2)*m.A6-Ahat
+            N2m=Ahat
+            L1u=L1+U; L2u=L2+U
+            M1u=M1+U; M2u=M2+U; M3u=M3+U
+            Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
 
-        Cmats=[]
-        for kx,ky in zip(kx,ky):
-            C0= \
-                double_mat(MidFunction(m, [
-                    [kx*L1u*kx+ky*M1u*ky , kx*N1p*ky+ky*N1m*kx,         O           ],
-                    [ky*N1p*kx+kx*N1m*ky , kx*M1u*kx+ky*L1u*ky,         O           ],
-                    [         O          ,          O         ,  kx*M3u*kx+ky*M3u*ky]])) + \
-                MidFunction(m,[
-                     [   Delta1,   -1j*Delta2,          O,          O,         O,     Delta3],
-                     [1j*Delta2,       Delta1,          O,          O,         O, -1j*Delta3],
-                     [        O,            O,          O,    -Delta3, 1j*Delta3,          O],
-                     [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
-                     [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
-                     [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
-                strainmat
+            strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
 
-            Cl= m.ztrans * \
-                double_mat(MidFunction(m, [
-                    [           O     ,             O    ,       kx*N2p     ],
-                    [           O     ,             O    ,       ky*N2p     ],
-                    [       kx*N2m    ,         ky*N2m   ,         O        ]]))
-            Cr= m.ztrans * \
-                double_mat(MidFunction(m, [
-                    [           O     ,             O    ,       N2m*kx     ],
-                    [           O     ,             O    ,       N2m*ky     ],
-                    [       N2p*kx    ,         N2p*ky   ,         O        ]]))
+            Cmats=[]
+            for kx,ky in zip(kx,ky):
+                C0= \
+                    double_mat(MidFunction(m, [
+                        [kx*L1u*kx+ky*M1u*ky , kx*N1p*ky+ky*N1m*kx,         O           ],
+                        [ky*N1p*kx+kx*N1m*ky , kx*M1u*kx+ky*L1u*ky,         O           ],
+                        [         O          ,          O         ,  kx*M3u*kx+ky*M3u*ky]])) + \
+                    MidFunction(m,[
+                         [   Delta1,   -1j*Delta2,          O,          O,         O,     Delta3],
+                         [1j*Delta2,       Delta1,          O,          O,         O, -1j*Delta3],
+                         [        O,            O,          O,    -Delta3, 1j*Delta3,          O],
+                         [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
+                         [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
+                         [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
+                    strainmat
 
-            C2= \
-                double_mat(MidFunction(m, [
-                    [           M2u   ,             O    ,        O     ],
-                    [           O     ,           M2u    ,        O     ],
-                    [           O     ,              O   ,       L2u    ]]))
-            Cmats+=[[C0,Cl,Cr,C2]]
-        return Cmats
+                Cl= m.ztrans * \
+                    double_mat(MidFunction(m, [
+                        [           O     ,             O    ,       kx*N2p     ],
+                        [           O     ,             O    ,       ky*N2p     ],
+                        [       kx*N2m    ,         ky*N2m   ,         O        ]]))
+                Cr= m.ztrans * \
+                    double_mat(MidFunction(m, [
+                        [           O     ,             O    ,       N2m*kx     ],
+                        [           O     ,             O    ,       N2m*ky     ],
+                        [       N2p*kx    ,         N2p*ky   ,         O        ]]))
 
-    def kp_strain_mat(self,m,**strains):
+                C2= \
+                    double_mat(MidFunction(m, [
+                        [           M2u   ,             O    ,        O     ],
+                        [           O     ,           M2u    ,        O     ],
+                        [           O     ,              O   ,       L2u    ]]))
+                Cmats+=[[C0,Cl,Cr,C2]]
+            return Cmats
+
+    def kp_strain_mat(self,m,carrier,**strains):
         r"""
+
+        For conduction band
+
+        .. math::
+
+            \begin{pmatrix}
+                a_{c2} e_{xx} + a_{c2} e_{yy} + a_{c1} e_{zz} & 0 \\
+                0 & a_{c2} e_{xx} + a_{c2} e_{yy} + a_{c1} e_{zz} \\
+            \end{pmatrix}
+
+
+        .. math::
+
+            \begin{gather}
+                a_{c1}=a_1+D_1,\quad a_{c2}=a_2+D_2
+            \end{gather}
+
+
+        For valence band, the 6x6 strain matrix is a block diagonal of two 3x3 blocks
+
         .. math::
 
             \begin{pmatrix}
@@ -336,13 +374,18 @@ class Wurtzite(MaterialSystem):
         for sij in ['exx','exy','exz','eyy','eyz','ezz']:
             if sij not in s: s[sij]=m[sij]
 
-        l1=m.D2+m.D4+m.D5; l2=m.D1
-        m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
-        n1=2*m.D5; n2=np.sqrt(2)*m.D6
-        return double_mat(MidFunction(m, [
-            [l1*s['exx']+m1*s['eyy']+m2*s['ezz'],       n1*s['exy'],                   n2*s['exz']],
-            [       n1*s['exy'],        m1*s['exx']+l1*s['eyy']+m2*s['ezz'],           n2*s['eyz']],
-            [       n2*s['exz'],                        n2*s['eyz'],            m3*s['exx']+m3*s['eyy']+l2*s['ezz']]],dtype='complex'))
+        if carrier=='electron':
+            ac1=m.a1+m.D1; ac2=m.a2+m.D2
+            return double_mat(MidFunction(m,[[ac2*s['exx']+ac2*s['eyy']+ac1*s['ezz']]]),dtype='float')
+        if carrier=='hole':
+            l1=m.D2+m.D4+m.D5; l2=m.D1
+            m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
+            n1=2*m.D5; n2=np.sqrt(2)*m.D6
+            return double_mat(MidFunction(m, [
+                [l1*s['exx']+m1*s['eyy']+m2*s['ezz'],     n1*s['exy'],                n2*s['exz']],
+                [       n1*s['exy'],      m1*s['exx']+l1*s['eyy']+m2*s['ezz'],        n2*s['eyz']],
+                [       n2*s['exz'],                      n2*s['eyz'],         m3*s['exx']+m3*s['eyy']+l2*s['ezz']]],\
+                dtype='complex'))
 
     def ec_Cmats(self,m,q):
         q=np.reshape(q,(len(q),1,1,1))

@@ -20,6 +20,9 @@ material=GaN
             A6:  -4.90  hbar**2/(2*m_e)
             A7:   93.7  meV angstrom
 
+            # Note: these hydrostatic deformation potentials describe roughly the change in CB - CH,
+            # not the change in conduction band alone. To get conduction band deformation potentials, use
+            # ac1=a1+D1 and ac2=a2+D2, eg
             a1:  -4.90  eV
             a2:  -11.3  eV
 

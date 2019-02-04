@@ -3,11 +3,13 @@ import matplotlib.pyplot as plt
 from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
 from pynitride.material import AlGaN
 from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.carriers import Schrodinger, Semiclassical
+from pynitride.carriers import MultibandKP, Semiclassical
+from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
 from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
 from pynitride.maths import dephase
+from examples.AlGaN_GaN_HEMT.hemt_visualization import conduction_band_panels
 import numpy as np
 
 
@@ -37,19 +39,26 @@ if __name__=="__main__":
     Pseudomorphic(m)
     ps=PoissonSolver(m)
 
+    semi_2DEG=Semiclassical(schro,carriers=['electron'])
     scl=SelfConsistentLoop(
         fieldsolvers=[PoissonSolver(m)],
-        carriermodels=[Schrodinger  (schro,carriers=['electron'],num_eigenvalues=20),
+        carriermodels=[semi_2DEG,
                         Semiclassical(schro,carriers=['hole']),
                         Semiclassical(semi)])
     scl.ramp_epsfactor(start=1e3, max_iter=20, dlefmin=.005, tol=1e-5)
+    rmesh=RMesh1D.regular(2/nm,20)
+    mbkp_2DEG=MultibandKP(schro,rmesh=rmesh,carriers=['electron'],num_eigenvalues=20)
+    scl.swap_carrier_model(remove=semi_2DEG,add=mbkp_2DEG)
+    scl.loop(tol=1e-5)
 
     # Check normalization
-    wf0=scl._cs[0]._epsi[0,0,:]
-    wf1=scl._cs[0]._epsi[0,1,:]
+    wf0=mbkp_2DEG.kppsi[0,0]
+    wf1=mbkp_2DEG.kppsi[0,1]
+    wf2=mbkp_2DEG.kppsi[0,2]
     from pynitride.mesh import inner_product
     assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+    assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)
     print("Total electrons: {:.2g} x10^13/cm^2".format(to_unit(float(m.n.integrate(definite=True)),"1e13/cm^2")))
 
     if 1:
@@ -57,9 +66,9 @@ if __name__=="__main__":
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
         plt.plot(m.zp,m.EF,'r')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,0,:])+scl._cs[0]._een[0,0],'purple')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,1,:])+scl._cs[0]._een[0,1],'pink')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,2,:])+scl._cs[0]._een[0,2],'black')
+        plt.plot(schro.zp,dephase(np.sum(mbkp_2DEG.kppsi[0,0,:,:],axis=0))+mbkp_2DEG.kpen[0,0],'purple')
+        plt.plot(schro.zp,dephase(np.sum(mbkp_2DEG.kppsi[0,2,:,:],axis=0))+mbkp_2DEG.kpen[0,2],'pink')
+        plt.plot(schro.zp,dephase(np.sum(mbkp_2DEG.kppsi[0,4,:,:],axis=0))+mbkp_2DEG.kpen[0,4],'black')
         plt.ylabel("Energy [eV]")
         plt.xlabel("Depth [nm]")
         plt.twinx()
@@ -68,5 +77,12 @@ if __name__=="__main__":
         plt.ylim(0)
         plt.yticks([])
         plt.tight_layout()
-        plt.show()
+        #plt.show()
+
+
+    rmesh=RMesh2D_Polar.regular(2/nm,20,4,align_theta=True)
+    mbkp_2DEG=MultibandKP(schro,rmesh=rmesh,carriers=['electron'],num_eigenvalues=20)
+    mbkp_2DEG.solve()
+    conduction_band_panels(m,mbkp_2DEG)
+    plt.show()
 
