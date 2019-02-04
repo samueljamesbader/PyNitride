@@ -24,8 +24,9 @@ class PhononModel():
 
         self.vecform = vecform
         """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
-
-        self._n=len(vecform)
+    
+        if vecform:
+            self._n=len(vecform)
 
     def solve(self):
         raise NotImplementedError
@@ -185,7 +186,12 @@ class ElasticContinuum(PhononModel):
     def solve_one_q(self,q,iq=None,just_energies=False):
         m=self._mesh
         if iq is None:
-            C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_Cmats(m,np.array([q]))[0]
+            if self.vecform=='XZ':
+                C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_CmatsXZ(m,np.array([q]))[0]
+            elif self.vecform=='Y':
+                C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_CmatsY( m,np.array([q]))[0]
+            else:
+                C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_Cmats(  m,np.array([q]))[0]
             A=assemble_stiffness_matrix(C0,Cl,Cr,C2,m._dzp,dirichelet1=False,dirichelet2=False)
         else:
             A=self._ec_stiffness_matrices[iq]

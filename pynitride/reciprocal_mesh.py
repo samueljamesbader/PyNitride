@@ -109,7 +109,10 @@ class RMesh1D(RMesh):
         self.d=1
 
         # Mapping from absk1 values to their indices, used by exact_to_index
-        self._exactdig=exact_digits
+        if exact_digits is not None:
+            self._exactdig=exact_digits
+        else:
+            self._exactdig=int(np.ceil(-np.log10(np.min(dabsk))))+1
         self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
 
         # Define the other parts of the parameterization
