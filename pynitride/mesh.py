@@ -24,6 +24,7 @@ class MaterialBlock():
 
     def place(self,mesh):
         self._mesh=mesh
+        mesh.name=self.name
 
     @property
     def mesh(self):
@@ -89,6 +90,7 @@ class Layer():
         self.thickness = thickness
     def place(self,mesh):
         self._mesh=mesh
+        mesh.name=self.name
 
     @property
     def mesh(self):
@@ -301,6 +303,7 @@ class Mesh():
         # TODO: break this up so some is done within matblock
 
         # This is the whole world
+        self.name='global'
         self._supermesh = None
         leftindices=[0]+interface_indices.tolist()
         rightindices=interface_indices.tolist()+[len(self._zp)-1]
@@ -311,13 +314,13 @@ class Mesh():
             ilr=ill+len(mb.layers)-1
             ml=leftindices[ill]
             mr=rightindices[ilr]
-            mb.place(SubMesh(self, ml, mr+1))
+            mb.place(SubMesh(self, '', ml, mr+1))
             ###
             for k,v in mb.matsys._defaults.items():
                 mb.mesh.create_restricted_function(k,MidFunction(mb.mesh,v))
             ###
             for lay,l,r in zip(mb.layers,leftindices[ill:ilr+1],rightindices[ill:ilr+1]):
-                lay.place(SubMesh(mb.mesh,l-ml,r-ml+1))
+                lay.place(SubMesh(mb.mesh,'',l-ml,r-ml+1))
 
 
         self.Np=len(self._zp)
@@ -330,6 +333,8 @@ class Mesh():
 
         self._metric=assemble_load_matrix(self.ones_mid,self.dzp,n=1,dirichelet1=False,dirichelet2=False)
 
+    def __repr__(self):
+        return "<Mesh("+str(self.Np)+") \""+str(self.name)+"\">"
 
     def indexp(self, zp):
         r""" Finds the index of the point mesh location nearest to ``zp``.
@@ -627,13 +632,13 @@ class Mesh():
         :param zbounds: two-element tuple of :math:`z` locations to start and stop the submesh (inclusive)
         :return: a :py:class:`~pynitride.poissolve.mesh.SubMesh` which views this mesh in the desired range
         """
-        return SubMesh(self, self.indexp(zbounds[0]), self.indexp(zbounds[1]) + 1)
+        return SubMesh(self, name, self.indexp(zbounds[0]), self.indexp(zbounds[1]) + 1)
 
-    def submesh_cover(self,zpoints):
+    def submesh_cover(self,zpoints,names):
         inds=[0]+self.indexp(zpoints).tolist()+[len(self.zp)-1]
         sms=[]
-        for il,ir in zip(inds[:-1],inds[1:]):
-            sms+=[SubMesh(self,il,ir+1)]
+        for il,ir,name in zip(inds[:-1],inds[1:],names):
+            sms+=[SubMesh(self,name,il,ir+1)]
         return sms
 
     def function_chart(self,submeshchain=[]):
@@ -721,12 +726,12 @@ class SubMesh(Mesh):
 
     """
 
-    def __init__(self, mesh, start, stop):
-
+    def __init__(self, mesh, name, start, stop):
         self._supermesh = mesh
         self._submeshes = []
         if self not in mesh._submeshes:
             mesh._submeshes += [self]
+        self.name=name
 
         if start is None: start=0
         if stop is None: stop=len(mesh.zp)

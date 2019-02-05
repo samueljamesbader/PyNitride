@@ -12,7 +12,7 @@ from pynitride.paramdb import to_unit, hbar, m_e, kb, nm
 from pynitride.maths import cart2polar
 pi=np.pi
 
-def valence_band_panels(m,mbkp):
+def valence_band_panels(m,mbkp,bdopts={}):
     """ Custom plot of the dispersion, band diagram, DOS, and effective masses."""
     rmesh = mbkp.rmesh
     energy = mbkp.kpen
@@ -41,7 +41,7 @@ def valence_band_panels(m,mbkp):
     # DOS(E)
     plt.subplot(gs2[5:, 0], sharey=axbs)
     kT=kb*m.T[0]
-    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 1000,retstep=True)]*2
+    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 3000,retstep=True)]*2
     KX,KY=np.meshgrid(kx,ky)
     ABSK,THETA=cart2polar(KX,KY)
     absk,theta=ABSK[ABSK<=rmesh.kmax],THETA[ABSK<=rmesh.kmax]
@@ -82,7 +82,7 @@ def valence_band_panels(m,mbkp):
     plt.fill_between(m.p, m.zp, alpha=.5, color='purple')
     plt.xlim(0, .6)
     plt.xticks([])
-    plt.text(np.max(m.p) * .75, m.zp[np.argmax(m.p)] + 2, "$p$", color='purple')
+    plt.text(np.max(m.n) * .75, m.zp[np.argmax(m.p)] + 2, "$n$", color='purple')
 
     # Mass(E)
     plt.subplot(gs2[1:5,1],sharex=axbs)

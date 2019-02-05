@@ -268,11 +268,11 @@ class PiezoPotential():
                     assemble_stiffness_matrix,\
                         [(q**2*self._eps_x,None,None,self._eps_z,m._dzp,True,True)
                             for q in self.q])
-            self.rmesh['pz_load_matrices_x']=pool.starmap(
+            self.rmesh['pz_load_matrices_z']=pool.starmap(
                     assemble_stiffness_matrix,\
                         [(q**2*self._e51,None,None,self._e33,m._dzp,False,False)
                             for q in self.q])
-            self.rmesh['pz_load_matrices_z']=pool.starmap(
+            self.rmesh['pz_load_matrices_x']=pool.starmap(
                     assemble_stiffness_matrix,\
                         [(self._O,q*self._e51,q*self._e31,self._O,m._dzp,False,False)
                             for q in self.q])
@@ -290,10 +290,10 @@ class PiezoPotential():
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
-                q**2*self._eps_x,None,None,self._epsz,m._dzp,True,True)
-            Mx_pz=assemble_stiffness_matrix(q**2*self._e51,None,None,self._e33,
+                q**2*self._eps_x,None,None,self._eps_z,m._dzp,True,True)
+            Mz_pz=assemble_stiffness_matrix(q**2*self._e51,None,None,self._e33,
                     m._dzp,False,False)
-            Mz_pz=assemble_stiffness_matrix(self._O,q*self._e51,q*self._e31,self._O,
+            Mx_pz=assemble_stiffness_matrix(self._O,q*self._e51,q*self._e31,self._O,
                     m._dzp,False,False)
         else:
             A_pz =self.rmesh['pz_stiffness_matrices'][iq]
