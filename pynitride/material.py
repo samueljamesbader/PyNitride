@@ -133,6 +133,7 @@ class Wurtzite(MaterialSystem):
             'hg':       self.smcls_band_params,
 
             'EvOffset': self.bandedge_params,
+            'EcOffset': self.bandedge_params,
             'A1':       self.kp_params,
             'A2':       self.kp_params,
             'A3':       self.kp_params,
@@ -370,13 +371,16 @@ class Wurtzite(MaterialSystem):
         :param strains:
         :return:
         """
+        dtype='float'
         s=strains.copy()
         for sij in ['exx','exy','exz','eyy','eyz','ezz']:
             if sij not in s: s[sij]=m[sij]
+            if s[sij].dtype==complex:
+                dtype='complex'
 
         if carrier=='electron':
             ac1=m.a1+m.D1; ac2=m.a2+m.D2
-            return double_mat(MidFunction(m,[[ac2*s['exx']+ac2*s['eyy']+ac1*s['ezz']]]),dtype='float')
+            return double_mat(MidFunction(m,[[ac2*s['exx']+ac2*s['eyy']+ac1*s['ezz']]],dtype=dtype),dtype=dtype)
         if carrier=='hole':
             l1=m.D2+m.D4+m.D5; l2=m.D1
             m1=m.D2+m.D4-m.D5; m2=m.D1+m.D3; m3=m.D2
