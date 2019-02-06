@@ -746,7 +746,8 @@ class SubMesh(Mesh):
         self._dzp = mesh._dzp[self._slicem]
         self._dzm = mesh._dzm[self._slicep]
 
-        self._interfacesp = [(i - start, ll, lr) for i, ll, lr in mesh.interfaces_point if (i > start and i < stop - 1)]
+        self._interfacesp = [(i -start,           ll, lr) for i,     ll, lr in mesh.interfaces_point if (i  > start and i  < stop - 1)]
+        self._interfacesm = [(il-start, ir-start, ll, lr) for il,ir, ll, lr in mesh.interfaces_mid   if (il > start and ir < stop - 1)]
         # THIS IS A HORRIBLE HACK.  I'M SORRY, FUTURE SAM.
         if len(self.interfaces_point):
             self._layers = [ll for i, ll, lr in self.interfaces_point] + [self.interfaces_point[-1][2]]
