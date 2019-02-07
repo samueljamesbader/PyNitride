@@ -6,14 +6,10 @@ import matplotlib.pyplot as plt
 from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
 from pynitride.material import AlGaN
 from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
-from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
-from pynitride.thermal import ConstantT
-from pynitride.strain import Pseudomorphic
 from pynitride.visual import log
+from pynitride.sim import Simulation
 from examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
-from time import time
 import numpy as np
 
 def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV):
@@ -27,44 +23,22 @@ def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.
         max_dz=max_dz,
         refinements=[[0,.03*nm,2],['well/buffer',.01*nm,1.5]],
         uniform=False,boundary=[sbh,"thick"])
+    log("Mesh points "+str(m.Np))
 
     # Set up a quantum mesh
-    sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm])
-    log("Mesh points "+str(m.Np))
+    sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm],['mbkp','semi'])
 
     # Set up the reciprocal space mesh for MBKP
     sim.rmeshes['mbkp']=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
 
     sim.extras['well_t']=well_t
 
-def solve_flow(sim):
-    m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
-    Equilibrium(m)
-    ConstantT(m)
-    Pseudomorphic(m)
-    ps=PoissonSolver(m)
-    print(quantum._matblocks[0].matsys.kp_Cmats(quantum,[0],[0])[0][3])
-
-    scl=SelfConsistentLoop(
-        fieldsolvers=[PoissonSolver(m)],
-        carriermodels=[Semiclassical  (quantum,carriers=['hole']),
-                       Semiclassical(quantum,carriers=['electron']),
-                       Semiclassical(semi)])
-    scl.ramp_epsfactor(start=1e4, max_iter=20, dlefmin=.005, tol=1e-5)
-
-    starttime=time()
-    mbkp=scl._cs[0]=MultibandKP(quantum,num_eigenvalues=6,rmesh=sim.rmeshes['mbkp'])
-    scl.loop(tol=1e-5,min_activation=.05)
-    #scl.loop(tol=1e5,min_activation=.05)
-    endtime=time()
-    log("kp loop took {:.1f} sec".format(endtime-starttime))
-
 if __name__=="__main__":
 
-    from pynitride.sim import Simulation
-    sim=Simulation('pFET',define_mesh=define_mesh,solve_flow=solve_flow)
-    sim._define_mesh(sim)
-    sim._solve_flow(sim)
+    sim=Simulation('pFET',define_mesh=define_mesh,
+       solve_flow=Simulation.flow_semiclassicalramp_mbkp,
+       solve_opts ={'mbkp_opts':{'num_eigenvalues':6}})
+    sim.load(force=True)
     m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
     rmesh=sim.rmeshes['mbkp']
 
@@ -105,6 +79,7 @@ if __name__=="__main__":
         plt.xlim(0)
         plt.show()
 
+    from pynitride.carriers import MultibandKP
     mbkp=MultibandKP(quantum,rmesh,num_eigenvalues=6)
     valence_band_panels(m,mbkp)
     plt.show()

@@ -8,45 +8,39 @@ from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
 from pynitride.maths import dephase
+from pynitride.visual import log
+from pynitride.sim import Simulation
 import numpy as np
 
-
-if __name__=="__main__":
-
+def define_mesh(sim,barr_t=20*nm,barr_x=.4,buff_t=100*nm,Ndd=5e16/cm**3):
 
     # Set up the mesh
-    barr_t=20*nm
-    barr_x=.4
-    buff_t=100*nm
-    m=Mesh([
+    sim.dmeshes['main']=m=Mesh([
         MaterialBlock("epi",AlGaN(),[
             UniformLayer("barrier",  barr_t, x=barr_x, DeepDonorDonorConc=5e16/cm**3),
             UniformLayer("buffer" ,  buff_t, x=     0, DeepDonorDonorConc=5e16/cm**3),
         ])],
         max_dz=1*nm,
         refinements=[['barrier/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
+    log("Mesh points: "+str(m.Np))
 
-    schro,semi=m.submesh_cover([barr_t+30*nm])
+    sim.dmeshes['schro'],sim.dmeshes['semi']=\
+        m.submesh_cover([barr_t+30*nm],names=['schro','semi'])
 
-    print("Mesh points: ",m.Np)
+if __name__=="__main__":
+
+    sim=Simulation("HEMT",define_mesh,Simulation.flow_semiclassicalramp_schrodinger)
+    sim.load(force=True)
+
+    m,schro=sim.dmeshes['main'],sim.dmeshes['schro']
+    ss=sim.extras['schro']
     m.plot_mesh()
     plt.tight_layout()
 
-    Equilibrium(m)
-    ConstantT(m)
-    Pseudomorphic(m)
-    ps=PoissonSolver(m)
-
-    scl=SelfConsistentLoop(
-        fieldsolvers=[PoissonSolver(m)],
-        carriermodels=[Schrodinger  (schro,carriers=['electron'],num_eigenvalues=20),
-                        Semiclassical(schro,carriers=['hole']),
-                        Semiclassical(semi)])
-    scl.ramp_epsfactor(start=1e3, max_iter=20, dlefmin=.005, tol=1e-5)
 
     # Check normalization
-    wf0=scl._cs[0]._epsi[0,0,:]
-    wf1=scl._cs[0]._epsi[0,1,:]
+    wf0=ss._epsi[0,0,:]
+    wf1=ss._epsi[0,1,:]
     from pynitride.mesh import inner_product
     assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
@@ -57,9 +51,9 @@ if __name__=="__main__":
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
         plt.plot(m.zp,m.EF,'r')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,0,:])+scl._cs[0]._een[0,0],'purple')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,1,:])+scl._cs[0]._een[0,1],'pink')
-        plt.plot(schro.zp,dephase(scl._cs[0]._epsi[0,2,:])+scl._cs[0]._een[0,2],'black')
+        plt.plot(schro.zp,dephase(ss._epsi[0,0,:])+ss._een[0,0],'purple')
+        plt.plot(schro.zp,dephase(ss._epsi[0,1,:])+ss._een[0,1],'pink')
+        plt.plot(schro.zp,dephase(ss._epsi[0,2,:])+ss._een[0,2],'black')
         plt.ylabel("Energy [eV]")
         plt.xlabel("Depth [nm]")
         plt.twinx()
