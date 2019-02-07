@@ -15,14 +15,12 @@ from operator import itemgetter
 from functools import partial
 
 class CarrierModel():
-    """ Superclass for all carrier models.
-
-    A carrier model implements a :func:`solve()` function and a :func:`repopulate` function, which together define how
-    to get from previously-solved bands to the induced carrier densities.
-    """
 
     def __init__(self, mesh):
-        """ Prep the mesh for any carrier model.
+        """ Superclass for all carrier models.
+
+        A carrier model implements a :func:`solve()` function and a :func:`repopulate` function, which together define how
+        to get from previously-solved bands to the induced carrier densities.
         """
         self.mesh=mesh
 

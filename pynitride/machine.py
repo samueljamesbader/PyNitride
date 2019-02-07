@@ -5,7 +5,7 @@ from multiprocessing.dummy import Pool as _ThreadPool
 from operator import itemgetter
 from threading import Lock, RLock
 from contextlib import contextmanager
-from functools import partial
+from functools import partial,wraps
 from pynitride.visual import log
 
 class Pool():
@@ -154,6 +154,7 @@ def glob_store_attributes(*attrs):
         oinit=cls.__dict__.get('__init__',lambda self: None)
 
         # Make an __init__ that runs glob_store for the given attributes and tracks their keys
+        @wraps(cls.__init__)
         def __init__(self,*args,**kwargs):
             self._globkeys={attr:glob_store(None) for attr in attrs}
 

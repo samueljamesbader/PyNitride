@@ -9,47 +9,28 @@ from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
 from pynitride.maths import dephase
+from pynitride.sim import Simulation
+from examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_basic_mesh
 from examples.AlGaN_GaN_HEMT.hemt_visualization import conduction_band_panels
 import numpy as np
+from functools import wraps
 
+@wraps(define_basic_mesh)
+def define_mesh(sim,*args,**kwargs):
+    define_basic_mesh(sim,*args,**kwargs)
+    sim.rmeshes['mbkp']=RMesh1D.regular(2/nm,20)
+    sim.dmeshes['mbkp']=sim.dmeshes['schro']
+    del sim.dmeshes['schro']
 
 if __name__=="__main__":
+    sim=Simulation("HEMT",define_mesh,Simulation.flow_semiclassicalramp_mbkp,
+        solve_opts={'mbkp_opts':{'carriers':['electron']}})
+    sim.load(force=True)
 
-
-    # Set up the mesh
-    barr_t=20*nm
-    barr_x=.4
-    buff_t=100*nm
-    m=Mesh([
-        MaterialBlock("epi",AlGaN(),[
-            UniformLayer("barrier",  barr_t, x=barr_x, DeepDonorDonorConc=5e16/cm**3),
-            UniformLayer("buffer" ,  buff_t, x=     0, DeepDonorDonorConc=5e16/cm**3),
-        ])],
-        max_dz=1*nm,
-        refinements=[['barrier/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
-
-    schro,semi=m.submesh_cover([barr_t+30*nm])
-
-    print("Mesh points: ",m.Np)
+    m,schro,mbkp_2DEG=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.extras['mbkp']
     m.plot_mesh()
     plt.tight_layout()
 
-    Equilibrium(m)
-    ConstantT(m)
-    Pseudomorphic(m)
-    ps=PoissonSolver(m)
-
-    semi_2DEG=Semiclassical(schro,carriers=['electron'])
-    scl=SelfConsistentLoop(
-        fieldsolvers=[PoissonSolver(m)],
-        carriermodels=[semi_2DEG,
-                        Semiclassical(schro,carriers=['hole']),
-                        Semiclassical(semi)])
-    scl.ramp_epsfactor(start=1e3, max_iter=20, dlefmin=.005, tol=1e-5)
-    rmesh=RMesh1D.regular(2/nm,20)
-    mbkp_2DEG=MultibandKP(schro,rmesh=rmesh,carriers=['electron'],num_eigenvalues=20)
-    scl.swap_carrier_model(remove=semi_2DEG,add=mbkp_2DEG)
-    scl.loop(tol=1e-5)
 
     # Check normalization
     wf0=mbkp_2DEG.kppsi[0,0]

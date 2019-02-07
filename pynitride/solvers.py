@@ -348,7 +348,7 @@ class SelfConsistentLoop():
     def solve_carriers(self):
         [cs.solve_and_repopulate() for cs in self._cs]
 
-    def loop(self, tol=1e-10, max_iter=100, min_activation=.1):
+    def loop(self, tol=1e-5, max_iter=100, min_activation=.05):
         adec=2
         with sublog("Starting SC loop"):
             err=np.inf
@@ -376,7 +376,7 @@ class SelfConsistentLoop():
             #self.solve_fields()
             log("Loop finished in {:2d} iterations with err={:g}".format(i,err))
 
-    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5, dlefmin=.05, max_iter=10, tol=1e-6, min_activation=.1):
+    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5, dlefmin=.005, max_iter=20, tol=1e-5, min_activation=.1):
         with sublog("Starting eps factor ramp from {:g} to {:g}".format(start,stop)):
             lefstart=np.log10(start)
             lefstop=np.log10(stop)

@@ -1,12 +1,16 @@
-import numpy as np
 from pynitride.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
 from pynitride.visual import log, sublog
-from scipy.sparse.linalg import eigsh
 from pynitride.mesh import PointFunction
-from pynitride.paramdb import hbar
+from pynitride.paramdb import hbar, meV
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
 from pynitride.maths import polar2cart
+from pynitride.material import AlGaN
+from scipy.sparse.linalg import eigsh
 from functools import partial
+from scipy.interpolate import interp1d
+from scipy.optimize import brentq
+import numpy as np
+pi=np.pi
 
 class PhononModel():
     """ Superclass for all phonon models.
@@ -308,4 +312,288 @@ class PiezoPotential():
                 b_pz+=(Mz_pz @ vec[e,-1])[vslice]
             fem_solve(A_pz,None,b_pz,phi[e],1,True,True)
         return phi
+
+
+class DielectricContinuum_SWH(PhononModel):
+    def __init__(self, mesh, rmesh, num_eigenvalues, keepmesh=None,first_level=0):
+        super().__init__(mesh, rmesh, vecform=None, keepmesh=keepmesh)
+
+        assert first_level == 0
+
+        # Requirements for a Heterojunction
+        assert len(mesh._matblocks) == 1, \
+            "ElasticContinuum only works on a mesh with a single material system for now"
+        assert isinstance(mesh._matblocks[0].matsys, AlGaN)
+        assert len(mesh._layers) == 2
+
+        # Get the meshes for the upper and lower layers
+        self._umesh = umesh = mesh._layers[0].mesh
+        self._lmesh = lmesh = mesh._layers[1].mesh
+
+        # Get the LO frequencies for the upper and lower layers
+        wLO_perp_u = umesh.wLO_perp[0]
+        wLO_para_u = umesh.wLO_para[0]
+        wLO_perp_l = lmesh.wLO_perp[0]
+        wLO_para_l = lmesh.wLO_para[0]
+
+        # Get the TO frequencies for the upper and lower layers
+        wTO_perp_u = umesh.wTO_perp[0]
+        wTO_para_u = umesh.wTO_para[0]
+        wTO_perp_l = lmesh.wTO_perp[0]
+        wTO_para_l = lmesh.wTO_para[0]
+
+        # Get the high-frequency dielectric constants
+        epsinf_u = umesh.eps_inf[0]
+        epsinf_l = lmesh.eps_inf[0]
+
+        # Get the thicknesses
+        t1 = mesh._layers[0].thickness
+        t2 = mesh._layers[1].thickness
+
+        # Compile all the above into an array for quick reference in helper functions
+        self._params = [wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l,
+                        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l,
+                        epsinf_u, epsinf_l, t1, t2]
+
+        # Which layer is the lower-frequency one
+        self._slowlayer = mesh._layers[int(wLO_perp_l < wLO_perp_u)]
+        self._fastlayer = mesh._layers[int(wLO_perp_l > wLO_perp_u)]
+
+        # Make sure the frequencies are ordered as we expect
+        assert np.all(np.diff([
+                self._slowlayer.mesh.wTO_para[0],
+                self._slowlayer.mesh.wTO_perp[0],
+                self._fastlayer.mesh.wTO_para[0],
+                self._fastlayer.mesh.wTO_perp[0],
+                self._slowlayer.mesh.wLO_para[0],
+                self._slowlayer.mesh.wLO_perp[0],
+                self._fastlayer.mesh.wLO_para[0],
+                self._fastlayer.mesh.wLO_perp[0]])>0),\
+            "Characteristic POP frequencies are not ordered as expected."
+
+        self._neig=num_eigenvalues
+
+    def solve(self, just_energies=False):
+
+        # Initialize other functions
+        if 'en' not in self.rmesh:
+            self.rmesh['en']   =np.empty((len(self.q),sum(self._neig.values())))
+        if 'vecs' not in self.rmesh and not just_energies:
+            self.rmesh['vecs'] =PointFunction(self._keepmesh,
+                  empty=(len(self.q),self._neig,self._n),dtype='complex')
+
+        regs=['u','IF','l'] \
+                if self._slowlayer==self._mesh._layers[0] else\
+             ['l','IF','u']
+        lmin=0
+        if just_energies:
+            for pol in ['T','L']:
+                for reg in regs:
+                    en=getattr(self,'_reg_'+reg)(self.q,pol=pol,num=self._neig[pol+'O'+reg])
+                    lmax=lmin+en.shape[1]
+                    self.rmesh['en'][:,lmin:lmax]=en
+                    lmin=lmax
+
+    def _common(self, w):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        eps_perp_u = epsinf_u * (wLO_perp_u ** 2 - w ** 2) / (wTO_perp_u ** 2 - w ** 2)
+        eps_para_u = epsinf_u * (wLO_para_u ** 2 - w ** 2) / (wTO_para_u ** 2 - w ** 2)
+        eps_perp_l = epsinf_l * (wLO_perp_l ** 2 - w ** 2) / (wTO_perp_l ** 2 - w ** 2)
+        eps_para_l = epsinf_l * (wLO_para_l ** 2 - w ** 2) / (wTO_para_l ** 2 - w ** 2)
+
+        xi_u = np.sqrt(np.abs(eps_perp_u * eps_para_u))
+        xi_l = np.sqrt(np.abs(eps_perp_l * eps_para_l))
+
+        alpha_u = np.sqrt(np.abs(eps_perp_u / eps_para_u))
+        alpha_l = np.sqrt(np.abs(eps_perp_l / eps_para_l))
+
+        return eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l
+
+    def _reg_u(self, q, pol='T', num=30):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        wmin, wmax = (wTO_para_u, wTO_perp_u) if pol == 'T' else (wLO_para_u, wLO_perp_u)
+        wmin += 1e-7 * meV / hbar;
+        wmax -= 1e-7 * meV / hbar;
+        wtest = np.linspace(wmin, wmax, 500000)
+
+        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(wtest)
+        s = np.sign(eps_para_u[0] * eps_para_l[0])
+        # print("-s ",-s)
+        qtest = 1 / (alpha_u * t1) * (np.arctan(-s * xi_u / xi_l) + np.expand_dims(np.arange(num + 1), 1) * pi)
+        if np.max(qtest[0, :]) < np.max(q):
+            qtest = qtest[1:, :]
+        else:
+            qtest = qtest[:-1, :]
+
+        w = []
+        for qtesti in qtest:
+            w += [interp1d(qtesti, wtest)(q)]
+        w = np.array(w).T
+
+        return w
+
+    def _reg_u_w(self, w, pol='T', num=30, iw=None):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(w)
+        s = np.sign(eps_para_u * eps_para_l)
+        q = 1 / (alpha_u * t1) * (np.arctan(-s * xi_u / xi_l) + np.expand_dims(np.arange(num + 1), 1) * pi)
+        if q[0] < 1e-3:
+            q = q[1:][iw][0]
+        else:
+            q = q[:-1][iw][0]
+
+        k_u = q * alpha_u;
+        k_l = q * alpha_l
+        BoA = np.sin(k_u * t1) * np.exp(k_l * t1)
+        Du = eps_para_u * k_u * np.cos(k_u * t1)
+        Dl = -BoA * eps_para_l * k_l * np.exp(-k_l * t1)
+        print("preempt ", Du, Dl, Du / Dl)
+
+        return q
+
+    def w_IF(self, pol='T'):
+
+        wTO_perp_G = self._slowlayer.mesh.wTO_perp[0]
+        wTO_para_A = self._fastlayer.mesh.wTO_para[0]
+        wLO_perp_G = self._slowlayer.mesh.wLO_perp[0]
+        wLO_para_A = self._fastlayer.mesh.wLO_para[0]
+
+        wmin, wmax = (wTO_perp_G, wTO_para_A) if pol == 'T' else (wLO_perp_G, wLO_para_A)
+        wmin += 1e-5 * meV / hbar;
+        wmax -= 1e-5 * meV / hbar;
+
+        def xi_l_minus_xi_u(w):
+            xi_u, xi_l = self._common(w)[4:6]
+            return xi_l - xi_u
+
+        wres = brentq(xi_l_minus_xi_u, wmin, wmax)
+
+        return wres, np.sign(xi_l_minus_xi_u((wres + wmax) / 2))
+
+    def _reg_IF(self, q, pol='T',num=1):
+        assert num in [0,1], "There's only one "+pol\
+                             +"OIF mode, don't ask for more!"
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        wTO_perp_G = self._slowlayer.mesh.wTO_perp[0]
+        wTO_para_A = self._fastlayer.mesh.wTO_para[0]
+        wLO_perp_G = self._slowlayer.mesh.wLO_perp[0]
+        wLO_para_A = self._fastlayer.mesh.wLO_para[0]
+
+        wres, side = self.w_IF(pol)
+        if side < 0:
+            wmin, wmax = (wTO_perp_G, wres) if pol == 'T' else (wLO_perp_G, wres)
+        else:
+            wmin, wmax = (wres, wTO_para_A) if pol == 'T' else (wres, wLO_para_A)
+        wmin += 1e-5 * meV / hbar;
+        wmax -= 1e-5 * meV / hbar;
+        wtest = np.linspace(wmin, wmax, 10000)
+
+        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(wtest)
+        qtest = 1 / (2 * alpha_u * t1) * np.log((xi_l + xi_u) / (xi_l - xi_u))
+        w = np.expand_dims(interp1d(qtest, wtest, fill_value=(np.NaN, wres), bounds_error=False)(q), -1)
+        return w
+
+    def _reg_IF_w(self, w, pol='T'):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(w)
+        q = 1 / (2 * alpha_u * t1) * np.log((xi_l + xi_u) / (xi_l - xi_u))
+
+        # preemptive D test
+        k_u = q * alpha_u;
+        k_l = q * alpha_l
+        BoA = np.sinh(k_u * t1) * np.exp(k_l * t1)
+        Du = eps_para_u * k_u * np.cosh(k_u * t1)
+        Dl = -BoA * eps_para_l * k_l * np.exp(-k_l * t1)
+        print("preempt ", Du, Dl, Du / Dl)
+
+        return [q]
+
+    def _reg_l(self, q, pol='T', num=100):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        wmin, wmax = (wTO_para_l, wTO_perp_l) if pol == 'T' else (wLO_para_l, wLO_perp_l)
+        wmin += 1e-6 * meV / hbar;
+        wmax -= 1e-6 * meV / hbar;
+        wtest = np.linspace(wmin, wmax, 100000)
+
+        w = []
+        alpha_l = self._common(wtest)[7]
+        for n in range(num):
+            k2 = pi * (n + 1) / t2
+            qtest = k2 / alpha_l
+            w += [interp1d(qtest, wtest)(q)]
+        return np.array(w).T
+
+    def _get_mode(self, q, w, reg):
+        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
+        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
+        epsinf_u, epsinf_l, t1, t2 = self._params
+
+        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(w)
+        k_u = q * alpha_u;
+        k_l = q * alpha_l
+
+        ew2_u = epsinf_u * ((wLO_para_u ** 2 - wTO_para_u ** 2) + (wLO_perp_u ** 2 - wTO_perp_u ** 2)) / 2
+        ew2_l = epsinf_l * ((wLO_para_l ** 2 - wTO_para_l ** 2) + (wLO_perp_l ** 2 - wTO_perp_l ** 2)) / 2
+
+        beta2_para_u = ew2_u * (k_u / (wTO_para_u ** 2 - w ** 2)) ** 2
+        beta2_perp_u = ew2_u * (q / (wTO_perp_u ** 2 - w ** 2)) ** 2
+        beta2_para_l = ew2_l * (k_l / (wTO_para_l ** 2 - w ** 2)) ** 2
+        beta2_perp_l = ew2_l * (q / (wTO_perp_l ** 2 - w ** 2)) ** 2
+
+        if reg == 'u':
+            gamma2_para_u = 1 / 2 * (t1 + 1 / (2 * k_u) * np.sin(2 * k_u * t1))
+            gamma2_perp_u = 1 / 2 * (t1 - 1 / (2 * k_u) * np.sin(2 * k_u * t1))
+            gamma2_para_l = 1 / (2 * k_l) * np.exp(-2 * k_l * t1)
+            gamma2_perp_l = 1 / (2 * k_l) * np.exp(-2 * k_l * t1)
+            BoA = np.sin(k_u * t1) * np.exp(k_l * t1)
+        if reg == 'IF':
+            gamma2_para_u = 1 / 2 * (1 / (2 * k_u) * np.sinh(2 * k_u * t1) + t1)
+            gamma2_perp_u = 1 / 2 * (1 / (2 * k_u) * np.sinh(2 * k_u * t1) - t1)
+            gamma2_para_l = 1 / (2 * k_l) * np.exp(-2 * k_l * t1)
+            gamma2_perp_l = 1 / (2 * k_l) * np.exp(-2 * k_l * t1)
+            BoA = np.sinh(k_u * t1) * np.exp(k_l * t1)
+        if reg == 'l':
+            gamma2_para_u = 1 / 2 * (1 / (2 * k_u) * np.sinh(2 * k_u * t1) + t1)
+            gamma2_perp_u = 1 / 2 * (1 / (2 * k_u) * np.sinh(2 * k_u * t1) - t1)
+            gamma2_para_l = t2 / 2
+            gamma2_perp_l = t2 / 2
+            s = np.sign(eps_para_u * eps_para_l)
+            theta = np.arctan(s * xi_l / xi_u * np.tanh(k_u * t1)) - k_l * t1
+            BoA = np.sinh(k_u * t1) / np.sin(k_l * t1 + theta)
+
+        A = np.sqrt(
+            hbar / (2 * w) / (beta2_para_u * gamma2_para_u + beta2_perp_u * gamma2_perp_u +
+                              (BoA) ** 2 * (beta2_para_l * gamma2_para_l + beta2_perp_l * gamma2_perp_l)))
+        B = BoA * A
+        phi = PointFunction(self._keepmesh, empty=())
+        phi = phi.restrict(self._keepmesh._matblocks[0].mesh)
+        if reg == 'u':
+            phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
+            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
+        if reg == 'IF':
+            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
+            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
+        if reg == 'l':
+            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
+            phi.restrict(self._lmesh)[:] = B * np.sin(k_l * self._lmesh.zp + theta)
+        return phi
+
 
