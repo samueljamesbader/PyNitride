@@ -1,4 +1,4 @@
-from examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh as define_electrical_mesh
+from examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_electrical_mesh
 from pynitride.phonons import DielectricContinuum_SWH
 from pynitride.reciprocal_mesh import RMesh1D
 from pynitride.paramdb import to_unit, nm, meV, hbar
@@ -23,9 +23,9 @@ def POP_panel(dc):
     plt.figure(figsize=(4,8))
     ax_meV=plt.gca()
 
-    wLO_perp_G,wLO_para_G,wLO_perp_A,wLO_para_A,\
-    wTO_perp_G,wTO_para_G,wTO_perp_A,wTO_para_A,\
-    epsinf_G,epsinf_A,tw,tb=dc._params
+    wLO_perp_A,wLO_para_A,wLO_perp_G,wLO_para_G,\
+    wTO_perp_A,wTO_para_A,wTO_perp_G,wTO_para_G,\
+    epsinf_A,epsinf_G,tw,tb=dc._params
 
 
     # Plot the solution
@@ -44,10 +44,10 @@ def POP_panel(dc):
     wlabelsize=10
     plt.axhline(to_unit( hbar*wTO_para_A,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wTO_para_A,'meV'),
-             r' $\omega_{TO}\parallel\,$ AlN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+             r' $\omega_{TO}\parallel\,$ AlGaN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
     plt.axhline(to_unit( hbar*wTO_perp_A,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wTO_perp_A,'meV'),
-             r' $\omega_{TO}\perp    $ AlN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+             r' $\omega_{TO}\perp    $ AlGaN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
 
     plt.axhline(to_unit( hbar*wTO_para_G,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wTO_para_G,'meV')
@@ -58,10 +58,10 @@ def POP_panel(dc):
 
     plt.axhline(to_unit( hbar*wLO_para_A,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wLO_para_A,'meV')
-             ,r' $\omega_{LO}\parallel\,$ AlN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+             ,r' $\omega_{LO}\parallel\,$ AlGaN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
     plt.axhline(to_unit( hbar*wLO_perp_A,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wLO_perp_A,'meV')
-             ,r' $\omega_{LO}\perp$ AlN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+             ,r' $\omega_{LO}\perp$ AlGaN',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
 
     plt.axhline(to_unit( hbar*wLO_para_G,'meV'),color='k',linestyle='--',linewidth=2)
     plt.text(1,to_unit(hbar*wLO_para_G,'meV')
@@ -93,11 +93,18 @@ if __name__=='__main__':
     POP_panel(sim.extras['dc'])
 
     plt.figure()
-    iq=20
-    for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,7])):
+    iq=15
+    for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,1])):
         plt.subplot(3,1,i+1)
-        phiLO=dc.get_mode_by_name('LO'+reg,num)[iq]
-        phiTO=dc.get_mode_by_name('TO'+reg,num)[iq]
+        enLO,phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)
+        enTO,phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)
+
+        from tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
+        check_POP_interface(phiLO,dc.q[iq],enLO/hbar)
+        check_POP_normalization(phiLO,dc.q[iq],enLO/hbar)
+        check_POP_interface(phiTO,dc.q[iq],enTO/hbar)
+        check_POP_normalization(phiTO,dc.q[iq],enTO/hbar)
+
         plt.plot(dc._keepmesh.zp,phiLO,'b',label='LO')
         plt.plot(dc._keepmesh.zp,phiTO,'r',label='TO')
         plt.title({'u':'Confined to upper layer', 'IF': 'Interface Mode', 'l': 'Confined to lower layer'}[reg])
@@ -110,4 +117,9 @@ if __name__=='__main__':
         if reg=='u':
             plt.legend(loc='upper right')
     plt.tight_layout()
+
+    #dc2=DielectricContinuum_SWH(dc._keepmesh,dc.rmesh.absk_subrmesh(range(50)),
+    #    num_specific_eigenvalues=dc._neig,num_eigenvalues=11,first_level=11)
+    #POP_panel(dc2)
+
     plt.show()

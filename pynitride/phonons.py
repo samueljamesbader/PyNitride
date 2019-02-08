@@ -9,6 +9,8 @@ from scipy.sparse.linalg import eigsh
 from functools import partial
 from scipy.interpolate import interp1d
 from scipy.optimize import brentq
+from itertools import product
+from collections import OrderedDict
 import numpy as np
 pi=np.pi
 
@@ -315,10 +317,8 @@ class PiezoPotential():
 
 
 class DielectricContinuum_SWH(PhononModel):
-    def __init__(self, mesh, rmesh, num_eigenvalues, keepmesh=None,first_level=0):
+    def __init__(self, mesh, rmesh, num_specific_eigenvalues,num_eigenvalues=None, keepmesh=None,first_level=0):
         super().__init__(mesh, rmesh, vecform=None, keepmesh=keepmesh)
-
-        assert first_level == 0
 
         # Requirements for a Heterojunction
         assert len(mesh._matblocks) == 1, \
@@ -371,28 +371,85 @@ class DielectricContinuum_SWH(PhononModel):
                 self._fastlayer.mesh.wLO_perp[0]])>0),\
             "Characteristic POP frequencies are not ordered as expected."
 
-        self._neig=num_eigenvalues
+        # Whether the u or l modes appear first depends on which material is u/l
+        regs_order=['u','IF','l'] \
+            if self._slowlayer==self._mesh._layers[0] else \
+            ['l','IF','u']
+        self.mode_order=[p+r for p,r in product(['TO','LO'],regs_order)]
+
+        self._neig=OrderedDict()
+        self._firstlevels=OrderedDict()
+        neig_sofar=0
+        neig_included_sofar=0
+        num_eigenvalues_max=num_eigenvalues if num_eigenvalues is not None else np.infty
+        for m in self.mode_order:
+
+            # Number of eigenvalues we're allowed to pull from this type of mode
+            navail=num_specific_eigenvalues[m]
+
+            # not including any levels that would fall below first_level
+            spec_first_level=self._firstlevels[m]=max(first_level-neig_sofar,0)
+            navail_highenough=max(navail-spec_first_level,0)
+
+            # not including any levels that would fall above first_level+num_eigenvalues
+            navail_highenough_lowenough=min(num_eigenvalues_max-neig_included_sofar,navail_highenough)
+
+            # include these values
+            self._neig[m]=navail_highenough_lowenough
+            neig_sofar+=num_specific_eigenvalues[m]
+            neig_included_sofar+=navail_highenough_lowenough
+        assert num_eigenvalues is None or num_eigenvalues==neig_included_sofar
+
+        if 'en' in self.rmesh:
+            self.rmesh['ref_en']=self.rmesh['en']
+            self.rmesh['en']=self.rmesh['ref_en'][:,first_level:first_level+num_eigenvalues]
+        if 'phi' in self.rmesh:
+            self.rmesh['phi']=self.rmesh['phi'][:,first_level:first_level+num_eigenvalues]
+
+
+    @property
+    def phi(self): return self.rmesh['phi']
+
+    def get_mode_by_name(self,name,num,iq=None):
+        assert num<self._neig[name], "Requested "+str(num)+"-th "+name+" mode, which was not solved for"
+
+        lmin=([0]+list(np.cumsum([self._neig[n] for n in self._neig.keys()])))[list(self._neig.keys()).index(name)]
+        l=lmin+num
+        if iq is None: iq=slice(None)
+        return self.en[iq,l],self.phi[iq,l,:]
 
     def solve(self, just_energies=False):
 
-        # Initialize other functions
+        # Can only do a mode solve after an energy solve
+        if not just_energies:
+            if 'en' not in self.rmesh:
+                self.solve(just_energies=True)
+
+
+        # Make energy array if needed
         if 'en' not in self.rmesh:
             self.rmesh['en']   =np.empty((len(self.q),sum(self._neig.values())))
-        if 'vecs' not in self.rmesh and not just_energies:
-            self.rmesh['vecs'] =PointFunction(self._keepmesh,
-                  empty=(len(self.q),self._neig,self._n),dtype='complex')
 
-        regs=['u','IF','l'] \
-                if self._slowlayer==self._mesh._layers[0] else\
-             ['l','IF','u']
+        # Make phi array if needed
+        if not just_energies and 'phi' not in self.rmesh:
+            self.rmesh['phi'] =PointFunction(self._keepmesh,
+                 empty=(len(self.q),sum(self._neig.values())),dtype='double')
+
         lmin=0
-        if just_energies:
-            for pol in ['T','L']:
-                for reg in regs:
-                    en=getattr(self,'_reg_'+reg)(self.q,pol=pol,num=self._neig[pol+'O'+reg])
-                    lmax=lmin+en.shape[1]
-                    self.rmesh['en'][:,lmin:lmax]=en
-                    lmin=lmax
+
+        for (modetype, neig), fl in zip(self._neig.items(),self._firstlevels.values()):
+            lmax=lmin+neig
+            if just_energies:
+                w=getattr(self,'_reg_'+modetype[2:])(self.q,pol=modetype[0],num=neig+fl)
+                self.rmesh['en'][:,lmin:lmax]=hbar*w[:,fl:]
+            else:
+                en=self.rmesh['en'][:,lmin:lmax]
+                for iq in range(len(self.q)):
+                    for iw in range(neig):
+                       self.rmesh['phi'][iq,lmin+iw,:]=\
+                           self._get_mode(self.q[iq],en[iq,iw]/hbar,reg=modetype[2:])\
+                               .restrict(self._keepmesh)
+            lmin=lmax
 
     def _common(self, w):
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
@@ -583,8 +640,8 @@ class DielectricContinuum_SWH(PhononModel):
             hbar / (2 * w) / (beta2_para_u * gamma2_para_u + beta2_perp_u * gamma2_perp_u +
                               (BoA) ** 2 * (beta2_para_l * gamma2_para_l + beta2_perp_l * gamma2_perp_l)))
         B = BoA * A
-        phi = PointFunction(self._keepmesh, empty=())
-        phi = phi.restrict(self._keepmesh._matblocks[0].mesh)
+        phi_ = PointFunction(self._keepmesh, empty=())
+        phi = phi_.restrict(self._keepmesh._matblocks[0].mesh)
         if reg == 'u':
             phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
             phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
@@ -594,6 +651,6 @@ class DielectricContinuum_SWH(PhononModel):
         if reg == 'l':
             phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
             phi.restrict(self._lmesh)[:] = B * np.sin(k_l * self._lmesh.zp + theta)
-        return phi
+        return phi_
 
 
