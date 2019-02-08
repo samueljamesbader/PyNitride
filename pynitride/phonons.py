@@ -317,7 +317,26 @@ class PiezoPotential():
 
 
 class DielectricContinuum_SWH(PhononModel):
-    def __init__(self, mesh, rmesh, num_specific_eigenvalues,num_eigenvalues=None, keepmesh=None,first_level=0):
+    def __init__(self, mesh, rmesh, num_specific_eigenvalues, num_eigenvalues=None,first_level=0, keepmesh=None):
+        """ Solves for the extraordinary polar optical phonons in a Single Wurtzite Heterojunction.
+
+        See the Dielectric Continuum :ref:`BWH` model for the relevant mathematics.
+
+        Args:
+            mesh: The mesh to solve on, should contain one :class:`~pynitride.material.Wurtzite` material block, which
+                has two layers of uniform molefraction.
+            rmesh: The :class:`~pynitride.reciprocal_mesh.RMesh_1D` which specifies the :math:`q` points
+            num_specific_eigenvalues: should be a dictionary indicating how many eigenvalues are desired for each mode
+                type, ie mapping the names `'TOl','TOIF','TOu','LOl','LOIF','LOu'` to integers.  `'l','IF','u'` refer to
+                the lower-region confined, interface, and upper-region confined modes respectively
+            num_eigenvalues: if specified, only this many contiguous eigenvalues will be used out of the modes specified
+                by `num_specific_eigenvalues`
+            first_level: can be used in combination with `num_eigenvalues` to select which set of `num_eigenvalues`
+                eigenvalues will be used.
+            keepmesh: the mesh on which to actually store the solved `phi`
+
+        """
+
         super().__init__(mesh, rmesh, vecform=None, keepmesh=keepmesh)
 
         # Requirements for a Heterojunction
@@ -377,6 +396,8 @@ class DielectricContinuum_SWH(PhononModel):
             ['l','IF','u']
         self.mode_order=[p+r for p,r in product(['TO','LO'],regs_order)]
 
+        # Incorporate the information of num_specific_eigenvalues, num_eigenvalues, and first_level to
+        # figure out exactly how many and which of each mode type to include
         self._neig=OrderedDict()
         self._firstlevels=OrderedDict()
         neig_sofar=0
@@ -400,6 +421,7 @@ class DielectricContinuum_SWH(PhononModel):
             neig_included_sofar+=navail_highenough_lowenough
         assert num_eigenvalues is None or num_eigenvalues==neig_included_sofar
 
+        # Select the correct set of energies and modes from rmesh if a fuller set is already present from a supersolve
         if 'en' in self.rmesh:
             self.rmesh['ref_en']=self.rmesh['en']
             self.rmesh['en']=self.rmesh['ref_en'][:,first_level:first_level+num_eigenvalues]
@@ -408,9 +430,20 @@ class DielectricContinuum_SWH(PhononModel):
 
 
     @property
-    def phi(self): return self.rmesh['phi']
+    def phi(self):
+        """ The 3-D array of potentials, shape `(len(self.q),sum(self._neig.values()),self._mesh.Np)`."""
+        return self.rmesh['phi']
 
     def get_mode_by_name(self,name,num,iq=None):
+        """ Convenience function to pull particular modes from the `phi` array by name.
+
+        Args:
+            name (str): name of the mode type, eg `'TOu'` for the TO mode confined to the upper region
+            num: which of the modes solved for to return (indexed from 0 being the first solved-for mode of this type)
+            iq: if specified, will return only for the given :math:`q` index (may be integer or slice)
+        Returns:
+            a tuple of the energy(ies), potential(s)
+        """
         assert num<self._neig[name], "Requested "+str(num)+"-th "+name+" mode, which was not solved for"
 
         lmin=([0]+list(np.cumsum([self._neig[n] for n in self._neig.keys()])))[list(self._neig.keys()).index(name)]
@@ -419,6 +452,7 @@ class DielectricContinuum_SWH(PhononModel):
         return self.en[iq,l],self.phi[iq,l,:]
 
     def solve(self, just_energies=False):
+        """ Actually solve for the modes."""
 
         # Can only do a mode solve after an energy solve
         if not just_energies:
@@ -452,6 +486,7 @@ class DielectricContinuum_SWH(PhononModel):
             lmin=lmax
 
     def _common(self, w):
+        """ Evaluates some variables needed frequently throughout the math for many functions."""
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
         wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
         epsinf_u, epsinf_l, t1, t2 = self._params
@@ -470,6 +505,15 @@ class DielectricContinuum_SWH(PhononModel):
         return eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l
 
     def _reg_u(self, q, pol='T', num=30):
+        """ Solves for energies of upper-region confined modes.
+
+        Args:
+            q: the q to solve at
+            pol: the polarization 'T' or 'L'
+            num: the number of energies to return
+        Returns:
+            an array of energies, shape `(len(q),num)`
+        """
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
         wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
         epsinf_u, epsinf_l, t1, t2 = self._params
@@ -481,7 +525,6 @@ class DielectricContinuum_SWH(PhononModel):
 
         eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(wtest)
         s = np.sign(eps_para_u[0] * eps_para_l[0])
-        # print("-s ",-s)
         qtest = 1 / (alpha_u * t1) * (np.arctan(-s * xi_u / xi_l) + np.expand_dims(np.arange(num + 1), 1) * pi)
         if np.max(qtest[0, :]) < np.max(q):
             qtest = qtest[1:, :]
@@ -495,29 +538,15 @@ class DielectricContinuum_SWH(PhononModel):
 
         return w
 
-    def _reg_u_w(self, w, pol='T', num=30, iw=None):
-        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
-        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
-        epsinf_u, epsinf_l, t1, t2 = self._params
-
-        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(w)
-        s = np.sign(eps_para_u * eps_para_l)
-        q = 1 / (alpha_u * t1) * (np.arctan(-s * xi_u / xi_l) + np.expand_dims(np.arange(num + 1), 1) * pi)
-        if q[0] < 1e-3:
-            q = q[1:][iw][0]
-        else:
-            q = q[:-1][iw][0]
-
-        k_u = q * alpha_u;
-        k_l = q * alpha_l
-        BoA = np.sin(k_u * t1) * np.exp(k_l * t1)
-        Du = eps_para_u * k_u * np.cos(k_u * t1)
-        Dl = -BoA * eps_para_l * k_l * np.exp(-k_l * t1)
-        print("preempt ", Du, Dl, Du / Dl)
-
-        return q
-
     def w_IF(self, pol='T'):
+        """ Finds the inteface resonant frequency.
+
+        Args:
+            pol: the polarization 'T' or 'L'
+        Returns:
+            a tuple of the interface resonant frequency and +1/-1 indicating the mode is
+            found above/below this frequency respectively
+        """
 
         wTO_perp_G = self._slowlayer.mesh.wTO_perp[0]
         wTO_para_A = self._fastlayer.mesh.wTO_para[0]
@@ -537,6 +566,15 @@ class DielectricContinuum_SWH(PhononModel):
         return wres, np.sign(xi_l_minus_xi_u((wres + wmax) / 2))
 
     def _reg_IF(self, q, pol='T',num=1):
+        """ Solves for energies of interface modes.
+
+        Args:
+            q: the q to solve at
+            pol: the polarization 'T' or 'L'
+            num: the number of energies to return, at most 1
+        Returns:
+            an array of energies, shape `(len(q),num)`
+        """
         assert num in [0,1], "There's only one "+pol\
                              +"OIF mode, don't ask for more!"
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
@@ -562,25 +600,16 @@ class DielectricContinuum_SWH(PhononModel):
         w = np.expand_dims(interp1d(qtest, wtest, fill_value=(np.NaN, wres), bounds_error=False)(q), -1)
         return w
 
-    def _reg_IF_w(self, w, pol='T'):
-        wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
-        wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
-        epsinf_u, epsinf_l, t1, t2 = self._params
-
-        eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(w)
-        q = 1 / (2 * alpha_u * t1) * np.log((xi_l + xi_u) / (xi_l - xi_u))
-
-        # preemptive D test
-        k_u = q * alpha_u;
-        k_l = q * alpha_l
-        BoA = np.sinh(k_u * t1) * np.exp(k_l * t1)
-        Du = eps_para_u * k_u * np.cosh(k_u * t1)
-        Dl = -BoA * eps_para_l * k_l * np.exp(-k_l * t1)
-        print("preempt ", Du, Dl, Du / Dl)
-
-        return [q]
-
     def _reg_l(self, q, pol='T', num=100):
+        """ Solves for energies of lower-region confined modes.
+
+        Args:
+            q: the q to solve at
+            pol: the polarization 'T' or 'L'
+            num: the number of energies to return
+        Returns:
+            an array of energies, shape `(len(q),num)`
+        """
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
         wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
         epsinf_u, epsinf_l, t1, t2 = self._params
@@ -599,6 +628,16 @@ class DielectricContinuum_SWH(PhononModel):
         return np.array(w).T
 
     def _get_mode(self, q, w, reg):
+        r""" Produces the analytic mode given the already solved position in :math:`(q,\omega)`.
+
+        Args:
+            q: the in-plane wavevector
+            w: the angular frequency
+            reg: 'u','IF','l' indicating where the mode is (upper/interface/lower)
+
+        Returns:
+            the potential as a PointFunction on the `keepmesh`
+        """
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
         wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
         epsinf_u, epsinf_l, t1, t2 = self._params

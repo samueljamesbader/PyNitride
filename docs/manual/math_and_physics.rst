@@ -7,6 +7,7 @@ Physics in PyNitride
     :maxdepth: 2
 
                 Carrier Models <carriers>
+                Dielectric Continuum Model <DC>
                 Finite Element Method <FEM>
 
 

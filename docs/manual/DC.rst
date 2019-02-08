@@ -99,8 +99,9 @@ Thus the normalization condition is written in terms of the potential as
       \frac{\hbar}{2\omega} = \int dz \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
     \end{align}
 
+.. _BWH:
 
-Binary III-Nitride Heterojunction
+Binary Wurtzite Heterojunction
 ---------------------------------------
 
 Following the quantum well example of Komirenko1999_, :class:`~pynitride.phonons.DielectricContinuum_SWH` solves a
