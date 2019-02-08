@@ -2,7 +2,7 @@ import numpy as np
 from pynitride.paramdb import hbar
 
 def check_POP_normalization(phi, q, w):
-    """ Checks the normalization of a POP potential.
+    r""" Checks the normalization of a POP potential.
 
     The normalization is given as
 
@@ -38,7 +38,7 @@ def check_POP_normalization(phi, q, w):
 
 
 def check_POP_interface(phi, q, w):
-    """ Checks the continuity of the potential and displacement field for a POP phonon.
+    r""" Checks the continuity of the potential and displacement field for a POP phonon.
 
     Checks the continuity of :math:`\phi` and  :math:`\varepsilon_\parallel \frac{\partial phi}{\partial z}`
     at the interface.  These should be satisfied elsewhere automatically since the solutions are analytic.

@@ -171,7 +171,7 @@ def glob_store_attributes(*attrs):
         def setter(attr,self,val):
             return glob_update(self._globkeys[attr],val)
         for attr in attrs:
-            setattr(cls,attr,property(partial(getter,attr),partial(setter,attr)))
+            setattr(cls,attr,property(partial(getter,attr),partial(setter,attr),doc=''))
 
         # Grab any __del__ defined for the new class
         odel=cls.__dict__.get('__del__',lambda self: None)

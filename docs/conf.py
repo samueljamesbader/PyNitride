@@ -308,4 +308,4 @@ DataDocumenter.add_directive_header = add_directive_header
 InstanceAttributeDocumenter.add_directive_header = add_directive_header
 
 
-
+autoclass_content='both'
