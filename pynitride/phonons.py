@@ -15,27 +15,16 @@ import numpy as np
 pi=np.pi
 
 class PhononModel():
-    """ Superclass for all phonon models.
 
-    A phonon model implements a :func:`solve()` function
-    """
-
-    def __init__(self, mesh, rmesh, vecform, keepmesh=None):
-        """ Prep the mesh for any phonon model.
-        """
+    def __init__(self, mesh, rmesh, keepmesh=None):
+        """ Superclass for all phonon models."""
         self._mesh=mesh
         self._keepmesh=mesh if keepmesh is None else keepmesh
         self.rmesh=rmesh
         self._interp_ready=False
 
-        self.vecform = vecform
-        """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
-    
-        if vecform:
-            self._n=len(vecform)
-
     def solve(self):
-        raise NotImplementedError
+        pass
 
     @property
     def q(self): return self.rmesh.absk1
@@ -78,10 +67,63 @@ class PhononModel():
         self._get_interpolation()
         return 1/hbar*self._splines[eig](absk,dabsk=1,bounds_check=bounds_check)
 
+    def I2(self,carrier,psii,psij,iq,thetaq,l):
+        """ The matrix element squared between two wavefunctions
 
-    def u(self,i,thetaq,l):
+        Args:
+            psii, psij: the two wavefunctions (as 2-D PointFunctions)
+            iq (int): index into the `q` array
+            thetaq: in-plane angle of the phonon propagation (from X toward Y)
+            l: which eigenvalue to use of those solved for
 
-        vec0=self.vecs[i,l]
+        Returns:
+            the squared matrix element
+        """
+        pass
+
+class AcousticPhonon(PhononModel):
+    
+    def __init__(self,mesh,rmesh,keepmesh=None,
+            vecform='XYZ',deformation=True,piezo=False):
+        r""" Superclass for acoustic phonons.
+
+        Args:
+            mesh,rmesh,keepmesh: see :class:`~PhononModel`
+            vecform (str): Format for the vecs, 'XZ', 'XYZ', or 'Y'
+            deformation (bool): whether to include deformation potential
+                effects in matrix elements
+            piezo (bool): whether to solve for the piezoelectric potential
+                induced by the phonon and use it in matrix elements
+
+        """
+        super().__init__(mesh,rmesh,keepmesh=keepmesh)
+
+        self.vecform = vecform
+        """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
+
+        self.deformation = deformation
+        """ Whether to include deformation potential effects
+            in matrix elements"""
+
+        self.piezo = piezo
+        """ Whether to solve for the piezoelectric potential
+            induced by the phonon and use it in matrix elements"""
+    
+
+    def u(self,iq,thetaq,l):
+        """ The displacement profile
+
+        Args:
+            iq (int): index into the `q` array
+            thetaq: in-plane angle of the phonon propagation (from X toward Y)
+            l: which eigenvalue to use of those solved for
+
+        Returns:
+            a tuple of three PointFunctions (ux,uy,uz)
+
+        """
+
+        vec0=self.vecs[iq,l]
         if self.vecform=='XZ':
             ux= vec0[0,:]*np.cos(thetaq)
             uy= vec0[0,:]*np.sin(thetaq)
@@ -97,9 +139,23 @@ class PhononModel():
 
         return ux,uy,uz
 
-    def strain(self,i,thetaq,l):
-        ux,uy,uz=self.u(i,thetaq,l)
-        q=self.q[i]
+    def strain(self,iq,thetaq,l):
+        r""" The strain profile
+
+        The strains returned are physicist strains, not engineering strains,
+        eg :math:`e_{xy}=\frac{1}{2}\left(\partial_xu_y+\partial_yu_x\right)`
+
+        Args:
+            iq (int): index into the `q` array
+            thetaq: in-plane angle of the phonon propagation (from X toward Y)
+            l: which eigenvalue to use of those solved for
+
+        Returns:
+            a tuple of six MidFunctions (exx,exy,exz,eyy,eyz,ezz)
+
+        """
+        ux,uy,uz=self.u(iq,thetaq,l)
+        q=self.q[iq]
 
         qx,qy=polar2cart(q,thetaq)
         exx=1j*qx*ux.tmf()
@@ -111,17 +167,48 @@ class PhononModel():
 
         return exx,exy,exz,eyy,eyz,ezz
 
+    def I2(self,carrier,psii,psij,iq,thetaq,l):
+        """ The matrix element squared between two wavefunctions
+
+        See :func:`PhononModel.I2` for arguments and returns.
+
+        Note: if both piezo and deformation potentials are included, they
+        are combined coherently (ie *inside* the squaring).
+        """
+
+        I=0
+
+        if self.deformation:
+            exx,exy,exz,eyy,eyz,ezz=self.strain(iq,thetaq,l)
+            D=self._keepmesh._matblocks[0].matsys.kp_strain_mat(self._keepmesh,
+                exx=exx,exy=exy,exz=exz,eyy=eyy,eyz=eyz,ezz=ezz,carrier=carrier).tpf()
+            psij_D_psii=complex(
+                (np.sum(psij.conj().T*np.sum(np.rollaxis(D,-1,-2)*psii.T,axis=-1).T,axis=-1))\
+                    .integrate(definite=True))
+            I+=psij_D_psii
+        if self.piezo:
+            phi=self.rmesh['phi'][iq,l]
+            psij_phi_psii=complex((np.sum(psij.conj()*phi*psii,axis=0)).integrate(definite=True))
+            I+=psij_phi_psii
+
+        return np.abs(I)**2
+
 
 # TODO: Figure out how to move the glob_store _splines safely to superclass
 @glob_store_attributes('_mesh','_keepmesh','_ec_load_matrix','rmesh','_splines')
-class ElasticContinuum(PhononModel):
+class ElasticContinuum(AcousticPhonon):
     def __init__(self,mesh,rmesh,num_eigenvalues,keepmesh=None,
-            vecform='XYZ',first_level=0,parallel=True,piezo_potential=False):
+            vecform='XYZ',first_level=0,parallel=True,
+            deformation=True,piezo=False):
         """ Note: this parallel is not the same as the one in solve()"""
-        super().__init__(mesh,rmesh,vecform,keepmesh=keepmesh)
+        super().__init__(mesh,rmesh,vecform=vecform,keepmesh=keepmesh,
+                deformation=deformation,piezo=piezo)
         m=mesh
         self._neig=num_eigenvalues
         self._first_level=first_level
+
+        if vecform:
+            self._n=len(vecform)
 
         assert len(mesh._matblocks)==1,\
             "ElasticContinuum only works on a mesh with a single material system for now"
@@ -152,8 +239,7 @@ class ElasticContinuum(PhononModel):
                                 for [C0,Cl,Cr,C2] in Cmats])
                 log("Done assembly.",level='info')
 
-        self._piezo=PiezoPotential(self,parallel=parallel)\
-            if piezo_potential else None
+        self.piezo=PiezoPotential(self,parallel=parallel) if piezo else None
 
     @property
     def _ec_stiffness_matrices(self): return self.rmesh['ec_stiffness_matrices']
@@ -169,7 +255,7 @@ class ElasticContinuum(PhononModel):
         if 'vecs' not in self.rmesh and not just_energies:
             self.rmesh['vecs'] =PointFunction(self._keepmesh,
                     empty=(len(self.q),self._neig,self._n),dtype='complex')
-        if not just_energies and self._piezo and 'phi' not in self.rmesh:
+        if not just_energies and self.piezo and 'phi' not in self.rmesh:
             self.rmesh['phi'] =PointFunction(self._keepmesh,
                     empty=(len(self.q),self._neig),dtype='complex')
 
@@ -177,7 +263,7 @@ class ElasticContinuum(PhononModel):
         def save_solve(iq,res):
             if just_energies:
                 self.en[iq,:]= res
-            elif not self._piezo:
+            elif not self.piezo:
                 self.en[iq,:],self.vecs[iq,:,:,:]= res
             else:
                 self.en[iq,:],self.vecs[iq,:,:,:],self.phi[iq,:,:]= res
@@ -237,7 +323,7 @@ class ElasticContinuum(PhononModel):
         else:
             vec_out=(vec_out[off_slice].T*np.sqrt(hbar**2/(2*en_out))).T
 
-            if not self._piezo:
+            if not self.piezo:
                 return en_out,\
                     PointFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh)
@@ -245,7 +331,7 @@ class ElasticContinuum(PhononModel):
                 return en_out,\
                     PointFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh),\
-                    self._piezo.solve_one_q(q,iq,vec_out)\
+                    self.piezo.solve_one_q(q,iq,vec_out)\
                         .restrict(self._keepmesh)
 
 @glob_store_attributes('_mesh','_keepmesh','rmesh')
@@ -315,8 +401,23 @@ class PiezoPotential():
             fem_solve(A_pz,None,b_pz,phi[e],1,True,True)
         return phi
 
+class OpticalPhonon(PhononModel):
+    def __init__(self, mesh, rmesh, keepmesh=None):
+        super().__init__(mesh,rmesh,keepmesh=keepmesh)
 
-class DielectricContinuum_SWH(PhononModel):
+    def I2(self,carrier,psii,psij,iq,thetaq,l):
+        """ The matrix element squared between two wavefunctions
+
+        See :func:`PhononModel.I2` for arguments and returns.
+
+        Note:`thetaq` does not actually matter for optical phonons.
+        """
+        phi=self.rmesh['phi'][iq,l]
+        psij_phi_psii=complex((np.sum(psij.conj()*phi*psii,axis=0)).integrate(definite=True))
+        I=psij_phi_psii
+        return np.abs(I)**2
+
+class DielectricContinuum_SWH(OpticalPhonon):
     def __init__(self, mesh, rmesh, num_specific_eigenvalues, num_eigenvalues=None,first_level=0, keepmesh=None):
         """ Solves for the extraordinary polar optical phonons in a Single Wurtzite Heterojunction.
 
@@ -427,7 +528,6 @@ class DielectricContinuum_SWH(PhononModel):
             self.rmesh['en']=self.rmesh['ref_en'][:,first_level:first_level+num_eigenvalues]
         if 'phi' in self.rmesh:
             self.rmesh['phi']=self.rmesh['phi'][:,first_level:first_level+num_eigenvalues]
-
 
     @property
     def phi(self):
