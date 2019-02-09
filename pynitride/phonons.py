@@ -56,7 +56,7 @@ class PhononModel():
     def _get_interpolation(self):
         if not self._interp_ready:
             self._splines=[self.rmesh.interpolator(self.rmesh['en'][:,eig])
-                        for eig in range(self._neig)]
+                        for eig in range(self.num_eigenvalues)]
             self._interp_ready=True
 
     def interp_energy(self,absk,eig,bounds_check=True):
@@ -204,7 +204,7 @@ class ElasticContinuum(AcousticPhonon):
         super().__init__(mesh,rmesh,vecform=vecform,keepmesh=keepmesh,
                 deformation=deformation,piezo=piezo)
         m=mesh
-        self._neig=num_eigenvalues
+        self.num_eigenvalues=self._neig=num_eigenvalues
         self._first_level=first_level
 
         if vecform:
@@ -417,6 +417,7 @@ class OpticalPhonon(PhononModel):
         I=psij_phi_psii
         return np.abs(I)**2
 
+@glob_store_attributes('_mesh','_keepmesh','rmesh','_umesh','_lmesh','_slowlayer','_fastlayer','_splines')
 class DielectricContinuum_SWH(OpticalPhonon):
     def __init__(self, mesh, rmesh, num_specific_eigenvalues, num_eigenvalues=None,first_level=0, keepmesh=None):
         """ Solves for the extraordinary polar optical phonons in a Single Wurtzite Heterojunction.
@@ -438,11 +439,11 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         """
 
-        super().__init__(mesh, rmesh, vecform=None, keepmesh=keepmesh)
+        super().__init__(mesh, rmesh, keepmesh=keepmesh)
 
         # Requirements for a Heterojunction
         assert len(mesh._matblocks) == 1, \
-            "ElasticContinuum only works on a mesh with a single material system for now"
+            "DielectricContinuum_SWH only works on a mesh with a single material block"
         assert isinstance(mesh._matblocks[0].matsys, AlGaN)
         assert len(mesh._layers) == 2
 
@@ -521,6 +522,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
             neig_sofar+=num_specific_eigenvalues[m]
             neig_included_sofar+=navail_highenough_lowenough
         assert num_eigenvalues is None or num_eigenvalues==neig_included_sofar
+        self.num_eigenvalues=neig_included_sofar
 
         # Select the correct set of energies and modes from rmesh if a fuller set is already present from a supersolve
         if 'en' in self.rmesh:
@@ -538,9 +540,12 @@ class DielectricContinuum_SWH(OpticalPhonon):
         """ Convenience function to pull particular modes from the `phi` array by name.
 
         Args:
-            name (str): name of the mode type, eg `'TOu'` for the TO mode confined to the upper region
-            num: which of the modes solved for to return (indexed from 0 being the first solved-for mode of this type)
-            iq: if specified, will return only for the given :math:`q` index (may be integer or slice)
+            name (str): name of the mode type,
+                eg `'TOu'` for the TO mode confined to the upper region
+            num: which of the modes solved for to return
+                (indexed from 0 being the first solved-for mode of this type)
+            iq: if specified, will return only for the given :math:`q` index
+                (may be integer or slice)
         Returns:
             a tuple of the energy(ies), potential(s)
         """
@@ -551,8 +556,10 @@ class DielectricContinuum_SWH(OpticalPhonon):
         if iq is None: iq=slice(None)
         return self.en[iq,l],self.phi[iq,l,:]
 
-    def solve(self, just_energies=False):
+    def solve(self, just_energies=False, print_count=False):
         """ Actually solve for the modes."""
+
+        assert not print_count
 
         # Can only do a mode solve after an energy solve
         if not just_energies:
@@ -572,6 +579,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
         lmin=0
 
         for (modetype, neig), fl in zip(self._neig.items(),self._firstlevels.values()):
+            if neig==0: continue
             lmax=lmin+neig
             if just_energies:
                 w=getattr(self,'_reg_'+modetype[2:])(self.q,pol=modetype[0],num=neig+fl)
@@ -779,8 +787,10 @@ class DielectricContinuum_SWH(OpticalPhonon):
             hbar / (2 * w) / (beta2_para_u * gamma2_para_u + beta2_perp_u * gamma2_perp_u +
                               (BoA) ** 2 * (beta2_para_l * gamma2_para_l + beta2_perp_l * gamma2_perp_l)))
         B = BoA * A
-        phi_ = PointFunction(self._keepmesh, empty=())
-        phi = phi_.restrict(self._keepmesh._matblocks[0].mesh)
+
+        #TODO: make this actually limit to keepmesh
+        phi_ = PointFunction(self._mesh, empty=())
+        phi = phi_.restrict(self._mesh._matblocks[0].mesh)
         if reg == 'u':
             phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
             phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
@@ -790,6 +800,6 @@ class DielectricContinuum_SWH(OpticalPhonon):
         if reg == 'l':
             phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
             phi.restrict(self._lmesh)[:] = B * np.sin(k_l * self._lmesh.zp + theta)
-        return phi_
+        return phi_.restrict(self._keepmesh)
 
 

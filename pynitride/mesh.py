@@ -929,7 +929,9 @@ class Function(np.ndarray):
         """
         if submesh==self.mesh:
             return self
-        assert submesh in self.mesh._submeshes, "Haven't implemented recursive submeshing"
+        assert submesh in self.mesh._submeshes,\
+            "Haven't implemented recursive submeshing, going from {} to {}"\
+                .format(self.mesh,submesh)
         if self.pos=='point':
             return type(self)(submesh, pos='point',value=self.T[submesh._slicep].T,dtype=self.dtype)
         if self.pos=='mid':
