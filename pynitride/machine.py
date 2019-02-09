@@ -43,8 +43,11 @@ class Pool():
             cls._thrdpool=_ThreadPool(processes=globalprocesses)
         else: cls._thrdpool=FakePool()
 
+        cls._no_parallel=False
+
     @classmethod
     def process_pool(cls,new=False):
+        if cls._no_parallel: return FakePool()
         if not hasattr(cls,'_kwargs'):
             cls.configure()
         elif new:
@@ -53,17 +56,28 @@ class Pool():
 
     @classmethod
     def thread_pool(cls):
+        if cls._no_parallel: return FakePool()
         if not hasattr(cls,'_kwargs'):
             cls.configure()
         return cls._thrdpool
 
     @classmethod
     def _refresh_pool(cls):
+        if cls._no_parallel: return
         globalprocesses=itemgetter('globalprocesses')(cls._kwargs)
         if globalprocesses>1:
             cls._procpool.close()
             cls._procpool.join()
             cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
+
+    @classmethod
+    @contextmanager
+    def no_parallel(cls):
+        prev=cls._no_parallel
+        cls._no_parallel=True
+        yield
+        cls._no_parallel=prev
+
     
     @classmethod
     @contextmanager
