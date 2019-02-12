@@ -16,56 +16,171 @@ pi=np.pi
 
 class PhononModel():
 
-    def __init__(self, mesh, rmesh, keepmesh=None):
-        """ Superclass for all phonon models."""
-        self._mesh=mesh
-        self._keepmesh=mesh if keepmesh is None else keepmesh
+    def __init__(self, solvmesh, rmesh, num_eigs, keepmesh=None, first_level=0):
+        """ Superclass for all phonon models.
+        
+        Args:
+            solvmesh: the direct mesh on which to perform the phonon solve
+            rmesh: the 1-D reciprocal mesh on which to perform the phonon solve
+            num_eigs: the number of eigenvalues to solve for
+            keepmesh: the direct mesh on which phonon modes will actually be
+                desired, eg for a scattering problem, just the region where the
+                carriers are.  This should be a submesh of `solvmesh`.
+            first_level: the index of the first eigenvalue which should be
+                solved for.
+        """
+
+        self._solvmesh=solvmesh
+        self._keepmesh=solvmesh if keepmesh is None else keepmesh
+
         self.rmesh=rmesh
+        """ The reciprocal mesh on which to solve"""
+
+        self.num_eigs=num_eigs
+        """ The number of eigenvalues to solve for"""
+
+        self.first_level=first_level
+        """ The index of the first eigenvalue to solve for"""
+
         self._interp_ready=False
 
     def solve(self):
         pass
 
     @property
-    def q(self): return self.rmesh.absk1
+    def q(self):
+        """ The q values of the `self.rmesh`."""
+        return self.rmesh.absk1
+
     @property
-    def en(self): return self.rmesh['en']
+    def _en(self):
+        return self.rmesh['en']
     @property
-    def vecs(self): return self.rmesh['vecs']
+    def _vecs(self):
+        return self.rmesh['vecs']
+    @property
+    def _phi(self):
+        return self.rmesh['phi']
+
+    def _check_l_index(self,l):
+        # Checks that l is between first_level and first_level+num_eigs
+        assert l>=self.first_level and l<=self.first_level+self.num_eigs,\
+            "l index {} out of bounds {}-{}".format(
+                    l,self.first_level,self.first_level+self.num_eigs)
+
+    def en(self,iq,l):
+        """ Returns the `l`-th energy at q-index `iq`.
+
+        Note: `l` is an absolute index,
+        ie `l` should not be lower than first_level
+
+        """
+        return self._en[iq,l-self.first_level]
+
+    def vecs(self,iq,l):
+        """ Returns the `l`-th mode vector at q-index `iq`.
+
+        Note: `l` is an absolute index,
+        ie `l` should not be lower than first_level
+
+        """
+        self._check_l_index(l)
+        return self._vecs[iq,l-self.first_level]
+
+    def phi(self,iq,l):
+        """ Returns the `l`-th potential at q-index `iq`.
+
+        Note: `l` is an absolute index,
+        ie `l` should not be lower than first_level
+
+        """
+        self._check_l_index(l)
+        return self._phi[iq,l-self.first_level]
 
     def save(self,filename,just_energies=False):
-        keys= ['en'] if just_energies else ['en','vecs']
-        self.rmesh.save(filename,keys=keys)
-    def read(self,name,just_energies=False):
+        """ Saves the phonon solve to a file.
+
+        Args:
+            filename (str): the file to save to
+            just_energies (bool): if True, save only the energies,
+                otherwise save energies, mode vecs and/or potentials.
+        """
         if just_energies:
-            self.rmesh.read(name,keys='en')
+            keys= ['en']
         else:
-            self.rmesh.read(name)
-        if 'en' in self.rmesh:
-            print("En shape ",self.en.shape)
-            assert self.en.shape==(self.rmesh.N,self._neig),\
-                "Loaded PhononModel does not match current"
-        if 'vecs' in self.rmesh:
-            print("Vecs shape ",self.vecs.shape)
-            print("Not checking vecs")
-            assert self.vecs.shape==(self.rmesh.N,self._neig,self._n,self._keepmesh.Np),\
-                "Loaded PhononModel does not match current"
-            self.rmesh['vecs']=PointFunction(self._keepmesh,self.vecs,dtype=self.vecs.dtype)
+            keys=[k for k in ['en','vecs','phi'] if k in self.rmesh]
+        self.rmesh.save(filename,keys=keys)
+
+    def read(self,name,just_energies=False):
+        """ Reads the phonon solve from a file.
+
+        If reading mode vectors and/or potentials, checks the dimensions.
+        If dimensions are incorrect, the energies/vectors/potentials in rmesh
+        will be cleared away and then an error will be raised.
+
+        Args:
+            filename (str): the file to save to
+            just_energies (bool): if True, read only the energies,
+                otherwise read energies, mode vecs and/or potentials.
+        """
+        try:
+            if just_energies:
+                self.rmesh.read(name,keys='en')
+            else:
+                self.rmesh.read(name)
+
+            if 'en' in self.rmesh:
+                assert self._en.shape==(self.rmesh.N,self.num_eigs),\
+                    "Loaded PhononModel does not match current"
+            if 'vecs' in self.rmesh:
+                assert self._vecs.shape==\
+                    (self.rmesh.N,self.num_eigs,self._n,self._keepmesh.Np),\
+                    "Loaded PhononModel does not match current"
+            if 'phi' in self.rmesh:
+                assert self._phi.shape==\
+                    (self.rmesh.N,self.num_eigs,self._keepmesh.Np),\
+                    "Loaded PhononModel does not match current"
+        except:
+            if 'en'   in self.rmesh: del self.rmesh['en']
+            if 'vecs' in self.rmesh: del self.rmesh['vecs']
+            if 'phi'  in self.rmesh: del self.rmesh['phi']
+            raise
 
 
     def _get_interpolation(self):
+        # Preps self._splines which will hold interpolated energy functions
         if not self._interp_ready:
             self._splines=[self.rmesh.interpolator(self.rmesh['en'][:,eig])
-                        for eig in range(self.num_eigenvalues)]
+                        for eig in range(self.num_eigs)]
             self._interp_ready=True
 
-    def interp_energy(self,absk,eig,bounds_check=True):
-        self._get_interpolation()
-        return self._splines[eig](absk,bounds_check=bounds_check)
+    def interp_energy(self,absk,l,bounds_check=True):
+        """ Returns the interpolated energy at a point in reciprocal space
 
-    def interp_radial_group_velocity(self,absk,eig,bounds_check=True):
+        Args:
+            absk (float): the point in reciprocal space
+            l (int): the mode index (absolute)
+            bounds_check (bool): whether to complain if absk is out of
+                interpolation bounds
+        """
+        self._check_l_index(l)
         self._get_interpolation()
-        return 1/hbar*self._splines[eig](absk,dabsk=1,bounds_check=bounds_check)
+        return self._splines[l-self.first_level]\
+                (absk,bounds_check=bounds_check)
+
+    def interp_radial_group_velocity(self,absk,l,bounds_check=True):
+        """ Returns the interpolated radial group velocity at a point in reciprocal space
+
+        Args:
+            absk (float): the point in reciprocal space
+            l (int): the mode index (absolute)
+            bounds_check (bool): whether to complain if absk is out of
+                interpolation bounds
+        """
+        self._check_l_index(l)
+        self._get_interpolation()
+        return 1/hbar*self._splines[l-self.first_level]\
+                (absk,dabsk=1,bounds_check=bounds_check)
 
     def I2(self,carrier,psii,psij,iq,thetaq,l):
         """ The matrix element squared between two wavefunctions
@@ -83,12 +198,12 @@ class PhononModel():
 
 class AcousticPhonon(PhononModel):
     
-    def __init__(self,mesh,rmesh,keepmesh=None,
+    def __init__(self,solvmesh,rmesh,num_eigs,keepmesh=None,first_level=0,
             vecform='XYZ',deformation=True,piezo=False):
         r""" Superclass for acoustic phonons.
 
         Args:
-            mesh,rmesh,keepmesh: see :class:`~PhononModel`
+            solvmesh,rmesh,keepmesh, first_level: see :class:`~PhononModel`
             vecform (str): Format for the vecs, 'XZ', 'XYZ', or 'Y'
             deformation (bool): whether to include deformation potential
                 effects in matrix elements
@@ -96,7 +211,8 @@ class AcousticPhonon(PhononModel):
                 induced by the phonon and use it in matrix elements
 
         """
-        super().__init__(mesh,rmesh,keepmesh=keepmesh)
+        super().__init__(solvmesh,rmesh,num_eigs=num_eigs,
+                keepmesh=keepmesh,first_level=first_level)
 
         self.vecform = vecform
         """ Format for the vecs, 'XZ', 'XYZ', or 'Y'"""
@@ -123,7 +239,7 @@ class AcousticPhonon(PhononModel):
 
         """
 
-        vec0=self.vecs[iq,l]
+        vec0=self.vecs(iq,l)
         if self.vecform=='XZ':
             ux= vec0[0,:]*np.cos(thetaq)
             uy= vec0[0,:]*np.sin(thetaq)
@@ -187,7 +303,7 @@ class AcousticPhonon(PhononModel):
                     .integrate(definite=True))
             I+=psij_D_psii
         if self.piezo:
-            phi=self.rmesh['phi'][iq,l]
+            phi=self.phi(iq,l)
             psij_phi_psii=complex((np.sum(psij.conj()*phi*psii,axis=0)).integrate(definite=True))
             I+=psij_phi_psii
 
@@ -195,22 +311,21 @@ class AcousticPhonon(PhononModel):
 
 
 # TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_mesh','_keepmesh','_ec_load_matrix','rmesh','_splines')
+@glob_store_attributes('_solvmesh','_keepmesh','_ec_load_matrix','rmesh','_splines')
 class ElasticContinuum(AcousticPhonon):
-    def __init__(self,mesh,rmesh,num_eigenvalues,keepmesh=None,
+    def __init__(self,solvmesh,rmesh,num_eigs,keepmesh=None,
             vecform='XYZ',first_level=0,parallel=True,
             deformation=True,piezo=False):
         """ Note: this parallel is not the same as the one in solve()"""
-        super().__init__(mesh,rmesh,vecform=vecform,keepmesh=keepmesh,
-                deformation=deformation,piezo=piezo)
-        m=mesh
-        self.num_eigenvalues=self._neig=num_eigenvalues
-        self._first_level=first_level
+        super().__init__(solvmesh,rmesh,num_eigs=num_eigs,
+                keepmesh=keepmesh,first_level=first_level,
+                vecform=vecform,deformation=deformation,piezo=piezo)
+        m=solvmesh
+        self.num_eigs=num_eigs
 
-        if vecform:
-            self._n=len(vecform)
+        self._n=len(vecform)
 
-        assert len(mesh._matblocks)==1,\
+        assert len(m._matblocks)==1,\
             "ElasticContinuum only works on a mesh with a single material system for now"
 
         self._ec_load_matrix=assemble_load_matrix(w=m.density,dzp=m.dzp,n=self._n,
@@ -243,30 +358,27 @@ class ElasticContinuum(AcousticPhonon):
 
     @property
     def _ec_stiffness_matrices(self): return self.rmesh['ec_stiffness_matrices']
-    @property
-    def phi(self): return self.rmesh['phi']
-
 
     def solve(self, just_energies=False, parallel=True, print_count=True):
 
         # Initialize other functions
         if 'en' not in self.rmesh:
-            self.rmesh['en']   =np.empty((len(self.q),self._neig))
+            self.rmesh['en']   =np.empty((len(self.q),self.num_eigs))
         if 'vecs' not in self.rmesh and not just_energies:
             self.rmesh['vecs'] =PointFunction(self._keepmesh,
-                    empty=(len(self.q),self._neig,self._n),dtype='complex')
+                    empty=(len(self.q),self.num_eigs,self._n),dtype='complex')
         if not just_energies and self.piezo and 'phi' not in self.rmesh:
             self.rmesh['phi'] =PointFunction(self._keepmesh,
-                    empty=(len(self.q),self._neig),dtype='complex')
+                    empty=(len(self.q),self.num_eigs),dtype='complex')
 
         counter=Counter(print_message="Count: {{:5d}}/{}".format(self.rmesh.N))
         def save_solve(iq,res):
             if just_energies:
-                self.en[iq,:]= res
+                self._en[iq,:]= res
             elif not self.piezo:
-                self.en[iq,:],self.vecs[iq,:,:,:]= res
+                self._en[iq,:],self._vecs[iq,:,:,:]= res
             else:
-                self.en[iq,:],self.vecs[iq,:,:,:],self.phi[iq,:,:]= res
+                self._en[iq,:],self._vecs[iq,:,:,:],self.phi[iq,:,:]= res
             if print_count:
                 counter.increment()
         pool=Pool.process_pool(new=True) if parallel else FakePool()
@@ -276,7 +388,7 @@ class ElasticContinuum(AcousticPhonon):
         for asyn in asyncs: asyn.wait()
 
     def solve_one_q(self,q,iq=None,just_energies=False):
-        m=self._mesh
+        m=self._solvmesh
         if iq is None:
             if self.vecform=='XZ':
                 C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_CmatsXZ(m,np.array([q]))[0]
@@ -288,12 +400,12 @@ class ElasticContinuum(AcousticPhonon):
         else:
             A=self._ec_stiffness_matrices[iq]
 
-        if self._first_level==0:
+        if self.first_level==0:
             mid_eig=0
-            neig_ext=self._neig
+            neig_ext=self.num_eigs
         else:
             ref_en=self.rmesh['ref_en']
-            mid_eig=(np.mean(ref_en[iq,self._first_level-1:self._first_level+1])/hbar)**2
+            mid_eig=(np.mean(ref_en[iq,self.first_level-1:self.first_level+1])/hbar)**2
             neig_ext=self._neig+6
 
         en_out=np.empty([neig_ext])
@@ -305,8 +417,8 @@ class ElasticContinuum(AcousticPhonon):
              k=neig_ext,sigma=mid_eig-1e-10,which='LA',tol=0,ncv=max(neig_ext*2,neig_ext+2))
         en_out[:]=hbar*np.sqrt(en_out)
 
-        if self._first_level!=0:
-            ref_slice=slice(self._first_level,self._first_level+self._neig)
+        if self.first_level!=0:
+            ref_slice=slice(self.first_level,self.first_level+self.num_eigs)
             for ioffset in [0,1,-1,2,-2,3,-3,None]:
                 assert ioffset is not None, "Couldn't match reference energies"\
                     +" iq "+str(iq) + "\nen\n"+str(en_out)+"\nref\n"+\
@@ -334,15 +446,15 @@ class ElasticContinuum(AcousticPhonon):
                     self.piezo.solve_one_q(q,iq,vec_out)\
                         .restrict(self._keepmesh)
 
-@glob_store_attributes('_mesh','_keepmesh','rmesh')
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh')
 class PiezoPotential():
     def __init__(self,pm,parallel=True):
         self.pm=pm
         self.rmesh=rmesh=pm.rmesh
         self.vecform=pm.vecform
-        self._neig=pm._neig
+        self.num_eigs=pm.num_eigs
 
-        m=self._mesh=pm._mesh
+        m=self._solvemesh=pm._solvmesh
         self._keepmesh=pm._keepmesh
 
         if rmesh and ('pz_stiffness_matrices' not in rmesh):
@@ -374,11 +486,11 @@ class PiezoPotential():
     def q(self): return self.rmesh.absk1
 
     def solve_one_q(self,q,iq,vec):
-        m=self._mesh
+        m=self._solvmesh
     
         # Purely transverse modes have no piezo potential
         if self.vecform=='Y':
-            return PointFunction(m,np.zeros((self._neig,m.Np),dtype='complex'))
+            return PointFunction(m,np.zeros((self.num_eigs,m.Np),dtype='complex'))
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
@@ -392,9 +504,9 @@ class PiezoPotential():
             Mx_pz=self.rmesh['pz_load_matrices_x'][iq]
             Mz_pz=self.rmesh['pz_load_matrices_z'][iq]
 
-        phi=PointFunction(m,empty=(self._neig,),dtype='complex')
+        phi=PointFunction(m,empty=(self.num_eigs,),dtype='complex')
         vslice=slice(1,-1) # dirichelet top, neumann bottom
-        for e in range(self._neig):
+        for e in range(self.num_eigs):
             b_pz=(Mx_pz @ vec[e,0])[vslice] 
             if 'Z' in self.vecform:
                 b_pz+=(Mz_pz @ vec[e,-1])[vslice]
@@ -402,8 +514,8 @@ class PiezoPotential():
         return phi
 
 class OpticalPhonon(PhononModel):
-    def __init__(self, mesh, rmesh, keepmesh=None):
-        super().__init__(mesh,rmesh,keepmesh=keepmesh)
+    def __init__(self, mesh, rmesh, num_eigs, keepmesh=None, first_level=0):
+        super().__init__(mesh,rmesh,num_eigs=num_eigs, keepmesh=keepmesh, first_level=first_level)
 
     def I2(self,carrier,psii,psij,iq,thetaq,l):
         """ The matrix element squared between two wavefunctions
@@ -412,15 +524,15 @@ class OpticalPhonon(PhononModel):
 
         Note:`thetaq` does not actually matter for optical phonons.
         """
-        phi=self.rmesh['phi'][iq,l]
+        phi=self.phi(iq,l)
         psij_phi_psii=complex((np.sum(psij.conj()*phi*psii,axis=0)).integrate(definite=True))
         I=psij_phi_psii
         return np.abs(I)**2
 
-@glob_store_attributes('_mesh','_keepmesh','rmesh','_umesh','_lmesh','_slowlayer','_fastlayer','_splines')
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_umesh','_lmesh','_slowlayer','_fastlayer','_splines')
 class DielectricContinuum_SWH(OpticalPhonon):
-    def __init__(self, mesh, rmesh, num_specific_eigenvalues, num_eigenvalues=None,first_level=0, keepmesh=None):
-        """ Solves for the extraordinary polar optical phonons in a Single Wurtzite Heterojunction.
+    def __init__(self, mesh, rmesh, num_spec_eigs, num_eigs=None,first_level=0, keepmesh=None):
+        """ Solves for the extraordinary PO phonons in a Single Wurtzite Heterojunction.
 
         See the Dielectric Continuum :ref:`BWH` model for the relevant mathematics.
 
@@ -428,18 +540,18 @@ class DielectricContinuum_SWH(OpticalPhonon):
             mesh: The mesh to solve on, should contain one :class:`~pynitride.material.Wurtzite` material block, which
                 has two layers of uniform molefraction.
             rmesh: The :class:`~pynitride.reciprocal_mesh.RMesh_1D` which specifies the :math:`q` points
-            num_specific_eigenvalues: should be a dictionary indicating how many eigenvalues are desired for each mode
+            num_spec_eigs: should be a dictionary indicating how many eigenvalues are desired for each mode
                 type, ie mapping the names `'TOl','TOIF','TOu','LOl','LOIF','LOu'` to integers.  `'l','IF','u'` refer to
                 the lower-region confined, interface, and upper-region confined modes respectively
-            num_eigenvalues: if specified, only this many contiguous eigenvalues will be used out of the modes specified
-                by `num_specific_eigenvalues`
-            first_level: can be used in combination with `num_eigenvalues` to select which set of `num_eigenvalues`
+            num_eigs: if specified, only this many contiguous eigenvalues will be used out of the modes specified
+                by `num_spec_eigs`
+            first_level: can be used in combination with `num_eigs` to select which set of `num_eigs`
                 eigenvalues will be used.
             keepmesh: the mesh on which to actually store the solved `phi`
 
         """
 
-        super().__init__(mesh, rmesh, keepmesh=keepmesh)
+        super().__init__(mesh, rmesh, keepmesh=keepmesh, num_eigs=num_eigs, first_level=first_level)
 
         # Requirements for a Heterojunction
         assert len(mesh._matblocks) == 1, \
@@ -494,47 +606,42 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         # Whether the u or l modes appear first depends on which material is u/l
         regs_order=['u','IF','l'] \
-            if self._slowlayer==self._mesh._layers[0] else \
+            if self._slowlayer==self._solvmesh._layers[0] else \
             ['l','IF','u']
         self.mode_order=[p+r for p,r in product(['TO','LO'],regs_order)]
 
-        # Incorporate the information of num_specific_eigenvalues, num_eigenvalues, and first_level to
+        # Incorporate the information of num_spec_eigs, num_eigs, and first_level to
         # figure out exactly how many and which of each mode type to include
         self._neig=OrderedDict()
         self._firstlevels=OrderedDict()
         neig_sofar=0
         neig_included_sofar=0
-        num_eigenvalues_max=num_eigenvalues if num_eigenvalues is not None else np.infty
+        num_eigs_max=num_eigs if num_eigs is not None else np.infty
         for m in self.mode_order:
 
             # Number of eigenvalues we're allowed to pull from this type of mode
-            navail=num_specific_eigenvalues[m]
+            navail=num_spec_eigs[m]
 
             # not including any levels that would fall below first_level
             spec_first_level=self._firstlevels[m]=max(first_level-neig_sofar,0)
             navail_highenough=max(navail-spec_first_level,0)
 
-            # not including any levels that would fall above first_level+num_eigenvalues
-            navail_highenough_lowenough=min(num_eigenvalues_max-neig_included_sofar,navail_highenough)
+            # not including any levels that would fall above first_level+num_eigs
+            navail_highenough_lowenough=min(num_eigs_max-neig_included_sofar,navail_highenough)
 
             # include these values
             self._neig[m]=navail_highenough_lowenough
-            neig_sofar+=num_specific_eigenvalues[m]
+            neig_sofar+=num_spec_eigs[m]
             neig_included_sofar+=navail_highenough_lowenough
-        assert num_eigenvalues is None or num_eigenvalues==neig_included_sofar
-        self.num_eigenvalues=neig_included_sofar
+        assert num_eigs is None or num_eigs==neig_included_sofar
+        self.num_eigs=neig_included_sofar
 
         # Select the correct set of energies and modes from rmesh if a fuller set is already present from a supersolve
         if 'en' in self.rmesh:
             self.rmesh['ref_en']=self.rmesh['en']
-            self.rmesh['en']=self.rmesh['ref_en'][:,first_level:first_level+num_eigenvalues]
+            self.rmesh['en']=self.rmesh['ref_en'][:,first_level:first_level+num_eigs]
         if 'phi' in self.rmesh:
-            self.rmesh['phi']=self.rmesh['phi'][:,first_level:first_level+num_eigenvalues]
-
-    @property
-    def phi(self):
-        """ The 3-D array of potentials, shape `(len(self.q),sum(self._neig.values()),self._mesh.Np)`."""
-        return self.rmesh['phi']
+            self.rmesh['phi']=self.rmesh['phi'][:,first_level:first_level+num_eigs]
 
     def get_mode_by_name(self,name,num,iq=None):
         """ Convenience function to pull particular modes from the `phi` array by name.
@@ -549,12 +656,15 @@ class DielectricContinuum_SWH(OpticalPhonon):
         Returns:
             a tuple of the energy(ies), potential(s)
         """
-        assert num<self._neig[name], "Requested "+str(num)+"-th "+name+" mode, which was not solved for"
+        assert num>=self._firstlevels[name] and num<self._neig[name]+self._firstlevels[name],\
+            "Requested "+str(num)+"-th "+name+" mode, which was not solved for"
 
-        lmin=([0]+list(np.cumsum([self._neig[n] for n in self._neig.keys()])))[list(self._neig.keys()).index(name)]
+        lmin=([0]+list(np.cumsum([self._neig[n]\
+                for n in self._neig.keys()])))\
+            [list(self._neig.keys()).index(name)]
         l=lmin+num
         if iq is None: iq=slice(None)
-        return self.en[iq,l],self.phi[iq,l,:]
+        return self._en[iq,l],self.phi[iq,l,:]
 
     def solve(self, just_energies=False, print_count=False):
         """ Actually solve for the modes."""
@@ -569,12 +679,12 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         # Make energy array if needed
         if 'en' not in self.rmesh:
-            self.rmesh['en']   =np.empty((len(self.q),sum(self._neig.values())))
+            self.rmesh['en']   =np.empty((len(self.q),self.num_eigs))
 
         # Make phi array if needed
         if not just_energies and 'phi' not in self.rmesh:
             self.rmesh['phi'] =PointFunction(self._keepmesh,
-                 empty=(len(self.q),sum(self._neig.values())),dtype='double')
+                 empty=(len(self.q),self.num_eigs),dtype='double')
 
         lmin=0
 
@@ -789,8 +899,8 @@ class DielectricContinuum_SWH(OpticalPhonon):
         B = BoA * A
 
         #TODO: make this actually limit to keepmesh
-        phi_ = PointFunction(self._mesh, empty=())
-        phi = phi_.restrict(self._mesh._matblocks[0].mesh)
+        phi_ = PointFunction(self._solvmesh, empty=())
+        phi = phi_.restrict(self._solvmesh._matblocks[0].mesh)
         if reg == 'u':
             phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
             phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
