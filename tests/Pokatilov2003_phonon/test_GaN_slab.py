@@ -1,4 +1,6 @@
-""" Solves the GaN slab of `Pokatilov 2003 <https://doi.org/10.1016/S0749-6036(03)00069-7>`_ for comparison."""
+""" Solves the GaN slab of
+`Pokatilov 2003 <https://doi.org/10.1016/S0749-6036(03)00069-7>`_
+for comparison."""
 
 
 import matplotlib.pyplot as plt
@@ -21,10 +23,10 @@ if __name__=="__main__":
         refinements=[],uniform=True)
     print("Mesh points: ",m.Np)
 
-    ec=ElasticContinuum(m,num_eigenvalues=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm))
+    ec=ElasticContinuum(m,num_eigs=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm))
     ec.solve()
 
-    (y_en,y_vec),(as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en,ec.vecs, [is_Y, is_AS])
+    (y_en,y_vec),(as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec._en,ec._vecs, [is_Y, is_AS])
 
     plt.figure()
     plt.plot(ec.q,to_unit(y_en[:,:6],"meV"),'k')

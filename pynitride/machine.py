@@ -20,13 +20,15 @@ class Pool():
 
     @classmethod
     def configure(cls, globalthreads=cpu_count()-1,globalprocesses=cpu_count()-1,cextthread=1):
-        kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
+        kwargs={'globalthreads':globalthreads,
+                'globalprocesses':globalprocesses,'cextthread':cextthread}
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
             log("Pool was already configured with the given arguments.")
             return
 
-        cls._kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
+        cls._kwargs={'globalthreads':globalthreads,
+                'globalprocesses':globalprocesses,'cextthread':cextthread}
         cls._globs={}
         cls._globlck=RLock()
         if cextthread is not None:
@@ -43,7 +45,7 @@ class Pool():
             cls._thrdpool=_ThreadPool(processes=globalprocesses)
         else: cls._thrdpool=FakePool()
 
-        cls._no_parallel=False
+    _no_parallel=False
 
     @classmethod
     def process_pool(cls,new=False):

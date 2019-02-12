@@ -399,7 +399,10 @@ class RMesh2D_Polar(RMesh):
             vmin=0
             vmax=np.nanmax(F)
             cmap=white2red
-        plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap)
+            dontplot=(vmax==0)
+        if not dontplot:
+            plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap)
+            plt.colorbar()
 
         if points:
             plt.plot(self.kx,self.ky,'o',markersize=3)
@@ -408,7 +411,6 @@ class RMesh2D_Polar(RMesh):
         plt.xlim(-self.kmax,self.kmax)
         plt.ylim(-self.kmax,self.kmax)
 
-        plt.colorbar()
 
         for t in self.thetabinl:
             plt.plot([0,10*np.cos(t)],[0,10*np.sin(t)],color='gray',linewidth=.5)
