@@ -43,7 +43,7 @@ class Pool():
             cls._thrdpool=_ThreadPool(processes=globalprocesses)
         else: cls._thrdpool=FakePool()
 
-        cls._no_parallel=False
+    _no_parallel=False
 
     @classmethod
     def process_pool(cls,new=False):
@@ -195,7 +195,8 @@ def glob_store_attributes(*attrs):
         def __del__(self):
             odel(self)
             for k,key in self._globkeys.items():
-                glob_remove(key)
+                try: glob_remove(key)
+                except: log("Trouble removing key",level='debug')
 
         # Add this new __del__ to the class
         cls.__del__=__del__
