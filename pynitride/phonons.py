@@ -1,7 +1,7 @@
 from pynitride.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
 from pynitride.visual import log, sublog
 from pynitride.mesh import PointFunction
-from pynitride.paramdb import hbar, meV
+from pynitride.paramdb import pmdb,hbar, meV
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
 from pynitride.maths import polar2cart
 from pynitride.material import AlGaN
@@ -10,6 +10,7 @@ from functools import partial
 from scipy.interpolate import interp1d
 from scipy.optimize import brentq
 from itertools import product
+from operator import itemgetter
 from collections import OrderedDict
 import numpy as np
 pi=np.pi
@@ -64,20 +65,22 @@ class PhononModel():
 
     def _check_l_index(self,l):
         # Checks that l is between first_level and first_level+num_eigs
-        assert l>=self.first_level and l<=self.first_level+self.num_eigs,\
+        assert l is None or\
+                (l>=self.first_level and l<=self.first_level+self.num_eigs),\
             "l index {} out of bounds {}-{}".format(
                     l,self.first_level,self.first_level+self.num_eigs)
 
-    def en(self,iq,l):
+    def en(self,iq=slice(None),l=None):
         """ Returns the `l`-th energy at q-index `iq`.
 
         Note: `l` is an absolute index,
         ie `l` should not be lower than first_level
 
         """
-        return self._en[iq,l-self.first_level]
+        self._check_l_index(l)
+        return self._en[iq,slice(None) if l is None else l-self.first_level]
 
-    def vecs(self,iq,l):
+    def vecs(self,iq=slice(None),l=None):
         """ Returns the `l`-th mode vector at q-index `iq`.
 
         Note: `l` is an absolute index,
@@ -85,9 +88,9 @@ class PhononModel():
 
         """
         self._check_l_index(l)
-        return self._vecs[iq,l-self.first_level]
+        return self._vecs[iq,slice(None) if l is None else l-self.first_level]
 
-    def phi(self,iq,l):
+    def phi(self,iq=slice(None),l=slice(None)):
         """ Returns the `l`-th potential at q-index `iq`.
 
         Note: `l` is an absolute index,
@@ -95,7 +98,7 @@ class PhononModel():
 
         """
         self._check_l_index(l)
-        return self._phi[iq,l-self.first_level]
+        return self._phi[iq,slice(None) if l is None else l-self.first_level]
 
     def save(self,filename,just_energies=False):
         """ Saves the phonon solve to a file.
@@ -315,7 +318,7 @@ class AcousticPhonon(PhononModel):
 class ElasticContinuum(AcousticPhonon):
     def __init__(self,solvmesh,rmesh,num_eigs,keepmesh=None,
             vecform='XYZ',first_level=0,parallel=True,
-            deformation=True,piezo=False):
+            deformation=True,piezo=False,dirichelet_bottom=False):
         """ Note: this parallel is not the same as the one in solve()"""
         super().__init__(solvmesh,rmesh,num_eigs=num_eigs,
                 keepmesh=keepmesh,first_level=first_level,
@@ -324,18 +327,26 @@ class ElasticContinuum(AcousticPhonon):
         self.num_eigs=num_eigs
 
         self._n=len(vecform)
+        self._dbot=dirichelet_bottom
 
         assert len(m._matblocks)==1,\
             "ElasticContinuum only works on a mesh with a single material system for now"
 
         self._ec_load_matrix=assemble_load_matrix(w=m.density,dzp=m.dzp,n=self._n,
-                dirichelet1=False,dirichelet2=False)
+                dirichelet1=False,dirichelet2=self._dbot)
 
         if rmesh is not None:
 
             if 'en' in self.rmesh:
                 self.rmesh['ref_en']=self.rmesh['en']
-                del self.rmesh['en']
+                self.rmesh['en']=self.rmesh['ref_en']\
+                        [:,self.first_level:self.first_level+self.num_eigs]
+            if 'vecs' in self.rmesh:
+                self.rmesh['vecs']=self.rmesh['vecs']\
+                        [:,self.first_level:self.first_level+self.num_eigs,:,:]
+            if 'phi' in self.rmesh:
+                self.rmesh['phi']=self.rmesh['phi']\
+                        [:,self.first_level:self.first_level+self.num_eigs,:]
 
             if 'ec_stiffness_matrices' not in rmesh:
                 log("Assembling EC matrices ...",level='info')
@@ -350,7 +361,7 @@ class ElasticContinuum(AcousticPhonon):
                 else: pool=Pool.FakePool()
                 self.rmesh['ec_stiffness_matrices']=pool.starmap(
                         assemble_stiffness_matrix,\
-                            [(C0,Cl,Cr,C2,m._dzp,False,False)
+                            [(C0,Cl,Cr,C2,m._dzp,False,self._dbot)
                                 for [C0,Cl,Cr,C2] in Cmats])
                 log("Done assembly.",level='info')
 
@@ -396,7 +407,8 @@ class ElasticContinuum(AcousticPhonon):
                 C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_CmatsY( m,np.array([q]))[0]
             else:
                 C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_Cmats(  m,np.array([q]))[0]
-            A=assemble_stiffness_matrix(C0,Cl,Cr,C2,m._dzp,dirichelet1=False,dirichelet2=False)
+            A=assemble_stiffness_matrix(C0,Cl,Cr,C2,m._dzp,
+                    dirichelet1=False,dirichelet2=self._dbot)
         else:
             A=self._ec_stiffness_matrices[iq]
 
@@ -406,14 +418,14 @@ class ElasticContinuum(AcousticPhonon):
         else:
             ref_en=self.rmesh['ref_en']
             mid_eig=(np.mean(ref_en[iq,self.first_level-1:self.first_level+1])/hbar)**2
-            neig_ext=self._neig+6
+            neig_ext=self.num_eigs+6
 
         en_out=np.empty([neig_ext])
         vec_out=np.empty([neig_ext,self._n,m.Np],dtype=complex)\
             if not just_energies else False
 
         fem_eigsh(A,self._ec_load_matrix,en_out,vec_out,n=self._n,
-             dirichelet1=False,dirichelet2=False,
+             dirichelet1=False,dirichelet2=self._dbot,
              k=neig_ext,sigma=mid_eig-1e-10,which='LA',tol=0,ncv=max(neig_ext*2,neig_ext+2))
         en_out[:]=hbar*np.sqrt(en_out)
 
@@ -528,6 +540,167 @@ class OpticalPhonon(PhononModel):
         psij_phi_psii=complex((np.sum(psij.conj()*phi*psii,axis=0)).integrate(definite=True))
         I=psij_phi_psii
         return np.abs(I)**2
+
+# TODO: Figure out how to move the glob_store _splines safely to superclass
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_reference_energies','_splines')
+class ElasticContinuum_BulkWurtzite(AcousticPhonon):
+
+    def __init__(self,solvmesh,rmesh,num_eigs,
+            thickness,matname,
+            keepmesh=None,first_level=0,vecform='XYZ'):
+        super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
+                first_level=first_level,vecform=vecform,keepmesh=keepmesh)
+        m=self._keepmesh
+        self._n=len(self.vecform)
+        
+        self._thickness=thickness
+        self._c44=pmdb['material={}.stiffness.C44'.format(matname)]
+        self._c11=pmdb['material={}.stiffness.C11'.format(matname)]
+        self._c12=pmdb['material={}.stiffness.C12'.format(matname)]
+        self._c13=pmdb['material={}.stiffness.C13'.format(matname)]
+        self._c33=pmdb['material={}.stiffness.C33'.format(matname)]
+        self._rho=pmdb['material={}.density'.format(matname)]
+        
+        if 'en' in self.rmesh:
+            self.rmesh['ref_en']=self.rmesh['en']
+            self.rmesh['en']=self.rmesh['ref_en']\
+                [:,self.first_level:self.first_level+self.num_eigs]
+        if 'beta' in self.rmesh:
+            self.rmesh['beta']=self.rmesh['beta']\
+                [:,self.first_level:self.first_level+self.num_eigs]
+        if 'modetype' in self.rmesh:
+            self.rmesh['modetype']=self.rmesh['modetype']\
+                [:,self.first_level:self.first_level+self.num_eigs]
+        if 'vecs' in self.rmesh:
+            self.rmesh['vecs']=self.rmesh['vecs']\
+                [:,self.first_level:self.first_level+self.num_eigs,:,:]
+        if 'phi' in self.rmesh:
+            self.rmesh['phi']=self.rmesh['phi']\
+                [:,self.first_level:self.first_level+self.num_eigs,:]
+
+    @property
+    def _beta(self): return self.rmesh['beta']
+    @property
+    def _modetype(self): return self.rmesh['modetype']
+
+    def solve(self, just_energies=False, parallel=True):
+
+        # Can only do a mode solve after an energy solve
+        if 'en' not in self.rmesh:
+            self._solve_energies()
+
+        # All the energy work is already done by _solve_energies
+        if just_energies: return
+
+        # Make vecs array if needed
+        if 'vecs' not in self.rmesh:
+            self.rmesh['vecs'] =PointFunction(self._keepmesh,
+                 empty=(len(self.q),self.num_eigs,self._n),dtype='complex')
+
+        # Make phi array if needed
+        if self.piezo and 'phi' not in self.rmesh:
+            self.rmesh['phi'] =PointFunction(self._keepmesh,
+                 empty=(len(self.q),self.num_eigs),dtype='complex')
+        
+        # Parameters
+        c44,c11,c12,c13,c33,rho=itemgetter(
+            '_c44','_c11','_c12','_c13','_c33','_rho')(self.__dict__)
+
+        # Ratio of Z to X in an XZ mode
+        def d_XZ(q,beta,w):
+            # Assumes beta,q !=0
+            with np.errstate(divide='ignore',invalid='ignore'):
+                return (-beta**2*c44-c11*q**2+w**2*rho)/(beta*q*(c13+c44))
+
+        # At each q
+        for iq in range(self.rmesh.N):
+            q=self.q[iq]
+
+            # Make a components array for each mode
+            comps=np.zeros((self.num_eigs,self._n))
+
+            # Y modes just have Y component = 1
+            if self.vecform=='Y':
+                comps[:,:]=1
+            elif self.vecform=='XYZ':
+                masky =(self._modetype[iq]=='Y')
+                comps[masky,1]=1
+
+            # XZ modes split XZ by the above d_XZ
+            if 'X' in self.vecform:
+                maskxz=(self._modetype[iq]!='Y')
+                comps[maskxz,0] =1
+                comps[maskxz,-1]=d_XZ(q,self._beta[iq,maskxz],self._en[iq,maskxz]/hbar)
+                for iw in np.arange(self.num_eigs)[(self._beta[iq,:]==0) & maskxz]:
+                    comps[iw,[0,-1]]={'LA':[1,0],'TA':[0,1]}[self._modetype[iq,iw]]
+
+            # Renormalize components to scattering-appropriate normalization 
+            w=self._en[iq,:]/hbar
+            comps/= np.atleast_2d(np.sqrt(self._thickness*rho*np.sum(np.abs(comps)**2\
+                                /(hbar/(2*np.atleast_2d(w).T)),axis=1))).T
+
+            # Get vectors as product of e^(i beta z) and component weighting
+            comps=np.atleast_3d(comps)
+            self._vecs[iq,:,:]=\
+                np.exp(1j*np.swapaxes(np.atleast_3d(self._beta[iq,:]),0,1)\
+                    *self._keepmesh.zp)*comps
+
+    def _solve_energies(self):
+
+        # Make energy array if needed
+        if 'en' not in self.rmesh:
+            self.rmesh['en']      =np.empty((len(self.q),self.num_eigs))
+            self.rmesh['beta']    =np.empty((len(self.q),self.num_eigs))
+            self.rmesh['modetype']=np.empty((len(self.q),self.num_eigs),
+                                        dtype='object')
+        
+        # Fast enough to make parallelization silly
+        for iq in range(self.rmesh.N):
+            self._solve_one_energy(iq)
+
+    def _solve_one_energy(self,iq):
+        assert self.first_level==0
+        q=self.q[iq]
+
+        # Parameters
+        c44,c11,c12,c13,c33,rho=itemgetter(
+            '_c44','_c11','_c12','_c13','_c33','_rho')(self.__dict__)
+         
+        # Dispersion relation for XZ modes
+        def _w_pm(pm,q,beta):
+            D4,D2,D0=[
+                rho**2,
+                -beta**2*(c33+c44)*rho-(c11+c44)*rho*q**2,
+                beta**4*c33*c44 + beta**2*c11*c33*q**2 - beta**2*c13**2*q**2\
+                    - 2*beta**2*c13*c44*q**2 + c11*c44*q**4]
+            return np.sqrt((-D2+pm*np.sqrt(D2**2-4*D4*D0))/(2*D4))
+        w_LA=partial(_w_pm,+1)
+        w_TA=partial(_w_pm,-1)
+
+        # Dispersion relation for Y modes
+        vY=np.sqrt((c11-c12)/(2*rho))
+        w_Y = lambda q,beta: vY*np.sqrt(q**2+beta**2)
+
+        # Get first num_eigs energies for each mode type
+        n=np.concatenate([np.arange(- int(self.num_eigs/2),1),
+                          np.arange(1,int(self.num_eigs/2)+1)])      
+        beta=2*pi*n/self._thickness
+        w=np.concatenate([w_Y( q,beta)  if 'Y'  in self.vecform else [],
+                          w_TA(q,beta)  if 'X'  in self.vecform else [],
+                          w_LA(q,beta)  if 'X'  in self.vecform else []])
+        
+        # Identify which are collectively the lowest num_eigs 
+        modetype=(['Y'] *self.num_eigs\
+                        if 'Y'  in self.vecform else [])\
+                + (['TA']*self.num_eigs\
+                        if 'X' in self.vecform else [])\
+                + (['LA']*self.num_eigs\
+                        if 'X' in self.vecform else [])
+        iw=np.argsort(w)[:self.num_eigs]
+        self._en[iq,:]=hbar*w[iw]
+        self._modetype[iq,:]=np.array(modetype)[iw]
+        self._beta[iq,:]=np.tile(beta,self._n)[iw]
+
 
 @glob_store_attributes('_solvmesh','_keepmesh','rmesh','_umesh','_lmesh','_slowlayer','_fastlayer','_splines')
 class DielectricContinuum_SWH(OpticalPhonon):
@@ -664,7 +837,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
             [list(self._neig.keys()).index(name)]
         l=lmin+num
         if iq is None: iq=slice(None)
-        return self._en[iq,l],self.phi[iq,l,:]
+        return self._en[iq,l],self._phi[iq,l,:]
 
     def solve(self, just_energies=False, print_count=False):
         """ Actually solve for the modes."""

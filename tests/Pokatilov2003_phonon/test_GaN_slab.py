@@ -26,7 +26,7 @@ if __name__=="__main__":
     ec=ElasticContinuum(m,num_eigs=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm))
     ec.solve()
 
-    (y_en,y_vec),(as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec._en,ec._vecs, [is_Y, is_AS])
+    (y_en,y_vec),(as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en(),ec.vecs(), [is_Y, is_AS])
 
     plt.figure()
     plt.plot(ec.q,to_unit(y_en[:,:6],"meV"),'k')
