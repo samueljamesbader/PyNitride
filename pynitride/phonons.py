@@ -100,6 +100,8 @@ class PhononModel():
         self._check_l_index(l)
         return self._phi[iq,slice(None) if l is None else l-self.first_level]
 
+    _save_with_energies=['en']
+    _save_with_vecs=['en','vecs','phi']
     def save(self,filename,just_energies=False):
         """ Saves the phonon solve to a file.
 
@@ -109,16 +111,16 @@ class PhononModel():
                 otherwise save energies, mode vecs and/or potentials.
         """
         if just_energies:
-            keys= ['en']
+            keys= self._save_with_energies
         else:
-            keys=[k for k in ['en','vecs','phi'] if k in self.rmesh]
+            keys=[k for k in self._save_with_vecs if k in self.rmesh]
         self.rmesh.save(filename,keys=keys)
 
     def read(self,name,just_energies=False):
         """ Reads the phonon solve from a file.
 
         If reading mode vectors and/or potentials, checks the dimensions.
-        If dimensions are incorrect, the energies/vectors/potentials in rmesh
+        If dimensions are incorrect, any new keys in rmesh
         will be cleared away and then an error will be raised.
 
         Args:
@@ -128,7 +130,7 @@ class PhononModel():
         """
         try:
             if just_energies:
-                self.rmesh.read(name,keys='en')
+                self.rmesh.read(name,keys=self._save_with_energies)
             else:
                 self.rmesh.read(name)
 
@@ -144,9 +146,8 @@ class PhononModel():
                     (self.rmesh.N,self.num_eigs,self._keepmesh.Np),\
                     "Loaded PhononModel does not match current"
         except:
-            if 'en'   in self.rmesh: del self.rmesh['en']
-            if 'vecs' in self.rmesh: del self.rmesh['vecs']
-            if 'phi'  in self.rmesh: del self.rmesh['phi']
+            for key in self._save_with_vecs:
+                if key in self.rmesh: del self.rmesh[key]
             raise
 
 
@@ -542,16 +543,17 @@ class OpticalPhonon(PhononModel):
         return np.abs(I)**2
 
 # TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_reference_energies','_splines')
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
 class ElasticContinuum_BulkWurtzite(AcousticPhonon):
 
     def __init__(self,solvmesh,rmesh,num_eigs,
             thickness,matname,
-            keepmesh=None,first_level=0,vecform='XYZ'):
+            keepmesh=None,first_level=0,vecform='XYZ',polXZ='all'):
         super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
                 first_level=first_level,vecform=vecform,keepmesh=keepmesh)
         m=self._keepmesh
         self._n=len(self.vecform)
+        self._pol=polXZ
         
         self._thickness=thickness
         self._c44=pmdb['material={}.stiffness.C44'.format(matname)]
@@ -578,12 +580,14 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
             self.rmesh['phi']=self.rmesh['phi']\
                 [:,self.first_level:self.first_level+self.num_eigs,:]
 
+    _save_with_energies=['en','beta','modetype']
+    _save_with_vecs=['en','beta','modetype','vecs','phi']
     @property
     def _beta(self): return self.rmesh['beta']
     @property
     def _modetype(self): return self.rmesh['modetype']
 
-    def solve(self, just_energies=False, parallel=True):
+    def solve(self, just_energies=False, print_count=False):
 
         # Can only do a mode solve after an energy solve
         if 'en' not in self.rmesh:
@@ -646,6 +650,7 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
                     *self._keepmesh.zp)*comps
 
     def _solve_energies(self):
+        print("in _solve_energies")
 
         # Make energy array if needed
         if 'en' not in self.rmesh:
@@ -685,17 +690,20 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
         n=np.concatenate([np.arange(- int(self.num_eigs/2),1),
                           np.arange(1,int(self.num_eigs/2)+1)])      
         beta=2*pi*n/self._thickness
-        w=np.concatenate([w_Y( q,beta)  if 'Y'  in self.vecform else [],
-                          w_TA(q,beta)  if 'X'  in self.vecform else [],
-                          w_LA(q,beta)  if 'X'  in self.vecform else []])
+        doY =('Y' in self.vecform)
+        doLA=('X' in self.vecform and self._pol is not 'TA')
+        doTA=('X' in self.vecform and self._pol is not 'LA')
+        w=np.concatenate([w_Y( q,beta)  if doY else [],
+                          w_TA(q,beta)  if doTA else [],
+                          w_LA(q,beta)  if doLA else []])
         
         # Identify which are collectively the lowest num_eigs 
         modetype=(['Y'] *self.num_eigs\
-                        if 'Y'  in self.vecform else [])\
+                        if doY else [])\
                 + (['TA']*self.num_eigs\
-                        if 'X' in self.vecform else [])\
+                        if doTA else [])\
                 + (['LA']*self.num_eigs\
-                        if 'X' in self.vecform else [])
+                        if doLA else [])
         iw=np.argsort(w)[:self.num_eigs]
         self._en[iq,:]=hbar*w[iw]
         self._modetype[iq,:]=np.array(modetype)[iw]
