@@ -395,6 +395,7 @@ class RMesh2D_Polar(RMesh):
             vmax=np.nanmax(F)
             vmin,vmax=np.array([-1,1])*np.max(np.abs([vmin,vmax]))
             cmap='seismic'
+            dontplot=False
         if style=='positive':
             vmin=0
             vmax=np.nanmax(F)
