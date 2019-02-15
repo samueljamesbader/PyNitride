@@ -527,8 +527,8 @@ class PiezoPotential():
         return phi
 
 class OpticalPhonon(PhononModel):
-    def __init__(self, mesh, rmesh, num_eigs, keepmesh=None, first_level=0):
-        super().__init__(mesh,rmesh,num_eigs=num_eigs, keepmesh=keepmesh, first_level=first_level)
+    def __init__(self, solvmesh, rmesh, num_eigs, keepmesh=None, first_level=0):
+        super().__init__(solvmesh,rmesh,num_eigs=num_eigs, keepmesh=keepmesh, first_level=first_level)
 
     def I2(self,carrier,psii,psij,iq,thetaq,l):
         """ The matrix element squared between two wavefunctions
@@ -712,13 +712,13 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
 
 @glob_store_attributes('_solvmesh','_keepmesh','rmesh','_umesh','_lmesh','_slowlayer','_fastlayer','_splines')
 class DielectricContinuum_SWH(OpticalPhonon):
-    def __init__(self, mesh, rmesh, num_spec_eigs, num_eigs=None,first_level=0, keepmesh=None):
+    def __init__(self, solvmesh, rmesh, num_spec_eigs, num_eigs=None,first_level=0, keepmesh=None):
         """ Solves for the extraordinary PO phonons in a Single Wurtzite Heterojunction.
 
         See the Dielectric Continuum :ref:`BWH` model for the relevant mathematics.
 
         Args:
-            mesh: The mesh to solve on, should contain one :class:`~pynitride.material.Wurtzite` material block, which
+            solvmesh: The mesh to solve on, should contain one :class:`~pynitride.material.Wurtzite` material block, which
                 has two layers of uniform molefraction.
             rmesh: The :class:`~pynitride.reciprocal_mesh.RMesh_1D` which specifies the :math:`q` points
             num_spec_eigs: should be a dictionary indicating how many eigenvalues are desired for each mode
@@ -732,7 +732,8 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         """
 
-        super().__init__(mesh, rmesh, keepmesh=keepmesh, num_eigs=num_eigs, first_level=first_level)
+        super().__init__(solvmesh, rmesh, keepmesh=keepmesh, num_eigs=num_eigs, first_level=first_level)
+        mesh=self._solvmesh
 
         # Requirements for a Heterojunction
         assert len(mesh._matblocks) == 1, \
