@@ -268,7 +268,7 @@ class Wurtzite(MaterialSystem):
             strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
             Cmats = []
             for kx_, ky_ in zip(kx, ky):
-                k =  np.sqrt(kx_**2+ky_**2)
+                k =  np.abs(np.sqrt((kx_)**2+(ky_)**2))
                 C0 = double_mat(MidFunction(m, [[S2 * k ** 2]]), dtype='float')+strainmat
                 C0[1, 1] += 5e-6; C0[0, 0] -= 5e-6  # Break degeneracy by 1ueV
                 #Cl = double_mat(MidFunction(m, [[O]], dtype='complex'))

@@ -8,7 +8,7 @@ _logfile=None
 def start_log_file(filename,overwrite=True):
     global _logfile
     if _logfile is not None:
-        close(_logfile)
+        _logfile.close()
     if overwrite:
         _logfile=open(filename,'w')
     else:
