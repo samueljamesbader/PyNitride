@@ -133,6 +133,7 @@ class PhononModel():
                 self.rmesh.read(name,keys=self._save_with_energies)
             else:
                 self.rmesh.read(name)
+                assert 'vecs' in self.rmesh or 'phi' in self.rmesh
 
             if 'en' in self.rmesh:
                 assert self._en.shape==(self.rmesh.N,self.num_eigs),\
@@ -467,8 +468,8 @@ class PiezoPotential():
         self.vecform=pm.vecform
         self.num_eigs=pm.num_eigs
 
-        m=self._solvemesh=pm._solvmesh
-        self._keepmesh=pm._keepmesh
+        self._solvmesh=m=pm._solvmesh
+        self._keepmesh=  pm._keepmesh
 
         if rmesh and ('pz_stiffness_matrices' not in rmesh):
             log("Assembling PZ matrices ...",level='info')
