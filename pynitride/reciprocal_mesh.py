@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 @glob_store_attributes('_functions')
 class RMesh:
-    def __init__(self):
+    def __init__(self, name=''):
         """ Superclass for all the reciprocal meshes"""
         self.absk=None
         """ The absk values of the grid as a 1-D array"""
@@ -26,6 +26,8 @@ class RMesh:
         """ The grid covers 1/d of the angular k-space"""
         self.kmax=None
         """ The maximum value of :math:`|k|`"""
+        self.name=name
+        """ A user-specified optional name"""
 
         # Place to store functions defined on this mesh
         self._functions={}
@@ -84,8 +86,8 @@ class RMesh1D(RMesh):
     Note that when integrating over the mesh via :func:`RMesh.integrate`,
     it will behave as a 2D integral, ie the increased weighting of points
     at higher radius is accounted for intrinsically by this function."""
-    def __init__(self,absk,bzarea=None,exact_digits=None):
-        super().__init__()
+    def __init__(self,absk,bzarea=None,exact_digits=None,name=''):
+        super().__init__(name=name)
 
         # k and dk
         self.absk1=self.absk=np.sort(absk)
@@ -123,7 +125,7 @@ class RMesh1D(RMesh):
 
 
     @classmethod
-    def regular(cls,kmax,numabsk,abskshift=0):
+    def regular(cls,kmax,numabsk,abskshift=0,name=''):
         """ Generate a uniform 1D grid.
 
         The k-points go from 0 to kmax inclusive, but with an optional shift.
@@ -171,8 +173,8 @@ class RMesh1D(RMesh):
 
 class RMesh2D_Polar(RMesh):
     """ A 2-D mesh of k-space."""
-    def __init__(self,absk,theta,d=1,bzarea=None):
-        super().__init__()
+    def __init__(self,absk,theta,d=1,bzarea=None,name=''):
+        super().__init__(name=name)
 
         self.absk1=np.sort(absk)
         self.kmax=self.absk1[-1]
@@ -240,7 +242,7 @@ class RMesh2D_Polar(RMesh):
         self._i2it=self.conv2flat(np.meshgrid(np.arange(len(self.absk1)),np.arange(len(self.theta1)))[1])
 
     @classmethod
-    def regular(cls,kmax,numabsk,numtheta,include_kzero=True,align_theta=False,d=1):
+    def regular(cls,kmax,numabsk,numtheta,include_kzero=True,align_theta=False,d=1,name=''):
         """ Generate a regular 2D grid.
 
         The absk1-points go from `kmax`/`numabsk` to `kmax` or `0` to `kmax` depending on `include_kzero`.
@@ -261,10 +263,10 @@ class RMesh2D_Polar(RMesh):
             absk=np.linspace(0,kmax,num=numabsk)
         else:
             absk=np.linspace(kmax/numabsk,kmax,num=numabsk)
-        return cls.regular_theta(absk,numtheta,align_theta,d)
+        return cls.regular_theta(absk,numtheta,align_theta,d,name=name)
 
     @classmethod
-    def regular_theta(cls,absk,numtheta,align_theta=False,d=1):
+    def regular_theta(cls,absk,numtheta,align_theta=False,d=1,name=''):
         """ Generate a 2D grid with regular `theta` spacing.
 
         Regardless of whether `absk` includes a point at `0`,
@@ -291,7 +293,7 @@ class RMesh2D_Polar(RMesh):
             shift_theta=pi/(numtheta*d)#+align_theta
 
         theta=np.linspace(-pi/d,pi/d,num=numtheta,endpoint=False)+shift_theta
-        return RMesh2D_Polar(absk,theta,d,bzarea=None)
+        return RMesh2D_Polar(absk,theta,d,bzarea=None,name=name)
 
 
     def conv2grid(self,arr):
@@ -354,12 +356,13 @@ class RMesh2D_Polar(RMesh):
             return rbvs(absk,theta,grid=grid, dx=dabsk, dy=dtheta)
         return interp
 
-    def absk_subrmesh(self,abskstart=1,abskstop=-1):
+    def absk_subrmesh(self,abskstart=1,abskstop=-1,name=None):
         abskslice=slice(abskstart,abskstop)
         absk=self.absk1[abskslice]
         theta=self.theta1
         
-        sub=RMesh2D_Polar(absk,theta,d=self.d,bzarea=self.bzarea)
+        if name is None: name=self.name
+        sub=RMesh2D_Polar(absk,theta,d=self.d,bzarea=self.bzarea,name=name)
 
         start=list(self.absk).index(absk[0])
         stop=self.N-list(self.absk[::-1]).index(absk[-1])

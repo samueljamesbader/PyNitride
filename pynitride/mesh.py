@@ -810,7 +810,7 @@ class Function(np.ndarray):
         if pos=='mid': z=mesh.zm
 
         # If the user just wants an empty array, the shape of an element is specified by empty
-        if empty:
+        if empty is not False:
             vshape=list(empty)
             obj = np.empty(vshape + list(z.shape), dtype=dtype).view(cls)
             obj.mesh=mesh
