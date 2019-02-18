@@ -45,7 +45,7 @@ class PhononModel():
 
         self._interp_ready=False
 
-    def solve(self):
+    def solve(self, mode_iqs=None):
         pass
 
     @property
@@ -142,10 +142,14 @@ class PhononModel():
                 assert self._vecs.shape==\
                     (self.rmesh.N,self.num_eigs,self._n,self._keepmesh.Np),\
                     "Loaded PhononModel does not match current"
+                self.rmesh['vecs']=PointFunction(self._keepmesh,self._vecs,
+                        dtype=self._vecs.dtype)
             if 'phi' in self.rmesh:
                 assert self._phi.shape==\
                     (self.rmesh.N,self.num_eigs,self._keepmesh.Np),\
                     "Loaded PhononModel does not match current"
+                self.rmesh['phi']=PointFunction(self._keepmesh,self._phi,
+                        dtype=self._phi.dtype)
         except:
             for key in self._save_with_vecs:
                 if key in self.rmesh: del self.rmesh[key]
@@ -372,7 +376,7 @@ class ElasticContinuum(AcousticPhonon):
     @property
     def _ec_stiffness_matrices(self): return self.rmesh['ec_stiffness_matrices']
 
-    def solve(self, just_energies=False, parallel=True, print_count=True):
+    def solve(self, just_energies=False, parallel=True, print_count=True,mode_iqs=None):
 
         # Initialize other functions
         if 'en' not in self.rmesh:
@@ -391,7 +395,7 @@ class ElasticContinuum(AcousticPhonon):
             elif not self.piezo:
                 self._en[iq,:],self._vecs[iq,:,:,:]= res
             else:
-                self._en[iq,:],self._vecs[iq,:,:,:],self.phi[iq,:,:]= res
+                self._en[iq,:],self._vecs[iq,:,:,:],self._phi[iq,:,:]= res
             if print_count:
                 counter.increment()
         pool=Pool.process_pool(new=True) if parallel else FakePool()
@@ -588,7 +592,7 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
     @property
     def _modetype(self): return self.rmesh['modetype']
 
-    def solve(self, just_energies=False, print_count=False):
+    def solve(self, just_energies=False, print_count=False,mode_iqs=None):
 
         # Can only do a mode solve after an energy solve
         if 'en' not in self.rmesh:
@@ -849,10 +853,11 @@ class DielectricContinuum_SWH(OpticalPhonon):
         if iq is None: iq=slice(None)
         return self._en[iq,l],self._phi[iq,l,:]
 
-    def solve(self, just_energies=False, print_count=False):
+    def solve(self, just_energies=False, print_count=False, mode_iqs=None):
         """ Actually solve for the modes."""
 
         assert not print_count
+        iqs=mode_iqs if mode_iqs is not None else range(len(self.q))
 
         # Can only do a mode solve after an energy solve
         if not just_energies:
@@ -879,7 +884,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
                 self.rmesh['en'][:,lmin:lmax]=hbar*w[:,fl:]
             else:
                 en=self.rmesh['en'][:,lmin:lmax]
-                for iq in range(len(self.q)):
+                for iq in iqs:
                     for iw in range(neig):
                        self.rmesh['phi'][iq,lmin+iw,:]=\
                            self._get_mode(self.q[iq],en[iq,iw]/hbar,reg=modetype[2:])\

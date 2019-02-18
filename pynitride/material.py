@@ -98,8 +98,9 @@ class MaterialSystem():
 
 
 class Wurtzite(MaterialSystem):
-    def __init__(self):
+    def __init__(self,spin_splitting=0):
         super().__init__()
+        self._spin_splitting=spin_splitting
 
         self._updates.update({
             'strain': [self.bandedge_params,self.polarization],
@@ -295,6 +296,7 @@ class Wurtzite(MaterialSystem):
             L1u=L1+U; L2u=L2+U
             M1u=M1+U; M2u=M2+U; M3u=M3+U
             Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
+            ss=m.ones_mid*self._spin_splitting
 
             strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
 
@@ -312,6 +314,13 @@ class Wurtzite(MaterialSystem):
                          [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
                          [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
                          [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
+                    MidFunction(m,[
+                         [     ss/2,            O,          O,          O,         O,          O],
+                         [        O,         ss/2,          O,          O,         O,          O],
+                         [        O,            O,       ss/2,          O,         O,          O],
+                         [        O,            O,          O,      -ss/2,         O,          O],
+                         [        O,            O,          O,          O,     -ss/2,          O],
+                         [        O,            O,          O,          O,         O,      -ss/2]],dtype='complex') + \
                     strainmat
 
                 Cl= m.ztrans * \
@@ -492,14 +501,14 @@ class AlGaInN(Wurtzite):
         self._attrs['MgAcceptorE']
 
 class AlGaN(Wurtzite):
-    def __init__(self):
+    def __init__(self,spin_splitting=0):
         self._vergardbasis={
             'x': 'AlN',
             None: 'GaN',
         }
         self.name="AlGaN"
 
-        super().__init__()
+        super().__init__(spin_splitting=spin_splitting)
 
         self._defaults.update({
             'x': 0
