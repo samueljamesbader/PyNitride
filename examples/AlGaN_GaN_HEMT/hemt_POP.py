@@ -94,7 +94,7 @@ if __name__=='__main__':
 
     plt.figure()
     iq=15
-    for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,1])):
+    for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,3])):
         plt.subplot(3,1,i+1)
         enLO,phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)
         enTO,phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)

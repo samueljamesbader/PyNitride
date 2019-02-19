@@ -337,9 +337,9 @@ If the system is described by a driven oscillator equation
 \begin{equation}
   \mu\partial_t^2u_i =-\mu\omega_{0i}^2u_i+e^* E_i
 \end{equation}
-where $\mu$ and $i$ runs over $\perp, \parallel$. Then $P_i=\frac{e^*}{V_u}u_i$, giving
+where $\mu$ and $i$ runs over $\perp, \parallel$. Then $P^\mathrm{ion}_i=\frac{e^*}{V_u}u_i$, giving
 \begin{align}
-  P_i =\varepsilon_0\chi_iE_i, \quad \chi_i=\frac{e^{*2}}{\varepsilon_0\mu V_u}\frac{1}{\omega_{0i}^2-\omega^2} 
+  P^\mathrm{ion}_i =\varepsilon_0\chi_iE_i, \quad \chi_i=\frac{e^{*2}}{\varepsilon_0\mu V_u}\frac{1}{\omega_{0i}^2-\omega^2} 
 \end{align}
 Defining an $\varepsilon_i$ so that $D_i=\varepsilon_i E_i=\varepsilon^\infty E_i +P=(\varepsilon^\infty +\varepsilon_0\chi_i) E_i$ leads to 
 \begin{equation}
@@ -359,14 +359,14 @@ which can be framed as an eigenvalue problem in $q$ at fixed $\omega$
 \subsection{Normalization}
 The $\phi$ must then be normalized by the prescription $\int dz\frac{\mu}{V_u}\abs{\vec u}^2=\frac{\hbar}{2\omega}$.  To do this, we'll need to extract $\vec u$ from the $\phi$:
 \begin{align}
-  \vec u = \frac{V_u}{e^*}\vec P=\frac{V_u}{e^*}\varepsilon_0\chi\vec E=-\frac{V_u}{e^*}\chi\nabla\phi
+  \vec u = \frac{V_u}{e^*}\vec P^\mathrm{ion}=\frac{V_u}{e^*}\varepsilon_0\chi\vec E=-\frac{V_u}{e^*}\varepsilon_0\chi\nabla\phi
 \end{align}
 So
 \begin{align}
   \vec u = -\frac{\varepsilon_0V_u}{e^*}\left( \chi_\parallel \partial_z\phi \hat{z} +iq\chi_\perp\phi\hat{q} \right)
 \end{align}
 \begin{align}
-  \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{\varepsilon_0\mu V_u}{e^{*2}}\left( (\chi_\parallel \partial_z\phi)^2 +q^2(\chi_\perp\phi)^2 \right)
+  \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{\varepsilon_0^2\mu V_u}{e^{*2}}\left( (\chi_\parallel \partial_z\phi)^2 +q^2(\chi_\perp\phi)^2 \right)
 \end{align}
 \begin{align}
   \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{e^{*2}}{\mu V_u}\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
@@ -374,7 +374,7 @@ So
 \begin{align}
   \frac{\mu}{V_u}\abs{\vec u}^2 = \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
 \end{align}
-where, since $\omega_{LO\perp}$ et al are taken from experiment, we'll average the $(\omega_{LO}^2-\omega_{TO}^2)$ factor over $\perp, \parallel$.
+where, since $\omega_{LO\perp}$ et al are taken from experiment, we'll average the $(\omega_{LO}^2-\omega_{TO}^2)$ factor over $\perp, \parallel$.  Note: the above equation is equivalent to Stroscio and Dutta Eq 7.78.
 Thus the normalization condition is written in terms of the potential as
 \begin{align}
   \frac{\hbar}{2\omega} = \int dz \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
