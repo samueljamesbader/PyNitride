@@ -81,7 +81,7 @@ def valence_band_panels(m,mbkp,bdopts={}):
     plt.fill_between(m.p, m.zp, alpha=.5, color='purple')
     plt.xlim(0, .6)
     plt.xticks([])
-    plt.text(np.max(m.n) * .75, m.zp[np.argmax(m.p)] + 2, "$n$", color='purple')
+    plt.text(np.max(m.n) * .75, m.zp[np.argmax(m.p)] + 2, "$p$", color='purple')
 
     # Mass(E)
     plt.subplot(gs2[1:5,1],sharex=axbs)
