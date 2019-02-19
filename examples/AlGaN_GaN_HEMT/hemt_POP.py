@@ -29,7 +29,7 @@ def POP_panel(dc):
 
 
     # Plot the solution
-    plt.plot(dc.rmesh.absk,to_unit(dc.en,"meV"))
+    plt.plot(dc.rmesh.absk,to_unit(dc.en(),"meV"))
 
     plt.fill_between([0,dc.q[-1]],to_unit(hbar*wTO_para_G,"meV"),color='k',alpha=.25)
     plt.fill_between([0,dc.q[-1]],to_unit(hbar*wLO_perp_A,"meV"),1000,color='k',alpha=.25)
@@ -119,7 +119,7 @@ if __name__=='__main__':
     plt.tight_layout()
 
     #dc2=DielectricContinuum_SWH(dc._keepmesh,dc.rmesh.absk_subrmesh(range(50)),
-    #    num_specific_eigenvalues=dc._neig,num_eigenvalues=11,first_level=11)
+    #    num_spec_eigs=dc._neig,num_eigs=11,first_level=5)
     #POP_panel(dc2)
 
     plt.show()

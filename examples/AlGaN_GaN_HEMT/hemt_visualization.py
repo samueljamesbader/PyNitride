@@ -10,6 +10,7 @@ from matplotlib.ticker import MultipleLocator
 import numpy as np
 from pynitride.paramdb import to_unit, hbar, m_e, kb, nm
 from pynitride.maths import cart2polar
+from scipy.signal import savgol_filter
 pi=np.pi
 
 def conduction_band_panels(m,mbkp):
@@ -41,7 +42,7 @@ def conduction_band_panels(m,mbkp):
     # DOS(E)
     plt.subplot(gs2[5:, 0], sharey=axbs)
     kT=kb*m.T[0]
-    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 4000,retstep=True)]*2
+    (kx,dkx), (ky,dky) = [np.linspace(-rmesh.kmax, rmesh.kmax, 1000,retstep=True)]*2
     KX,KY=np.meshgrid(kx,ky)
     ABSK,THETA=cart2polar(KX,KY)
     absk,theta=ABSK[ABSK<=rmesh.kmax],THETA[ABSK<=rmesh.kmax]
@@ -49,6 +50,7 @@ def conduction_band_panels(m,mbkp):
         E = mbkp.interp_energy(absk,theta,eig=i)
         hist, bin_e = np.histogram(E, bins=200, range=(np.min(E)-.01, np.max(E) ))
         DOS = hist * dkx * dky / (4 * np.pi ** 2) / np.diff(bin_e)
+        DOS = savgol_filter(DOS,3,1)
         E = (bin_e[1:] + bin_e[:-1]) / 2
         plt.plot(DOS, E * 1e3, c)
         plt.fill_betweenx(E * 1e3, DOS * 1 / (1 + np.exp( E / kT)), color=c, alpha=1)
