@@ -1,7 +1,8 @@
 import numpy as np
 from pynitride.paramdb import hbar
+from operator import itemgetter
 
-def check_POP_normalization(phi, q, w):
+def check_POP_normalization(phi, q, w, overrides={}):
     r""" Checks the normalization of a POP potential.
 
     The normalization is given as
@@ -29,12 +30,19 @@ def check_POP_normalization(phi, q, w):
         AssertionError if the mode is not normalized
     """
     m = phi.mesh
-    ew2 = m.eps_inf * ((m.wLO_para ** 2 - m.wTO_para ** 2) + (m.wLO_perp ** 2 - m.wTO_perp ** 2)) / 2
-    parapart = (ew2 * ((phi.differentiate() / (m.wTO_para ** 2 - w ** 2)) ** 2)).integrate(definite=True)
-    perppart = (ew2 * ((q * phi.tmf() / (m.wTO_perp ** 2 - w ** 2)) ** 2)).integrate(definite=True)
+    try:
+        wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
+            '_wLO_para','_wLO_perp','_wTO_para','_wTO_perp','_eps_inf')(overrides)
+        print("Overriding normalization check parameters")
+    except:
+        wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
+            'wLO_para','wLO_perp','wTO_para','wTO_perp','eps_inf')(m)
+    ew2 = eps_inf * ((wLO_para ** 2 - wTO_para ** 2) + (wLO_perp ** 2 - wTO_perp ** 2)) / 2
+    parapart = np.abs(ew2 * ((phi.differentiate() / (wTO_para ** 2 - w ** 2)) ** 2)).integrate(definite=True)
+    perppart = np.abs(ew2 * ((q * phi.tmf() / (wTO_perp ** 2 - w ** 2)) ** 2)).integrate(definite=True)
     norm = parapart + perppart
     req = hbar / (2 * w)
-    assert np.isclose(norm, req, rtol=5e-2), "Mode normalization is off by a factor of {:.2g}".format(norm / req)
+    assert np.isclose(norm, req, rtol=5e-2), "Mode normalization is off by a squared factor of {:.2g}".format(norm / req)
 
 
 def check_POP_interface(phi, q, w):
