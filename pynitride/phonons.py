@@ -1101,3 +1101,105 @@ class DielectricContinuum_SWH(OpticalPhonon):
         return phi_.restrict(self._keepmesh)
 
 
+
+
+
+# TODO: Figure out how to move the glob_store _splines safely to superclass
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
+class DielectricContinuum_BulkWurtzite(OpticalPhonon):
+
+    def __init__(self,solvmesh,rmesh,num_eigs,
+            thickness,matname,
+            keepmesh=None,first_level=0,pol='L'):
+        super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
+                first_level=first_level,vecform=vecform,keepmesh=keepmesh)
+        m=self._keepmesh
+        self._pol=pol
+        
+        self._thickness=thickness
+        self._epsinf  =pmdb['material={}.dielectric.eps_inf'.format(matname)]
+        self._wLO_para=pmdb['material={}.raman.wLO_para'    .format(matname)]
+        self._wLO_perp=pmdb['material={}.raman.wLO_perp'    .format(matname)]
+        self._wTO_para=pmdb['material={}.raman.wTO_para'    .format(matname)]
+        self._wTO_perp=pmdb['material={}.raman.wTO_perp'    .format(matname)]
+        
+        if 'en' in self.rmesh:
+            self.rmesh['ref_en']=self.rmesh['en']
+            self.rmesh['en']=self.rmesh['ref_en']\
+                [:,self.first_level:self.first_level+self.num_eigs]
+        if 'beta' in self.rmesh:
+            self.rmesh['beta']=self.rmesh['beta']\
+                [:,self.first_level:self.first_level+self.num_eigs]
+        #if 'modetype' in self.rmesh:
+        #    self.rmesh['modetype']=self.rmesh['modetype']\
+        #        [:,self.first_level:self.first_level+self.num_eigs]
+        if 'phi' in self.rmesh:
+            self.rmesh['phi']=self.rmesh['phi']\
+                [:,self.first_level:self.first_level+self.num_eigs,:]
+
+    _save_with_energies=['en','beta','modetype']
+    _save_with_vecs=['en','beta','modetype','vecs','phi']
+    @property
+    def _beta(self): return self.rmesh['beta']
+    @property
+    def _modetype(self): return self.rmesh['modetype']
+
+    def solve(self, just_energies=False, print_count=False,mode_iqs=None):
+
+        # Can only do a mode solve after an energy solve
+        if 'en' not in self.rmesh:
+            self._solve_energies()
+
+        # All the energy work is already done by _solve_energies
+        if just_energies: return
+
+
+        # Make phi array if needed
+        if 'phi' not in self.rmesh:
+            self.rmesh['phi'] =PointFunction(self._keepmesh,
+                 empty=(len(self.q),self.num_eigs),dtype='complex')
+
+        phi=np.exp(1j*np.expand_dims(self._beta,-1)*self._keepmesh.zp)
+        w=self._en/hbar
+        ew2 = eps_inf * ((wLO_para ** 2 - wTO_para ** 2) + (wLO_perp ** 2 - wTO_perp ** 2)) / 2
+        Nint=(self._thickness*ew2*((beta.T/(wTO_para**2-w**2))**2+(q/(wTO_perp**2-w**2))**2)).T
+        Nreq=hbar/(2*w)
+        self._phi[:,:,:]=(phi.T/np.sqrt(Nint/Nreq).T).T
+
+
+    def _solve_energies(self) 
+
+        # Make energy array if needed
+        if 'en' not in self.rmesh:
+            self.rmesh['en']      =np.empty((len(self.q),self.num_eigs))
+            self.rmesh['beta']    =np.empty((len(self.q),self.num_eigs))
+
+        # Parameters
+        wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
+            'wLO_para','wLO_perp','wTO_para','wTO_perp','_eps_inf')(self.__dict__)
+
+        # Bounded by the relevant para/perp frequency
+        wbounds=(wLO_para,wLO_perp) if self._pol=='L' else (wTO_para,wTO_perp)
+        wmin,wmax=np.sort(wbounds)+[1e-3*meV,-1e-3*meV]
+        wtest=np.linspace(wmin,wmax,10000)
+
+        def _common(w):
+            eps_perp = eps_inf * (wLO_perp ** 2 - w ** 2) / (wTO_perp ** 2 - w ** 2)
+            eps_para = eps_inf * (wLO_para ** 2 - w ** 2) / (wTO_para ** 2 - w ** 2)
+            alpha = np.sqrt(np.abs(eps_perp / eps_para))
+            return eps_per, eps_para, alpha
+        eps_perp,eps_para,alpha=_common(wtest)
+
+        # Get all quantized z momenta, excludes zero mode
+        n=np.ravel(np.tile(
+            np.arange(1,int(self.num_eigs/2)+2),(2,1)).T\
+                *[-1,1])[:self.num_eigs]
+        beta=2*pi*n/self._thickness
+
+        # Interpolate to get energy versus q
+        for i,betai in enumerate(beta):
+            qtest=alpha*np.abs(betai)
+            w=interp1d(qtest,wtest)(self.q)
+            self._en[:,i]=hbar*w
+        self._beta[:,:]=beta
+
