@@ -154,11 +154,13 @@ class Wurtzite(MaterialSystem):
             'a1':       self.kp_params,
             'a2':       self.kp_params,
 
-            'eps_inf':  self.vergard('dielectric.eps_inf'),
+            # Note: ignores bowing  of optical frequencies,
+            # eg reported by https://doi.org/10.1063/1.121095
             'wLO_para': self.vergard('raman.wLO_para'),
             'wLO_perp': self.vergard('raman.wLO_perp'),
             'wTO_para': self.vergard('raman.wTO_para'),
             'wTO_perp': self.vergard('raman.wTO_perp'),
+            'eps_inf':  self.vergard('dielectric.eps_inf'),
 
             'density':  self.vergard('density'),
         })

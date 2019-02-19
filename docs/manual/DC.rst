@@ -239,6 +239,8 @@ with :math:`B/A=\sinh(k_1t_1)e^{k_2t_1}` and
       \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
     \end{equation}
 
+For large :math:`q` mode approaches an resonant energy of :math:`\omega_{IF}` defined by :math:`\xi_1=\xi_2`.
+
 Confined to Region 2
 ........................
 

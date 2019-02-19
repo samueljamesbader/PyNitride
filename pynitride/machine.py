@@ -43,7 +43,7 @@ class Pool():
             cls._thrdpool=_ThreadPool(processes=globalprocesses)
         else: cls._thrdpool=FakePool()
 
-        cls._no_parallel=False
+    _no_parallel=False
 
     @classmethod
     def process_pool(cls,new=False):
