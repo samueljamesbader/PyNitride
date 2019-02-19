@@ -1,5 +1,6 @@
 from examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh as define_electrical_mesh
-from pynitride.phonons import DielectricContinuum_SWH
+from pynitride.phonons import DielectricContinuum_SWH, DielectricContinuum_BulkWurtzite
+from tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
 from pynitride.reciprocal_mesh import RMesh1D
 from pynitride.paramdb import to_unit, nm, meV, hbar
 from pynitride.sim import Simulation
@@ -11,22 +12,41 @@ def define_mesh(sim,**kwargs):
     define_electrical_mesh(sim,**kwargs)
     sim.rmeshes['POP']=RMesh1D.regular(1/nm,100,abskshift=.001/nm)
 
-def solve_flow(sim):
+def solve_flow(sim,model='SWH'):
     m=sim.dmeshes['main']
     rmesh=sim.rmeshes['POP']
-    dc=DielectricContinuum_SWH(m,rmesh,
-        {'TOu':5,'TOIF':1,'TOl':10,'LOu':5,'LOIF':1,'LOl':10})
+    if model=='SWH':
+        dc=DielectricContinuum_SWH(m,rmesh,
+            {'TOu':5,'TOIF':1,'TOl':50,'LOu':5,'LOIF':1,'LOl':50})
+    if model=='bulk':
+        dc=DielectricContinuum_BulkWurtzite(m,rmesh,50,m.zp[-1],'GaN',pol='L')
+
     dc.solve(just_energies=False)
-    sim.extras['dc']=dc
+    sim.extras['dc' ]=dc
 
 def POP_panel(dc):
     plt.figure(figsize=(4,8))
     ax_meV=plt.gca()
 
-    wLO_perp_G,wLO_para_G,wLO_perp_A,wLO_para_A,\
-    wTO_perp_G,wTO_para_G,wTO_perp_A,wTO_para_A,\
-    epsinf_G,epsinf_A,tw,tb=dc._params
+    # Get the meshes for the upper and lower layers
+    umesh = dc._solvmesh._layers[0].mesh
+    lmesh = dc._solvmesh._layers[1].mesh
 
+    # Get the LO frequencies for the upper and lower layers
+    wLO_perp_G = umesh.wLO_perp[0]
+    wLO_para_G = umesh.wLO_para[0]
+    wLO_perp_A = lmesh.wLO_perp[0]
+    wLO_para_A = lmesh.wLO_para[0]
+
+    # Get the TO frequencies for the upper and lower layers
+    wTO_perp_G = umesh.wTO_perp[0]
+    wTO_para_G = umesh.wTO_para[0]
+    wTO_perp_A = lmesh.wTO_perp[0]
+    wTO_para_A = lmesh.wTO_para[0]
+
+    # Get the high-frequency dielectric constants
+    epsinf_G = umesh.eps_inf[0]
+    epsinf_A = lmesh.eps_inf[0]
 
     # Plot the solution
     plt.plot(dc.rmesh.absk,to_unit(dc.en(),"meV"))
@@ -70,15 +90,17 @@ def POP_panel(dc):
     plt.text(1,to_unit(hbar*wLO_perp_G,'meV'),
              r' $\omega_{LO}\perp$ GaN',transform=lltrans,fontsize=wlabelsize,ha='left',va='bottom')
 
-    w_IF_TO=dc.w_IF(pol='T')[0]
-    w_IF_LO=dc.w_IF(pol='L')[0]
+    try:
+        w_IF_TO=dc.w_IF(pol='T')[0]
+        w_IF_LO=dc.w_IF(pol='L')[0]
 
-    plt.axhline(to_unit( hbar*w_IF_TO,'meV'),color='k',linestyle=':',linewidth=2)
-    plt.text(1,to_unit(hbar*w_IF_TO,'meV'),
-             r' $\omega_{TO}$ IF',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
-    plt.axhline(to_unit( hbar*w_IF_LO,'meV'),color='k',linestyle=':',linewidth=2)
-    plt.text(1,to_unit(hbar*w_IF_LO,'meV'),
-             r' $\omega_{LO}$ IF',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+        plt.axhline(to_unit( hbar*w_IF_TO,'meV'),color='k',linestyle=':',linewidth=2)
+        plt.text(1,to_unit(hbar*w_IF_TO,'meV'),
+                 r' $\omega_{TO}$ IF',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+        plt.axhline(to_unit( hbar*w_IF_LO,'meV'),color='k',linestyle=':',linewidth=2)
+        plt.text(1,to_unit(hbar*w_IF_LO,'meV'),
+                 r' $\omega_{LO}$ IF',transform=lltrans,fontsize=wlabelsize,ha='left',va='center')
+    except: pass
 
     plt.xlim(0,1)
     plt.xlabel("Wavevector [1/nm]")
@@ -86,28 +108,56 @@ def POP_panel(dc):
 
 
 if __name__=='__main__':
-    sim=Simulation('pFET',define_mesh=define_mesh,solve_flow=solve_flow, mesh_opts={'max_dz':1*nm})
+    model='SWH'
+    #model='bulk'
+    sim=Simulation('pFET',define_mesh=define_mesh,solve_flow=solve_flow,
+                   solve_opts={'model': model},mesh_opts={'max_dz':1*nm})
     sim.load(force=True)
 
     dc=sim.extras['dc']
     POP_panel(sim.extras['dc'])
 
-    plt.figure()
-    iq=20
-    for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,7])):
-        plt.subplot(3,1,i+1)
-        phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)[1]
-        phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)[1]
-        plt.plot(dc._keepmesh.zp,phiLO,'b',label='LO')
-        plt.plot(dc._keepmesh.zp,phiTO,'r',label='TO')
-        plt.title({'u':'Confined to upper layer', 'IF': 'Interface Mode', 'l': 'Confined to lower layer'}[reg])
-        if np.min(phiLO)>=0 and np.min(phiTO)>=0: plt.ylim(0)
+    if model=='SWH':
+        plt.figure()
+        iq=20
+        for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,7])):
+            plt.subplot(3,1,i+1)
+            enLO,phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)
+            enTO,phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)
+
+
+            check_POP_interface(phiLO,dc.q[iq],enLO/hbar)
+            check_POP_normalization(phiLO,dc.q[iq],enLO/hbar)
+            check_POP_interface(phiTO,dc.q[iq],enTO/hbar)
+            check_POP_normalization(phiTO,dc.q[iq],enTO/hbar)
+
+            plt.plot(dc._keepmesh.zp,phiLO,'b',label='LO')
+            plt.plot(dc._keepmesh.zp,phiTO,'r',label='TO')
+            plt.title({'u':'Confined to upper layer', 'IF': 'Interface Mode', 'l': 'Confined to lower layer'}[reg])
+            if np.min(phiLO)>=0 and np.min(phiTO)>=0: plt.ylim(0)
+            plt.axvline(dc._keepmesh._layers[0].thickness,color='k')
+            plt.xlim(0,dc._keepmesh.zp[-1])
+            plt.axhline(0,color='k')
+            plt.ylabel("Potential [eV]")
+            plt.xlabel("Depth [nm]")
+            if reg=='u':
+                plt.legend(loc='upper right')
+        plt.tight_layout()
+    if model=='bulk':
+        plt.figure()
+        iq=20; num=3;
+        enLO,phiLO=dc.en(iq=iq,l=num),dc.phi(iq=iq,l=num)
+
+        check_POP_normalization(phiLO,dc.q[iq],enLO/hbar,dc.__dict__)
+
+        plt.plot(dc._keepmesh.zp,phiLO.real,'b',label='LO')
+        plt.plot(dc._keepmesh.zp,phiLO.imag,'b--',label='LO')
         plt.axvline(dc._keepmesh._layers[0].thickness,color='k')
         plt.xlim(0,dc._keepmesh.zp[-1])
         plt.axhline(0,color='k')
         plt.ylabel("Potential [eV]")
         plt.xlabel("Depth [nm]")
-        if reg=='u':
-            plt.legend(loc='upper right')
-    plt.tight_layout()
+        plt.tight_layout()
+
+
     plt.show()

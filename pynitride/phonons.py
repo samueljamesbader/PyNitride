@@ -1112,12 +1112,12 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
             thickness,matname,
             keepmesh=None,first_level=0,pol='L'):
         super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
-                first_level=first_level,vecform=vecform,keepmesh=keepmesh)
+                first_level=first_level,keepmesh=keepmesh)
         m=self._keepmesh
         self._pol=pol
         
         self._thickness=thickness
-        self._epsinf  =pmdb['material={}.dielectric.eps_inf'.format(matname)]
+        self._eps_inf =pmdb['material={}.dielectric.eps_inf'.format(matname)]
         self._wLO_para=pmdb['material={}.raman.wLO_para'    .format(matname)]
         self._wLO_perp=pmdb['material={}.raman.wLO_perp'    .format(matname)]
         self._wTO_para=pmdb['material={}.raman.wTO_para'    .format(matname)]
@@ -1159,15 +1159,19 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
             self.rmesh['phi'] =PointFunction(self._keepmesh,
                  empty=(len(self.q),self.num_eigs),dtype='complex')
 
+        # Parameters
+        wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
+            '_wLO_para','_wLO_perp','_wTO_para','_wTO_perp','_eps_inf')(self.__dict__)
         phi=np.exp(1j*np.expand_dims(self._beta,-1)*self._keepmesh.zp)
         w=self._en/hbar
         ew2 = eps_inf * ((wLO_para ** 2 - wTO_para ** 2) + (wLO_perp ** 2 - wTO_perp ** 2)) / 2
-        Nint=(self._thickness*ew2*((beta.T/(wTO_para**2-w**2))**2+(q/(wTO_perp**2-w**2))**2)).T
+        Nint=(self._thickness*ew2*((self._beta.T/(wTO_para**2-w.T**2))**2+(self.q/(wTO_perp**2-w.T**2))**2)).T
         Nreq=hbar/(2*w)
         self._phi[:,:,:]=(phi.T/np.sqrt(Nint/Nreq).T).T
 
 
-    def _solve_energies(self) 
+    def _solve_energies(self):
+        assert self.first_level==0
 
         # Make energy array if needed
         if 'en' not in self.rmesh:
@@ -1176,18 +1180,18 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
 
         # Parameters
         wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
-            'wLO_para','wLO_perp','wTO_para','wTO_perp','_eps_inf')(self.__dict__)
+            '_wLO_para','_wLO_perp','_wTO_para','_wTO_perp','_eps_inf')(self.__dict__)
 
         # Bounded by the relevant para/perp frequency
         wbounds=(wLO_para,wLO_perp) if self._pol=='L' else (wTO_para,wTO_perp)
-        wmin,wmax=np.sort(wbounds)+[1e-3*meV,-1e-3*meV]
+        wmin,wmax=np.sort(wbounds)+[1e-7*meV,-1e-7*meV]
         wtest=np.linspace(wmin,wmax,10000)
 
         def _common(w):
             eps_perp = eps_inf * (wLO_perp ** 2 - w ** 2) / (wTO_perp ** 2 - w ** 2)
             eps_para = eps_inf * (wLO_para ** 2 - w ** 2) / (wTO_para ** 2 - w ** 2)
             alpha = np.sqrt(np.abs(eps_perp / eps_para))
-            return eps_per, eps_para, alpha
+            return eps_perp, eps_para, alpha
         eps_perp,eps_para,alpha=_common(wtest)
 
         # Get all quantized z momenta, excludes zero mode
@@ -1199,6 +1203,7 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
         # Interpolate to get energy versus q
         for i,betai in enumerate(beta):
             qtest=alpha*np.abs(betai)
+            #print("qtest range",np.min(qtest),np.max(qtest))
             w=interp1d(qtest,wtest)(self.q)
             self._en[:,i]=hbar*w
         self._beta[:,:]=beta
