@@ -29,7 +29,7 @@ def POP_panel(dc):
 
 
     # Plot the solution
-    plt.plot(dc.rmesh.absk,to_unit(dc.en,"meV"))
+    plt.plot(dc.rmesh.absk,to_unit(dc.en(),"meV"))
 
     plt.fill_between([0,dc.q[-1]],to_unit(hbar*wTO_para_G,"meV"),color='k',alpha=.25)
     plt.fill_between([0,dc.q[-1]],to_unit(hbar*wLO_perp_A,"meV"),1000,color='k',alpha=.25)
@@ -96,8 +96,8 @@ if __name__=='__main__':
     iq=20
     for i,(reg,num) in enumerate(zip(['u','IF','l'],[3,0,7])):
         plt.subplot(3,1,i+1)
-        phiLO=dc.get_mode_by_name('LO'+reg,num)[iq]
-        phiTO=dc.get_mode_by_name('TO'+reg,num)[iq]
+        phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)[1]
+        phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)[1]
         plt.plot(dc._keepmesh.zp,phiLO,'b',label='LO')
         plt.plot(dc._keepmesh.zp,phiTO,'r',label='TO')
         plt.title({'u':'Confined to upper layer', 'IF': 'Interface Mode', 'l': 'Confined to lower layer'}[reg])
