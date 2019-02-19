@@ -319,7 +319,8 @@ class RMesh2D_Polar(RMesh):
         Returns:
             an (numstates) 1D array + other dimensions
         """
-        arr=np.reshape(arr.T,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
+        arr=arr.T
+        arr=np.reshape(arr,[np.prod(arr.shape[:2])]+list(arr.shape[2:]))
         if self.absk1[0]==0:
             return arr[self.numtheta-1:]
         else:
@@ -353,6 +354,9 @@ class RMesh2D_Polar(RMesh):
             if bounds_check:
                 assert np.all(absk<=self.absk1[-1]), "Out of interpolation range"
             theta=np.mod(np.mod(theta,2*pi/d)+pi/d,2*pi/d)-pi/d
+            if grid:
+                theta=np.unwrap(theta)
+
             return rbvs(absk,theta,grid=grid, dx=dabsk, dy=dtheta)
         return interp
 
