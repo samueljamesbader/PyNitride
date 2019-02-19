@@ -20,13 +20,15 @@ class Pool():
 
     @classmethod
     def configure(cls, globalthreads=cpu_count()-1,globalprocesses=cpu_count()-1,cextthread=1):
-        kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
+        kwargs={'globalthreads':globalthreads,
+                'globalprocesses':globalprocesses,'cextthread':cextthread}
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
             log("Pool was already configured with the given arguments.")
             return
 
-        cls._kwargs={'globalthreads':globalthreads,'globalprocesses':globalprocesses,'cextthread':cextthread}
+        cls._kwargs={'globalthreads':globalthreads,
+                'globalprocesses':globalprocesses,'cextthread':cextthread}
         cls._globs={}
         cls._globlck=RLock()
         if cextthread is not None:
@@ -195,7 +197,8 @@ def glob_store_attributes(*attrs):
         def __del__(self):
             odel(self)
             for k,key in self._globkeys.items():
-                glob_remove(key)
+                try: glob_remove(key)
+                except: log("Trouble removing key",level='debug')
 
         # Add this new __del__ to the class
         cls.__del__=__del__

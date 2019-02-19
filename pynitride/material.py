@@ -98,8 +98,9 @@ class MaterialSystem():
 
 
 class Wurtzite(MaterialSystem):
-    def __init__(self):
+    def __init__(self,spin_splitting=0):
         super().__init__()
+        self._spin_splitting=spin_splitting
 
         self._updates.update({
             'strain': [self.bandedge_params,self.polarization],
@@ -250,7 +251,7 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
     kp_dim={'hole':6,'electron':2}
-    def kp_Cmats(self,m,kx,ky,carrier):
+    def kp_Cmats(self,m,kx,ky,carrier,kxl=None,kyl=None):
         """
 
         The matrices match the conventions in Birner, {X^,Y^,Z^, Xv, Yv, Zv} basis.  The strain is included by means of
@@ -264,14 +265,19 @@ class Wurtzite(MaterialSystem):
         :return:
         """
 
+        kxr=kx; kyr=ky;
+        if kxl is None: kxl=kx
+        if kyl is None: kyl=ky
+        del kx; del ky;
+
         if carrier=='electron':
             S1=hbar**2/(2*m.mez[0])
             S2=hbar**2/(2*m.mexy[0])
             strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
             Cmats = []
-            for kx_, ky_ in zip(kx, ky):
-                k =  np.sqrt(kx_**2+ky_**2)
-                C0 = double_mat(MidFunction(m, [[S2 * k ** 2]]), dtype='float')+strainmat
+            for kxl, kyl, kxr, kyr in zip(kxl, kyl, kxr, kyr):
+                k2 =  kxl*kxr+kyl*kyr
+                C0 = double_mat(MidFunction(m, [[S2 * k2]]), dtype='float')+strainmat
                 C0[1, 1] += 5e-6; C0[0, 0] -= 5e-6  # Break degeneracy by 1ueV
                 #Cl = double_mat(MidFunction(m, [[O]], dtype='complex'))
                 #Cr = double_mat(MidFunction(m, [[O]], dtype='complex'))
@@ -292,16 +298,17 @@ class Wurtzite(MaterialSystem):
             L1u=L1+U; L2u=L2+U
             M1u=M1+U; M2u=M2+U; M3u=M3+U
             Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
+            ss=m.ones_mid*self._spin_splitting
 
             strainmat=self.kp_strain_mat(m,exx=m.exx,exy=m.exy,exz=m.exz,eyy=m.eyy,eyz=m.eyz,ezz=m.ezz,carrier=carrier)
 
             Cmats=[]
-            for kx,ky in zip(kx,ky):
+            for kxl, kyl, kxr, kyr in zip(kxl, kyl, kxr, kyr):
                 C0= \
                     double_mat(MidFunction(m, [
-                        [kx*L1u*kx+ky*M1u*ky , kx*N1p*ky+ky*N1m*kx,         O           ],
-                        [ky*N1p*kx+kx*N1m*ky , kx*M1u*kx+ky*L1u*ky,         O           ],
-                        [         O          ,          O         ,  kx*M3u*kx+ky*M3u*ky]])) + \
+                        [kxl*L1u*kxr+kyl*M1u*kyr , kxl*N1p*kyr+kyl*N1m*kxr,         O           ],
+                        [kyl*N1p*kxr+kxl*N1m*kyr , kxl*M1u*kxr+kyl*L1u*kyr,         O           ],
+                        [           O            ,            O           ,  kxl*M3u*kxr+kyl*M3u*kyr]],dtype='complex')) + \
                     MidFunction(m,[
                          [   Delta1,   -1j*Delta2,          O,          O,         O,     Delta3],
                          [1j*Delta2,       Delta1,          O,          O,         O, -1j*Delta3],
@@ -309,18 +316,25 @@ class Wurtzite(MaterialSystem):
                          [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
                          [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
                          [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
+                    MidFunction(m,[
+                         [     ss/2,            O,          O,          O,         O,          O],
+                         [        O,         ss/2,          O,          O,         O,          O],
+                         [        O,            O,       ss/2,          O,         O,          O],
+                         [        O,            O,          O,      -ss/2,         O,          O],
+                         [        O,            O,          O,          O,     -ss/2,          O],
+                         [        O,            O,          O,          O,         O,      -ss/2]],dtype='complex') + \
                     strainmat
 
                 Cl= m.ztrans * \
                     double_mat(MidFunction(m, [
-                        [           O     ,             O    ,       kx*N2p     ],
-                        [           O     ,             O    ,       ky*N2p     ],
-                        [       kx*N2m    ,         ky*N2m   ,         O        ]]))
+                        [           O     ,             O    ,       kxl*N2p     ],
+                        [           O     ,             O    ,       kyl*N2p     ],
+                        [      kxl*N2m    ,        kyl*N2m   ,         O        ]]))
                 Cr= m.ztrans * \
                     double_mat(MidFunction(m, [
-                        [           O     ,             O    ,       N2m*kx     ],
-                        [           O     ,             O    ,       N2m*ky     ],
-                        [       N2p*kx    ,         N2p*ky   ,         O        ]]))
+                        [           O     ,             O    ,       N2m*kxr     ],
+                        [           O     ,             O    ,       N2m*kyr     ],
+                        [      N2p*kxr    ,        N2p*kyr   ,         O        ]]))
 
                 C2= \
                     double_mat(MidFunction(m, [
@@ -489,14 +503,14 @@ class AlGaInN(Wurtzite):
         self._attrs['MgAcceptorE']
 
 class AlGaN(Wurtzite):
-    def __init__(self):
+    def __init__(self,spin_splitting=0):
         self._vergardbasis={
             'x': 'AlN',
             None: 'GaN',
         }
         self.name="AlGaN"
 
-        super().__init__()
+        super().__init__(spin_splitting=spin_splitting)
 
         self._defaults.update({
             'x': 0
