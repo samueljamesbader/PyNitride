@@ -60,6 +60,9 @@ def dephase(vec):
     phase=vec.T[i]/np.abs(vec.T[i])
     return (vec.T/phase).T
 
+def round_near(arr,ival):
+    return np.round(np.asarray(arr)/ival,0)*ival
+
 @glob_store_attributes("_cache")
 class Memoizer:
     def __init__(self):

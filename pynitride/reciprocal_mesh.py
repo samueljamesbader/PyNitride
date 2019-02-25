@@ -1,7 +1,7 @@
 import numpy as np
 pi=np.pi
 from pynitride.machine import glob_store_attributes
-from pynitride.maths import polar2cart, cart2polar
+from pynitride.maths import polar2cart, cart2polar, round_near
 from scipy.interpolate import RectBivariateSpline, splrep, splev
 from pynitride.visual import white2red
 import matplotlib.pyplot as plt
@@ -62,8 +62,11 @@ class RMesh:
             res=self._functions
         else:
             res={k:self[k] for k in keys}
-        res['absk']=self.absk
-        res['theta']=self.theta
+        res['absk'  ]=self.absk
+        res['absk1' ]=self.absk1
+        if 'theta' in self:
+            res['theta' ]=self.theta
+            res['theta1']=self.theta1
         np.savez(filename,**res)
     def read(self,filename,keys=None):
         with np.load(filename) as data:
@@ -86,7 +89,7 @@ class RMesh1D(RMesh):
     Note that when integrating over the mesh via :func:`RMesh.integrate`,
     it will behave as a 2D integral, ie the increased weighting of points
     at higher radius is accounted for intrinsically by this function."""
-    def __init__(self,absk,bzarea=None,exact_digits=None,name=''):
+    def __init__(self,absk,bzarea=None,ival=None,name=''):
         super().__init__(name=name)
 
         # k and dk
@@ -111,11 +114,11 @@ class RMesh1D(RMesh):
         self.d=1
 
         # Mapping from absk1 values to their indices, used by exact_to_index
-        if exact_digits is not None:
-            self._exactdig=exact_digits
+        if ival is not None:
+            self._ival=ival
         else:
-            self._exactdig=int(np.ceil(-np.log10(np.min(dabsk))))+1
-        self._k2i={k:i for i,k in enumerate(np.round(self.absk1,self._exactdig))}
+            self._ival=np.min(dabsk)/10
+        self._k2i={k:i for i,k in enumerate(round_near(self.absk1,self._ival))}
 
         # Define the other parts of the parameterization
         self.theta=np.zeros_like(self.absk)
@@ -143,13 +146,13 @@ class RMesh1D(RMesh):
 
     def exact_to_index(self, absk):
         """ Returns the index into the absk1 array for a given k-point"""
-        return self._k2i[np.round(absk,self._exactdig)]
+        return self._k2i[round_near(absk,self._ival)]
 
     def absk_subrmesh(self,indices):
         assert not isinstance(indices,slice), "indices should be a list/array"
         absk=self.absk1[indices]
         
-        sub=RMesh1D(absk,bzarea=self.bzarea,exact_digits=self._exactdig)
+        sub=RMesh1D(absk,bzarea=self.bzarea,ival=self._ival)
 
         for key,val in self._functions.items():
             try:
@@ -380,10 +383,11 @@ class RMesh2D_Polar(RMesh):
     def index_to_partial_indices(self,i):
         return self._i2ik[i],self._i2it[i]
 
-    def show_func(self,func,style='balanced',points=True):
+    def show_func(self,func,style='balanced',points=True, lines=True,
+            cax=None,vmax=None,numloc=1000):
 
-        kx=np.linspace(-self.kmax,self.kmax,1000)
-        ky=np.linspace(-self.kmax,self.kmax,1000)
+        kx=np.linspace(-self.kmax,self.kmax,numloc)
+        ky=np.linspace(-self.kmax,self.kmax,numloc)
         
         KX,KY=np.meshgrid(kx,ky)
         ABSK,THETA=cart2polar(KX,KY)
@@ -405,12 +409,12 @@ class RMesh2D_Polar(RMesh):
             dontplot=False
         if style=='positive':
             vmin=0
-            vmax=np.nanmax(F)
+            if vmax is None: 
+                vmax=np.nanmax(F)
             cmap=white2red
             dontplot=(vmax==0)
         if not dontplot:
-            plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap)
-            plt.colorbar()
+            plt.pcolormesh(KX,KY,F,vmin=vmin,vmax=vmax,cmap=cmap,rasterized=True)
 
         if points:
             plt.plot(self.kx,self.ky,'o',markersize=3)
@@ -419,10 +423,15 @@ class RMesh2D_Polar(RMesh):
         plt.xlim(-self.kmax,self.kmax)
         plt.ylim(-self.kmax,self.kmax)
 
+        if not dontplot:
+            plt.colorbar(cax=cax)
 
-        for t in self.thetabinl:
-            plt.plot([0,10*np.cos(t)],[0,10*np.sin(t)],color='gray',linewidth=.5)
-        for k in self.abskbinl:
-            plt.plot(*polar2cart(k,np.linspace(0,2*pi,endpoint=True)),color='gray',linewidth=.5)
+        if lines:
+            for t in self.thetabinl:
+                plt.plot([0,10*np.cos(t)],[0,10*np.sin(t)],
+                        color='gray',linewidth=.5,rasterized=True)
+            for k in self.abskbinl:
+                plt.plot(*polar2cart(k,np.linspace(0,2*pi,endpoint=True)),
+                        color='gray',linewidth=.5,rasterized=True)
         plt.xlabel("$k_x$ [1/nm]")
         plt.ylabel("$k_y$ [1/nm]")
