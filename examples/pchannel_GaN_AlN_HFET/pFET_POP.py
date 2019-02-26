@@ -25,7 +25,7 @@ def solve_flow(sim,model='SWH'):
     sim.extras['dc' ]=dc
 
 def POP_panel(dc):
-    plt.figure(figsize=(4,8))
+    plt.figure(figsize=(6,8))
     ax_meV=plt.gca()
 
     # Get the meshes for the upper and lower layers

@@ -939,7 +939,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         w = []
         for qtesti in qtest:
-            w += [interp1d(qtesti, wtest)(q)]
+            w += [interp1d(qtesti, wtest, fill_value='extrapolate')(q)]
         w = np.array(w).T
 
         return w

@@ -12,7 +12,7 @@ from pynitride.paramdb import to_unit, hbar, m_e, kb, nm
 from pynitride.maths import cart2polar
 pi=np.pi
 
-def valence_band_panels(m,mbkp,bdopts={}):
+def valence_band_panels(m,mbkp,bdopts={},bsopts={}):
     """ Custom plot of the dispersion, band diagram, DOS, and effective masses."""
     rmesh = mbkp.rmesh
     energy = mbkp.kpen
@@ -28,7 +28,10 @@ def valence_band_panels(m,mbkp,bdopts={}):
         plt.plot(absk1, mbkp.interp_energy(absk1,0,eig=i) * 1e3, c)
         plt.plot(-absk1, mbkp.interp_energy(absk1,pi/2,eig=i) * 1e3, c)
     plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ylim(np.min(mbkp.kpen[:,0])*1e3, np.max(mbkp.kpen[:,0])*1e3+5)
+    if 'ylim' in bsopts:
+        plt.ylim(bsopts['ylim'])
+    else:
+        plt.ylim(np.min(mbkp.kpen[:,0])*1e3, np.max(mbkp.kpen[:,0])*1e3+5)
     plt.axvline(0, color='k')
     plt.axhline(0, color='k', linestyle='--')
     plt.setp(axbs.get_yticklabels(), visible=False)
