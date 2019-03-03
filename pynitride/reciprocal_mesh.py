@@ -383,6 +383,20 @@ class RMesh2D_Polar(RMesh):
     def index_to_partial_indices(self,i):
         return self._i2ik[i],self._i2it[i]
 
+    def ikx(self,sign=False):
+        ikx=np.argsort(self.kx)
+        ikx=ikx[np.isclose(self.ky[ikx],0,atol=1e-10)]
+        if sign:
+            ikx=ikx[sign*self.kx[ikx]>=0]
+        return ikx
+    def iky(self,sign=False):
+        iky=np.argsort(self.ky)
+        iky=iky[np.isclose(self.kx[iky],0,atol=1e-10)]
+        if sign:
+            iky=iky[sign*self.ky[iky]>=0]
+        return iky
+
+
     def show_func(self,func,style='balanced',points=True, lines=True,
             cax=None,vmax=None,numloc=1000):
 
