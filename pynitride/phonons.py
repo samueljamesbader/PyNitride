@@ -3,7 +3,7 @@ from pynitride.visual import log, sublog
 from pynitride.mesh import PointFunction
 from pynitride.paramdb import pmdb,hbar, meV
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
-from pynitride.maths import polar2cart
+from pynitride.maths import polar2cart, chunks
 from pynitride.material import AlGaN
 from scipy.sparse.linalg import eigsh
 from functools import partial
@@ -376,7 +376,8 @@ class ElasticContinuum(AcousticPhonon):
     @property
     def _ec_stiffness_matrices(self): return self.rmesh['ec_stiffness_matrices']
 
-    def solve(self, just_energies=False, parallel=True, print_count=True,mode_iqs=None):
+    def solve(self, just_energies=False, parallel=True, print_count=True,
+            mode_iqs=None,tasksize=600):
 
         # Initialize other functions
         if 'en' not in self.rmesh:
@@ -398,11 +399,14 @@ class ElasticContinuum(AcousticPhonon):
                 self._en[iq,:],self._vecs[iq,:,:,:],self._phi[iq,:,:]= res
             if print_count:
                 counter.increment()
-        pool=Pool.process_pool(new=True) if parallel else FakePool()
-        asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
-                callback=partial(save_solve,iq), error_callback=raiser)
-                for iq in range(self.rmesh.N)]
-        for asyn in asyncs: asyn.wait()
+        iqchunks=chunks(range(self.rmesh.N),tasksize)
+        for iqchunk in iqchunks:
+            if len(iqchunks)>1: log("Task: "+str(iqchunk[0])+"-"+str(iqchunk[-1]))
+            pool=Pool.process_pool(new=True) if parallel else FakePool()
+            asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
+                    callback=partial(save_solve,iq), error_callback=raiser)
+                    for iq in iqchunk]
+            for asyn in asyncs: asyn.wait()
 
     def solve_one_q(self,q,iq=None,just_energies=False):
         m=self._solvmesh
