@@ -5,7 +5,7 @@ from pynitride.cython_maths import fd12, fd12p
 from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from numpy.linalg import eigvalsh
+from numpy.linalg import eigvalsh, eigh
 from scipy.sparse import lil_matrix
 from pynitride.visual import log, sublog
 from pynitride.machine import Pool, glob_store_attributes, FakePool, raiser
@@ -349,12 +349,15 @@ class MultibandKP(CarrierModel):
         normsqs=np.sum(abs(eigvecs)**2,axis=1)
         return eigvals,eigvecs,normsqs
 
-    def solve_point_as_bulk(self,zp):
+    def solve_point_as_bulk(self,zp=None):
         m=self.mesh
-        kt=self._kt
-        izp=m.indexp(zp)
+        if zp is not None:
+            izp=m.indexp(zp)
+        else:
+            izp=0
 
-        return np.array([eigvalsh(C[0][:,:,izp]) for i, (kti,C) in enumerate(zip(kt,self._Cmats))])
+        solved=[eigh(-C[0][:,:,izp]) for i, C in enumerate(self._Cmats)]
+        return np.array([-s[0] for s in solved]), np.array([s[1].T for s in solved])
 
 
     def repopulate(self):
