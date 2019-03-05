@@ -1,11 +1,13 @@
-from examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_electrical_mesh
-from pynitride.phonons import DielectricContinuum_SWH
-from pynitride.reciprocal_mesh import RMesh1D
-from pynitride.paramdb import to_unit, nm, meV, hbar
-from pynitride.sim import Simulation
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
+
+from pynitride.examples.AlGaN_GaN_HEMT import define_mesh as define_electrical_mesh
+from pynitride.paramdb import to_unit, nm, hbar
+from pynitride.phonons import DielectricContinuum_SWH
+from pynitride.reciprocal_mesh import RMesh1D
+from pynitride.sim import Simulation
+
 
 def define_mesh(sim,**kwargs):
     define_electrical_mesh(sim,**kwargs)

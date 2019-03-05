@@ -1,19 +1,17 @@
 # Basic AlGaN/GaN HEMT
-import matplotlib.pyplot as plt
-from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
-from pynitride.material import AlGaN
-from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.carriers import MultibandKP, Semiclassical
-from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
-from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
-from pynitride.thermal import ConstantT
-from pynitride.strain import Pseudomorphic
-from pynitride.maths import dephase
-from pynitride.sim import Simulation
-from examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_basic_mesh
-from examples.AlGaN_GaN_HEMT.hemt_visualization import conduction_band_panels
-import numpy as np
 from functools import wraps
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from pynitride.carriers import MultibandKP
+from pynitride.examples.AlGaN_GaN_HEMT import conduction_band_panels
+from pynitride.examples.AlGaN_GaN_HEMT import define_mesh as define_basic_mesh
+from pynitride.maths import dephase
+from pynitride.paramdb import to_unit, nm
+from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
+from pynitride.sim import Simulation
+
 
 @wraps(define_basic_mesh)
 def define_mesh(sim,*args,**kwargs):

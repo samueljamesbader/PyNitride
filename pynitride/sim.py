@@ -3,6 +3,7 @@ from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
 from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
+from pynitride.paramdb import to_unit
 from operator import itemgetter
 from inspect import signature
 from time import time
@@ -67,13 +68,13 @@ class Simulation():
         pass
 
     @staticmethod
-    def flow_semiclassicalramp_mbkp(sim,ramp_opts={},mbkp_opts={},loop_opts={}):
+    def flow_semiclassicalramp_mbkp(sim,T=300,strain=None,ramp_opts={},mbkp_opts={},loop_opts={}):
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
         Equilibrium(m)
-        ConstantT(m)
-        Pseudomorphic(m)
+        ConstantT(m,T)
+        Pseudomorphic(m,straincond=strain)
         ps=PoissonSolver(m)
 
         # Which carriers will be covered by MBKP and which won't
@@ -92,43 +93,66 @@ class Simulation():
                            Semiclassical(semi)])
         scl.ramp_epsfactor(**ramp_opts)
 
+        # MBKP loop
+        rmesh=sim.rmeshes['mbkp_solve'] if 'mbkp_solve' in sim.rmeshes else sim.rmeshes['mbkp']
         with sublog("MBKP loop"):
             starttime=time()
 
             # Put in MBKP and loop again
-            sim.extras['mbkp']=mbkp=MultibandKP(quantum,rmesh=sim.rmeshes['mbkp'],**mbkp_opts)
+            sim.extras['mbkp']=mbkp=MultibandKP(quantum,rmesh=rmesh,**mbkp_opts)
             scl.swap_carrier_model(remove=semi_solver,add=mbkp)
             scl.loop(**loop_opts)
 
             endtime=time()
             log("MBKP loop took {:.1f} sec".format(endtime-starttime))
-        #log("Saving output to "+sim._outdir)
 
+        # Refinement
+        if 'mbkp_out' in sim.rmeshes:
+            starttime=time()
+            log("Refining MBKP")
 
-    @staticmethod
-    def flow_semiclassicalramp_mbkp_refinedmbkp(sim):
-        pass
+            # Refine k-space
+            rmesh=sim.rmeshes['mbkp_out']
+            sim.extras['mbkp'] =mbkp= MultibandKP(quantum, num_eigenvalues=6, rmesh=rmesh)
+            mbkp.solve()
+
+            endtime=time()
+            log("MBKP refinement took {:.1f} sec".format(endtime-starttime))
+
+        # Useful checks
+        log("Holes: {:.2f} x10^13/cm^2".format(
+            to_unit(float(m.p.integrate(definite=True)), "1e13/cm^2")))
+        log("EV-EF [meV]: {:.2f} meV".format(
+            to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV")))
+
+        # Save output
+        log("Saving to: " + sim._outdir)
+        m.save(os.path.join(sim._outdir, sim.name + "_direct"), )
+        rmesh.save(os.path.join(sim._outdir, sim.name + "_reciprocal"), ['kpen'])
 
     @staticmethod
     def loader_standard(sim):
-        with sublog("Hoping to load previous run from " + sim._outdir+sim.name+"*"):
+        with sublog("Hoping to load previous run from " + os.path.join(sim._outdir,sim.name+"*")):
             try:
-                if 'main'  in sim.dmeshes:
-                    sim.dmeshes['main'] .read(os.path.join(sim._outdir, sim.name+"_direct.npz"))
-                if 'rmesh' in sim.rmeshes:
-                    sim.rmeshes['rmesh'].read(os.path.join(sim._outdir, sim.name+"_reciprocal.npz"))
+                m=sim.dmeshes.get('main',False)
+                if m:
+                    m.read(os.path.join(sim._outdir, sim.name+"_direct.npz"))
+                rmesh=sim.rmeshes.get('mbkp_out',False) or sim.rmeshes.get('mbkp',False)
+                if rmesh:
+                    rmesh.read(os.path.join(sim._outdir, sim.name+"_reciprocal.npz"))
             except Exception as e:
                 log("But "+str(e))
                 return False
-            log("Loaded")
             return True
 
 
     def load(self,force=False):
         self._define_mesh(self,**self._mesh_opts)
         loaded=(force is False) and (self._outdir is not None) and Simulation.loader_standard(self)
-        if not loaded:
-            with sublog("No previous solve loaded, so starting solve:"):
+        if loaded:
+            log("Loaded")
+        else:
+            with sublog("Starting solve:"):
                 self._solve_flow(self,**self._solve_opts)
                 log("Done solve flow")
 

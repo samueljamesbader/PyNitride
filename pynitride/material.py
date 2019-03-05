@@ -473,7 +473,15 @@ class Wurtzite(MaterialSystem):
             else: raise NotImplementedError
         m['exx']=(ax-a0)/a0
         m['eyy']=(ay-a0)/a0
-        m['ezz']=-m.C13/m.C33*(m['exx']+m['eyy'])
+
+        zcond=straincond.get('zcond','free')
+        if   zcond=='free':
+            m['ezz']=-m.C13/m.C33*(m['exx']+m['eyy'])
+        elif zcond=='fixed':
+            m['ezz']=0
+        else:
+            raise Exception("Unrecognized strain z-condition")
+
         m['exy']=m['eyz']=m['exz']=MidFunction(m,0)
 
     def bulk_lattice_condition(self,m):
