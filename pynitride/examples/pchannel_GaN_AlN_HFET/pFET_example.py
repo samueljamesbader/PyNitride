@@ -3,16 +3,18 @@
 #from pynitride.machine import Pool;Pool.configure_onlycextparallel();
 
 import matplotlib.pyplot as plt
-from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
-from pynitride.material import AlGaN
-from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
-from pynitride.visual import log
-from pynitride.sim import Simulation
-from examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
 import numpy as np
 
-def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV):
+from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
+from pynitride.material import AlGaN
+from pynitride.mesh import Mesh, MaterialBlock, UniformLayer
+from pynitride.paramdb import to_unit, nm, eV, cm, meV
+from pynitride.reciprocal_mesh import RMesh2D_Polar
+from pynitride.sim import Simulation
+from pynitride.visual import log
+
+
+def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV):
 
     # Set up the main mesh
     m=sim.dmeshes['main']=Mesh([
@@ -29,7 +31,8 @@ def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.
     sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm],['mbkp','semi'])
 
     # Set up the reciprocal space mesh for MBKP
-    sim.rmeshes['mbkp']=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
+    sim.rmeshes['mbkp_solve']=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
+    sim.rmeshes['mbkp_out'  ]=RMesh2D_Polar.regular(kmax=4.8/nm,numabsk=48,numtheta=4,align_theta=True,d=1)
 
     sim.extras['well_t']=well_t
 
@@ -38,25 +41,26 @@ if __name__=="__main__":
     sim=Simulation('pFET',define_mesh=define_mesh,
        solve_flow=Simulation.flow_semiclassicalramp_mbkp,
        solve_opts ={'mbkp_opts':{'num_eigenvalues':6}})
-    sim.load(force=True)
+    sim.load(force=False)
     m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
-    rmesh=sim.rmeshes['mbkp']
+    rmesh=sim.rmeshes['mbkp_out']
 
 
     print("Holes: {:.2f} x10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)),"1e13/cm^2")))
     print("EV-EF [meV]: {:.2f} meV",to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV"))
 
     # Check normalization
-    wf0=rmesh['kppsi'][0,0,:,:]
-    wf1=rmesh['kppsi'][0,1,:,:]
-    wf2=rmesh['kppsi'][0,2,:,:]
-    from pynitride.mesh import inner_product
-    assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
-    assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
-    assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)
-    assert np.isclose(inner_product(wf1,wf2),0,atol=1e-8)
-    assert np.isclose(inner_product(wf1,wf1),1,atol=1e-8)
-    assert np.isclose(inner_product(wf2,wf2),1,atol=1e-8)
+    if 'kppsi' in rmesh:
+        wf0=rmesh['kppsi'][0,0,:,:]
+        wf1=rmesh['kppsi'][0,1,:,:]
+        wf2=rmesh['kppsi'][0,2,:,:]
+        from pynitride.mesh import inner_product
+        assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
+        assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
+        assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)
+        assert np.isclose(inner_product(wf1,wf2),0,atol=1e-8)
+        assert np.isclose(inner_product(wf1,wf1),1,atol=1e-8)
+        assert np.isclose(inner_product(wf2,wf2),1,atol=1e-8)
 
     if 0:
         plt.figure()

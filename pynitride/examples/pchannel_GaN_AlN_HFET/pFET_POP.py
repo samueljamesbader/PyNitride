@@ -1,12 +1,14 @@
-from examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh as define_electrical_mesh
-from pynitride.phonons import DielectricContinuum_SWH, DielectricContinuum_BulkWurtzite
-from tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
-from pynitride.reciprocal_mesh import RMesh1D
-from pynitride.paramdb import to_unit, nm, meV, hbar
-from pynitride.sim import Simulation
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 import numpy as np
+
+from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh as define_electrical_mesh
+from pynitride.paramdb import to_unit, nm, hbar
+from pynitride.phonons import DielectricContinuum_SWH, DielectricContinuum_BulkWurtzite
+from pynitride.reciprocal_mesh import RMesh1D
+from pynitride.sim import Simulation
+from tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
+
 
 def define_mesh(sim,**kwargs):
     define_electrical_mesh(sim,**kwargs)

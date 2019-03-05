@@ -56,7 +56,7 @@ crystal=wurtzite
     brillouin
         # See http://lampx.tugraz.at/~hadley/ss1/bzones/hexagonal.php
         symmetry points
-            Gamma:  `lambda a,c: r_[0.,0.,0.]`
+            Γ:  `lambda a,c: r_[0.,0.,0.]`
             A:      `lambda a,c: r_[0,0,pi/c]`
             K:      `lambda a,c: r_[4*pi/(3*a),0,0]`
             H:      `lambda a,c: r_[4*pi/(3*a),0,pi/c]`

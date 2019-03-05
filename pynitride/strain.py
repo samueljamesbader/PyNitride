@@ -14,7 +14,7 @@ class Pseudomorphic():
         return self
 
     def solve(self):
-        with sublog("Solving strain"):
+        #with sublog("Solving strain"):
             self._mesh.ensure_function_exists('exx',0,pos='mid')
             self._mesh.ensure_function_exists('eyy',0,pos='mid')
             self._mesh.ensure_function_exists('ezz',0,pos='mid')
