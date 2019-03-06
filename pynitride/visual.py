@@ -18,7 +18,8 @@ def start_log_file(filename,overwrite=True):
 def log(msg,level="info"):
     msg=str(msg)
     if log._levels.index(level)<=log._showlevel:
-        print("  "*log._depth+msg+"\n",end='',flush=True)
+        print(str(datetime.now())\
+            +"     "+"  "*log._depth+msg+"\n",end='',flush=True)
         if _logfile is not None:
             print(str(datetime.now())\
                 +"     "+"  "*log._depth+msg+"\n",end='',
