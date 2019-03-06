@@ -401,7 +401,8 @@ class ElasticContinuum(AcousticPhonon):
                 counter.increment()
         iqchunks=chunks(range(self.rmesh.N),tasksize)
         for iqchunk in iqchunks:
-            if len(iqchunks)>1: log("Task: "+str(iqchunk[0])+"-"+str(iqchunk[-1]))
+            if len(iqchunks)>1 and parallel is True:
+                log("Task: "+str(iqchunk[0])+"-"+str(iqchunk[-1]))
             pool=Pool.process_pool(new=True) if parallel else FakePool()
             asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
                     callback=partial(save_solve,iq), error_callback=raiser)
