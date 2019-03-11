@@ -353,26 +353,10 @@ class ElasticContinuum(AcousticPhonon):
             if 'phi' in self.rmesh:
                 self.rmesh['phi']=self.rmesh['phi']\
                         [:,self.first_level:self.first_level+self.num_eigs,:]
+        self.piezo=piezo if piezo is True else None
 
-            if 'ec_stiffness_matrices' not in rmesh:
-                log("Assembling EC matrices ...",level='info')
-                if self.vecform=='XZ':
-                    Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
-                elif self.vecform=='Y':
-                    Cmats=m._matblocks[0].matsys.ec_CmatsY(m,self.q)
-                else:
-                    Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
-
-                if parallel: pool=Pool.process_pool(new=True)
-                else: pool=Pool.FakePool()
-                self.rmesh['ec_stiffness_matrices']=pool.starmap(
-                        assemble_stiffness_matrix,\
-                            [(C0,Cl,Cr,C2,m._dzp,False,self._dbot)
-                                for [C0,Cl,Cr,C2] in Cmats])
-                log("Done assembly.",level='info')
-
-        self.piezo=PiezoPotential(self,parallel=parallel) if piezo else None
-
+    _save_with_energies=['en','ec_stiffness_matrices']
+    _save_with_vecs=['en','phi','ec_stiffness_matrices']
     @property
     def _ec_stiffness_matrices(self): return self.rmesh['ec_stiffness_matrices']
 
@@ -389,6 +373,27 @@ class ElasticContinuum(AcousticPhonon):
             self.rmesh['phi'] =PointFunction(self._keepmesh,
                     empty=(len(self.q),self.num_eigs),dtype='complex')
 
+        # Make the EC matrices if we haven't already
+        m=self._solvmesh
+        if 'ec_stiffness_matrices' not in self.rmesh:
+            log("Assembling EC matrices ...",level='info')
+            if self.vecform=='XZ':
+                Cmats=m._matblocks[0].matsys.ec_CmatsXZ(m,self.q)
+            elif self.vecform=='Y':
+                Cmats=m._matblocks[0].matsys.ec_CmatsY(m,self.q)
+            else:
+                Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
+
+            if parallel: pool=Pool.process_pool(new=True)
+            else: pool=Pool.FakePool()
+            self.rmesh['ec_stiffness_matrices']=pool.starmap(
+                    assemble_stiffness_matrix,\
+                        [(C0,Cl,Cr,C2,m._dzp,False,self._dbot)
+                            for [C0,Cl,Cr,C2] in Cmats])
+            log("Done assembly.",level='info')
+        if self.piezo is True:
+            self.piezo=PiezoPotential(self,parallel=parallel)
+
         counter=Counter(print_message="Count: {{:5d}}/{}".format(self.rmesh.N))
         def save_solve(iq,res):
             if just_energies:
@@ -401,7 +406,7 @@ class ElasticContinuum(AcousticPhonon):
                 counter.increment()
         iqchunks=chunks(range(self.rmesh.N),tasksize)
         for iqchunk in iqchunks:
-            if len(iqchunks)>1 and parallel is True:
+            if len(iqchunks)>1 and parallel is True and not Pool._no_parallel:
                 log("Task: "+str(iqchunk[0])+"-"+str(iqchunk[-1]))
             pool=Pool.process_pool(new=True) if parallel else FakePool()
             asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
