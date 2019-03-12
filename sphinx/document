@@ -36,6 +36,7 @@ cat > ../docs/index.html <<EOM
     </head>
 </html>
 EOM
+cp ../docs/html/.nojekyll ../docs/
 
 if $runlatex ; then
     make latexpdf
