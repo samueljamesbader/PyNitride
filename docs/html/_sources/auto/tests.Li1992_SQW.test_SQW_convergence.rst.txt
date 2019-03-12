@@ -1,0 +1,7 @@
+tests.Li1992\_SQW.test\_SQW\_convergence module
+===============================================
+
+.. automodule:: tests.Li1992_SQW.test_SQW_convergence
+    :members:
+    :undoc-members:
+    :show-inheritance:

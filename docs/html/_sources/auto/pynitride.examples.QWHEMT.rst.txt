@@ -1,0 +1,18 @@
+pynitride.examples.QWHEMT package
+=================================
+
+Submodules
+----------
+
+.. toctree::
+
+   pynitride.examples.QWHEMT.QWHEMT_Run_CV
+   pynitride.examples.QWHEMT.QWHEMT_TMUSIC
+
+Module contents
+---------------
+
+.. automodule:: pynitride.examples.QWHEMT
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,7 @@
+pynitride.sim module
+====================
+
+.. automodule:: pynitride.sim
+    :members:
+    :undoc-members:
+    :show-inheritance:

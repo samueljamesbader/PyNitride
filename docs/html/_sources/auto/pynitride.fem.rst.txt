@@ -1,0 +1,7 @@
+pynitride.fem module
+====================
+
+.. automodule:: pynitride.fem
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,7 @@
+pynitride.maths module
+======================
+
+.. automodule:: pynitride.maths
+    :members:
+    :undoc-members:
+    :show-inheritance:

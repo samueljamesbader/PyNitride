@@ -1,0 +1,7 @@
+pynitride.thermal module
+========================
+
+.. automodule:: pynitride.thermal
+    :members:
+    :undoc-members:
+    :show-inheritance:

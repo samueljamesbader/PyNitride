@@ -1,0 +1,7 @@
+tests.Analytical\_POP.SWH\_checks module
+========================================
+
+.. automodule:: tests.Analytical_POP.SWH_checks
+    :members:
+    :undoc-members:
+    :show-inheritance:

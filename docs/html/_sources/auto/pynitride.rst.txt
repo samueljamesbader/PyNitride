@@ -1,0 +1,40 @@
+pynitride package
+=================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    pynitride.examples
+
+Submodules
+----------
+
+.. toctree::
+
+   pynitride.carriers
+   pynitride.cython_loops
+   pynitride.cython_maths
+   pynitride.devices
+   pynitride.fem
+   pynitride.machine
+   pynitride.material
+   pynitride.maths
+   pynitride.mesh
+   pynitride.paramdb
+   pynitride.phonons
+   pynitride.reciprocal_mesh
+   pynitride.sim
+   pynitride.solvers
+   pynitride.strain
+   pynitride.thermal
+   pynitride.visual
+
+Module contents
+---------------
+
+.. automodule:: pynitride
+    :members:
+    :undoc-members:
+    :show-inheritance:
