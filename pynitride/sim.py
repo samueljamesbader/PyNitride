@@ -1,5 +1,5 @@
 from pynitride.visual import  log, sublog
-from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
+from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
 from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
 from pynitride.thermal import ConstantT
 from pynitride.strain import Pseudomorphic
@@ -68,11 +68,12 @@ class Simulation():
         pass
 
     @staticmethod
-    def flow_semiclassicalramp_mbkp(sim,T=300,strain=None,ramp_opts={},mbkp_opts={},loop_opts={}):
+    def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={}):
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
-        Equilibrium(m)
+        lf=Linear_Fermi(m,dict(gate=0,hg=1,subs=2))
+        lf.solve(gate=Va)
         ConstantT(m,T)
         Pseudomorphic(m,straincond=strain)
         ps=PoissonSolver(m)
