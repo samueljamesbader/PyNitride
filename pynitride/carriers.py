@@ -349,14 +349,14 @@ class MultibandKP(CarrierModel):
         normsqs=np.sum(abs(eigvecs)**2,axis=1)
         return eigvals,eigvecs,normsqs
 
-    def solve_point_as_bulk(self,zp=None):
+    def solve_point_as_bulk(self,zp=None,kz=0):
         m=self.mesh
         if zp is not None:
             izp=m.indexp(zp)
         else:
             izp=0
 
-        solved=[eigh(-C[0][:,:,izp]) for i, C in enumerate(self._Cmats)]
+        solved=[eigh(-(C[0][:,:,izp]+2*kz*C[1][:,:,izp]+kz**2*C[3][:,:,izp])) for i, C in enumerate(self._Cmats)]
         return np.array([-s[0] for s in solved]), np.array([s[1].T for s in solved])
 
 
