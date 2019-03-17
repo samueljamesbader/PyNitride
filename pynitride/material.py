@@ -315,7 +315,16 @@ class Wurtzite(MaterialSystem):
                          [        O,            O,          O,    -Delta3, 1j*Delta3,          O],
                          [        O,            O,    -Delta3,     Delta1, 1j*Delta2,          O],
                          [        O,            O, -1j*Delta3, -1j*Delta2,    Delta1,          O],
-                         [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex') + \
+                         [   Delta3,    1j*Delta3,          O,          O,         O,          O]],dtype='complex')\
+                                                *(self._spin_splitting==0) + \
+                    MidFunction(m,[
+                         [   Delta1,   -1j*Delta2,          O,          O,         O,          O],
+                         [1j*Delta2,       Delta1,          O,          O,         O,          O],
+                         [        O,            O,          O,          O,         O,          O],
+                         [        O,            O,          O,     Delta1, 1j*Delta2,          O],
+                         [        O,            O,          O, -1j*Delta2,    Delta1,          O],
+                         [        O,            O,          O,          O,         O,          O]],dtype='complex')\
+                                                *(self._spin_splitting!=0) + \
                     MidFunction(m,[
                          [     ss/2,            O,          O,          O,         O,          O],
                          [        O,         ss/2,          O,          O,         O,          O],
