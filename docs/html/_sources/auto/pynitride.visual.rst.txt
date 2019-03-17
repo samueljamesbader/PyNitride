@@ -1,0 +1,7 @@
+pynitride.visual module
+=======================
+
+.. automodule:: pynitride.visual
+    :members:
+    :undoc-members:
+    :show-inheritance:

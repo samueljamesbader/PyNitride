@@ -1,0 +1,571 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pynitride.phonons module &#8212; PyNitride 2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pynitride.reciprocal_mesh module" href="pynitride.reciprocal_mesh.html" />
+    <link rel="prev" title="pynitride.paramdb module" href="pynitride.paramdb.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pynitride.phonons">
+<span id="pynitride-phonons-module"></span><h1>pynitride.phonons module<a class="headerlink" href="#module-pynitride.phonons" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pynitride.phonons.AcousticPhonon">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">AcousticPhonon</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>keepmesh=None</em>, <em>first_level=0</em>, <em>vecform='XYZ'</em>, <em>deformation=True</em>, <em>piezo=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.AcousticPhonon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.PhononModel" title="pynitride.phonons.PhononModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.PhononModel</span></code></a></p>
+<p>Superclass for acoustic phonons.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>first_level</strong> (<em>solvmesh</em><em>,</em><em>rmesh</em><em>,</em><em>keepmesh</em><em>,</em>) – see <a class="reference internal" href="#pynitride.phonons.PhononModel" title="pynitride.phonons.PhononModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhononModel</span></code></a></li>
+<li><strong>vecform</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Format for the vecs, ‘XZ’, ‘XYZ’, or ‘Y’</li>
+<li><strong>deformation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to include deformation potential
+effects in matrix elements</li>
+<li><strong>piezo</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to solve for the piezoelectric potential
+induced by the phonon and use it in matrix elements</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.phonons.AcousticPhonon.I2">
+<code class="descname">I2</code><span class="sig-paren">(</span><em>carrier</em>, <em>psii</em>, <em>psij</em>, <em>iq</em>, <em>thetaq</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.I2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The matrix element squared between two wavefunctions</p>
+<p>See <a class="reference internal" href="#pynitride.phonons.PhononModel.I2" title="pynitride.phonons.PhononModel.I2"><code class="xref py py-func docutils literal notranslate"><span class="pre">PhononModel.I2()</span></code></a> for arguments and returns.</p>
+<p>Note: if both piezo and deformation potentials are included, they
+are combined coherently (ie <em>inside</em> the squaring).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.AcousticPhonon.deformation">
+<code class="descname">deformation</code><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.deformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to include deformation potential effects
+in matrix elements</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.AcousticPhonon.piezo">
+<code class="descname">piezo</code><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.piezo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to solve for the piezoelectric potential
+induced by the phonon and use it in matrix elements</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.AcousticPhonon.strain">
+<code class="descname">strain</code><span class="sig-paren">(</span><em>iq</em>, <em>thetaq</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.strain" title="Permalink to this definition">¶</a></dt>
+<dd><p>The strain profile</p>
+<p>The strains returned are physicist strains, not engineering strains,
+eg <span class="math notranslate nohighlight">\(e_{xy}=\frac{1}{2}\left(\partial_xu_y+\partial_yu_x\right)\)</span></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
+<li><strong>l</strong> – which eigenvalue to use of those solved for</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple of six MidFunctions (exx,exy,exz,eyy,eyz,ezz)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.AcousticPhonon.u">
+<code class="descname">u</code><span class="sig-paren">(</span><em>iq</em>, <em>thetaq</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.u" title="Permalink to this definition">¶</a></dt>
+<dd><p>The displacement profile</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
+<li><strong>l</strong> – which eigenvalue to use of those solved for</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple of three PointFunctions (ux,uy,uz)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.AcousticPhonon.vecform">
+<code class="descname">vecform</code><a class="headerlink" href="#pynitride.phonons.AcousticPhonon.vecform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format for the vecs, ‘XZ’, ‘XYZ’, or ‘Y’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.DielectricContinuum_BulkWurtzite">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">DielectricContinuum_BulkWurtzite</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>thickness</em>, <em>matname</em>, <em>keepmesh=None</em>, <em>first_level=0</em>, <em>pol='L'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_BulkWurtzite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.OpticalPhonon" title="pynitride.phonons.OpticalPhonon"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.OpticalPhonon</span></code></a></p>
+<dl class="attribute">
+<dt id="pynitride.phonons.DielectricContinuum_BulkWurtzite.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_BulkWurtzite.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.DielectricContinuum_BulkWurtzite.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>just_energies=False</em>, <em>print_count=False</em>, <em>mode_iqs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_BulkWurtzite.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.DielectricContinuum_SWH">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">DielectricContinuum_SWH</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_spec_eigs</em>, <em>num_eigs=None</em>, <em>first_level=0</em>, <em>keepmesh=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_SWH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.OpticalPhonon" title="pynitride.phonons.OpticalPhonon"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.OpticalPhonon</span></code></a></p>
+<p>Solves for the extraordinary PO phonons in a Single Wurtzite Heterojunction.</p>
+<p>See the Dielectric Continuum <a class="reference internal" href="../manual/DC.html#bwh"><span class="std std-ref">Binary Wurtzite Heterojunction</span></a> model for the relevant mathematics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>solvmesh</strong> – The mesh to solve on, should contain one <a class="reference internal" href="pynitride.material.html#pynitride.material.Wurtzite" title="pynitride.material.Wurtzite"><code class="xref py py-class docutils literal notranslate"><span class="pre">Wurtzite</span></code></a> material block, which
+has two layers of uniform molefraction.</li>
+<li><strong>rmesh</strong> – The <code class="xref py py-class docutils literal notranslate"><span class="pre">RMesh_1D</span></code> which specifies the <span class="math notranslate nohighlight">\(q\)</span> points</li>
+<li><strong>num_spec_eigs</strong> – should be a dictionary indicating how many eigenvalues are desired for each mode
+type, ie mapping the names <cite>‘TOl’,’TOIF’,’TOu’,’LOl’,’LOIF’,’LOu’</cite> to integers.  <cite>‘l’,’IF’,’u’</cite> refer to
+the lower-region confined, interface, and upper-region confined modes respectively</li>
+<li><strong>num_eigs</strong> – if specified, only this many contiguous eigenvalues will be used out of the modes specified
+by <cite>num_spec_eigs</cite></li>
+<li><strong>first_level</strong> – can be used in combination with <cite>num_eigs</cite> to select which set of <cite>num_eigs</cite>
+eigenvalues will be used.</li>
+<li><strong>keepmesh</strong> – the mesh on which to actually store the solved <cite>phi</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.phonons.DielectricContinuum_SWH.get_mode_by_name">
+<code class="descname">get_mode_by_name</code><span class="sig-paren">(</span><em>name</em>, <em>num</em>, <em>iq=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_SWH.get_mode_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function to pull particular modes from the <cite>phi</cite> array by name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of the mode type,
+eg <cite>‘TOu’</cite> for the TO mode confined to the upper region</li>
+<li><strong>num</strong> – which of the modes solved for to return
+(indexed from 0 being the first solved-for mode of this type)</li>
+<li><strong>iq</strong> – if specified, will return only for the given <span class="math notranslate nohighlight">\(q\)</span> index
+(may be integer or slice)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple of the energy(ies), potential(s)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.DielectricContinuum_SWH.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_SWH.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.DielectricContinuum_SWH.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>just_energies=False</em>, <em>print_count=False</em>, <em>mode_iqs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_SWH.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Actually solve for the modes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.DielectricContinuum_SWH.w_IF">
+<code class="descname">w_IF</code><span class="sig-paren">(</span><em>pol='T'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.DielectricContinuum_SWH.w_IF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the inteface resonant frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pol</strong> – the polarization ‘T’ or ‘L’</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple of the interface resonant frequency and +1/-1 indicating the mode is
+found above/below this frequency respectively</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.ElasticContinuum">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">ElasticContinuum</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>keepmesh=None</em>, <em>vecform='XYZ'</em>, <em>first_level=0</em>, <em>parallel=True</em>, <em>deformation=True</em>, <em>piezo=False</em>, <em>dirichelet_bottom=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.ElasticContinuum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.AcousticPhonon" title="pynitride.phonons.AcousticPhonon"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.AcousticPhonon</span></code></a></p>
+<p>Note: this parallel is not the same as the one in solve()</p>
+<dl class="attribute">
+<dt id="pynitride.phonons.ElasticContinuum.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.ElasticContinuum.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.ElasticContinuum.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>just_energies=False</em>, <em>parallel=True</em>, <em>print_count=True</em>, <em>mode_iqs=None</em>, <em>tasksize=600</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.ElasticContinuum.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.ElasticContinuum.solve_one_q">
+<code class="descname">solve_one_q</code><span class="sig-paren">(</span><em>q</em>, <em>iq=None</em>, <em>just_energies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.ElasticContinuum.solve_one_q" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.ElasticContinuum_BulkWurtzite">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">ElasticContinuum_BulkWurtzite</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>thickness</em>, <em>matname</em>, <em>keepmesh=None</em>, <em>first_level=0</em>, <em>vecform='XYZ'</em>, <em>polXZ='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.ElasticContinuum_BulkWurtzite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.AcousticPhonon" title="pynitride.phonons.AcousticPhonon"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.AcousticPhonon</span></code></a></p>
+<dl class="attribute">
+<dt id="pynitride.phonons.ElasticContinuum_BulkWurtzite.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.ElasticContinuum_BulkWurtzite.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.ElasticContinuum_BulkWurtzite.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>just_energies=False</em>, <em>print_count=False</em>, <em>mode_iqs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.ElasticContinuum_BulkWurtzite.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.OpticalPhonon">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">OpticalPhonon</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>keepmesh=None</em>, <em>first_level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.OpticalPhonon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.phonons.PhononModel" title="pynitride.phonons.PhononModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.phonons.PhononModel</span></code></a></p>
+<dl class="method">
+<dt id="pynitride.phonons.OpticalPhonon.I2">
+<code class="descname">I2</code><span class="sig-paren">(</span><em>carrier</em>, <em>psii</em>, <em>psij</em>, <em>iq</em>, <em>thetaq</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.OpticalPhonon.I2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The matrix element squared between two wavefunctions</p>
+<p>See <a class="reference internal" href="#pynitride.phonons.PhononModel.I2" title="pynitride.phonons.PhononModel.I2"><code class="xref py py-func docutils literal notranslate"><span class="pre">PhononModel.I2()</span></code></a> for arguments and returns.</p>
+<p>Note:<cite>thetaq</cite> does not actually matter for optical phonons.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.PhononModel">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">PhononModel</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>keepmesh=None</em>, <em>first_level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Superclass for all phonon models.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>solvmesh</strong> – the direct mesh on which to perform the phonon solve</li>
+<li><strong>rmesh</strong> – the 1-D reciprocal mesh on which to perform the phonon solve</li>
+<li><strong>num_eigs</strong> – the number of eigenvalues to solve for</li>
+<li><strong>keepmesh</strong> – the direct mesh on which phonon modes will actually be
+desired, eg for a scattering problem, just the region where the
+carriers are.  This should be a submesh of <cite>solvmesh</cite>.</li>
+<li><strong>first_level</strong> – the index of the first eigenvalue which should be
+solved for.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.I2">
+<code class="descname">I2</code><span class="sig-paren">(</span><em>carrier</em>, <em>psii</em>, <em>psij</em>, <em>iq</em>, <em>thetaq</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.I2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The matrix element squared between two wavefunctions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>psij</strong> (<em>psii</em><em>,</em>) – the two wavefunctions (as 2-D PointFunctions)</li>
+<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
+<li><strong>l</strong> – which eigenvalue to use of those solved for</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the squared matrix element</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.en">
+<code class="descname">en</code><span class="sig-paren">(</span><em>iq=slice(None</em>, <em>None</em>, <em>None)</em>, <em>l=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.en" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <cite>l</cite>-th energy at q-index <cite>iq</cite>.</p>
+<p>Note: <cite>l</cite> is an absolute index,
+ie <cite>l</cite> should not be lower than first_level</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.PhononModel.first_level">
+<code class="descname">first_level</code><a class="headerlink" href="#pynitride.phonons.PhononModel.first_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>The index of the first eigenvalue to solve for</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.interp_energy">
+<code class="descname">interp_energy</code><span class="sig-paren">(</span><em>absk</em>, <em>l</em>, <em>bounds_check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.interp_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the interpolated energy at a point in reciprocal space</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>absk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the point in reciprocal space</li>
+<li><strong>l</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – the mode index (absolute)</li>
+<li><strong>bounds_check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to complain if absk is out of
+interpolation bounds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.interp_radial_group_velocity">
+<code class="descname">interp_radial_group_velocity</code><span class="sig-paren">(</span><em>absk</em>, <em>l</em>, <em>bounds_check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.interp_radial_group_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the interpolated radial group velocity at a point in reciprocal space</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>absk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the point in reciprocal space</li>
+<li><strong>l</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – the mode index (absolute)</li>
+<li><strong>bounds_check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to complain if absk is out of
+interpolation bounds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.PhononModel.num_eigs">
+<code class="descname">num_eigs</code><a class="headerlink" href="#pynitride.phonons.PhononModel.num_eigs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of eigenvalues to solve for</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.phi">
+<code class="descname">phi</code><span class="sig-paren">(</span><em>iq=slice(None</em>, <em>None</em>, <em>None)</em>, <em>l=slice(None</em>, <em>None</em>, <em>None)</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <cite>l</cite>-th potential at q-index <cite>iq</cite>.</p>
+<p>Note: <cite>l</cite> is an absolute index,
+ie <cite>l</cite> should not be lower than first_level</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.PhononModel.q">
+<code class="descname">q</code><a class="headerlink" href="#pynitride.phonons.PhononModel.q" title="Permalink to this definition">¶</a></dt>
+<dd><p>The q values of the <cite>self.rmesh</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>name</em>, <em>just_energies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the phonon solve from a file.</p>
+<p>If reading mode vectors and/or potentials, checks the dimensions.
+If dimensions are incorrect, any new keys in rmesh
+will be cleared away and then an error will be raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the file to save to</li>
+<li><strong>just_energies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True, read only the energies,
+otherwise read energies, mode vecs and/or potentials.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.PhononModel.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.PhononModel.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>The reciprocal mesh on which to solve</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>just_energies=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the phonon solve to a file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the file to save to</li>
+<li><strong>just_energies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True, save only the energies,
+otherwise save energies, mode vecs and/or potentials.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>mode_iqs=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PhononModel.vecs">
+<code class="descname">vecs</code><span class="sig-paren">(</span><em>iq=slice(None</em>, <em>None</em>, <em>None)</em>, <em>l=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel.vecs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <cite>l</cite>-th mode vector at q-index <cite>iq</cite>.</p>
+<p>Note: <cite>l</cite> is an absolute index,
+ie <cite>l</cite> should not be lower than first_level</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.phonons.PiezoPotential">
+<em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">PiezoPotential</code><span class="sig-paren">(</span><em>pm</em>, <em>parallel=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PiezoPotential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="pynitride.phonons.PiezoPotential.q">
+<code class="descname">q</code><a class="headerlink" href="#pynitride.phonons.PiezoPotential.q" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.phonons.PiezoPotential.rmesh">
+<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.phonons.PiezoPotential.rmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.phonons.PiezoPotential.solve_one_q">
+<code class="descname">solve_one_q</code><span class="sig-paren">(</span><em>q</em>, <em>iq</em>, <em>vec</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PiezoPotential.solve_one_q" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../manual/index.html">
+              <img class="logo" src="../_static/Logo.svg" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="../manual/index.html">PyNitride</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../manual/math_and_physics.html">    Math and Physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/overall_flow.html">    Software Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">    API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../manual/index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">PyNitride</a><ul>
+  <li><a href="pynitride.html">pynitride package</a><ul>
+      <li>Previous: <a href="pynitride.paramdb.html" title="previous chapter">pynitride.paramdb module</a></li>
+      <li>Next: <a href="pynitride.reciprocal_mesh.html" title="next chapter">pynitride.reciprocal_mesh module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Samuel James Bader.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/auto/pynitride.phonons.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

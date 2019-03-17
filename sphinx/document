@@ -23,12 +23,20 @@ do
     esac
 shift
 done
-cd docs
+cd sphinx
 if $runapidoc ; then
-    sphinx-apidoc -o auto ../ ../examples ../setup.py  ../tests/old -f -e
+    sphinx-apidoc -o auto ../ ../setup.py  ../tests/old -f -e
 fi
 
 make html
+cat > ../docs/index.html <<EOM
+<html>
+    <head>
+        <meta http-equiv="refresh" content="0; url=./html/manual/index.html" />
+    </head>
+</html>
+EOM
+cp ../docs/html/.nojekyll ../docs/
 
 if $runlatex ; then
     make latexpdf

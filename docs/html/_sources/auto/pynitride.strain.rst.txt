@@ -1,0 +1,7 @@
+pynitride.strain module
+=======================
+
+.. automodule:: pynitride.strain
+    :members:
+    :undoc-members:
+    :show-inheritance:

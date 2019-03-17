@@ -1,0 +1,7 @@
+pynitride.mesh module
+=====================
+
+.. automodule:: pynitride.mesh
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,20 @@
+tests.Pokatilov2003\_phonon package
+===================================
+
+Submodules
+----------
+
+.. toctree::
+
+   tests.Pokatilov2003_phonon.phonon_analysis
+   tests.Pokatilov2003_phonon.test_GaN_slab
+   tests.Pokatilov2003_phonon.test_SW
+   tests.Pokatilov2003_phonon.test_SW_justXZ
+
+Module contents
+---------------
+
+.. automodule:: tests.Pokatilov2003_phonon
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,19 @@
+tests package
+=============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    tests.Analytical_POP
+    tests.Li1992_SQW
+    tests.Pokatilov2003_phonon
+
+Module contents
+---------------
+
+.. automodule:: tests
+    :members:
+    :undoc-members:
+    :show-inheritance:

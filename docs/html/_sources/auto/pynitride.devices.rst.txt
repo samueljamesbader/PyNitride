@@ -1,0 +1,7 @@
+pynitride.devices module
+========================
+
+.. automodule:: pynitride.devices
+    :members:
+    :undoc-members:
+    :show-inheritance:

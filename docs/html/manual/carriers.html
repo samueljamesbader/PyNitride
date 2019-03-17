@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Carrier Models &#8212; PyNitride 2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dielectric Continuum Model" href="DC.html" />
+    <link rel="prev" title="Physics in PyNitride" href="math_and_physics.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="carrier-models">
+<span id="carriers"></span><h1>Carrier Models<a class="headerlink" href="#carrier-models" title="Permalink to this headline">¶</a></h1>
+<p>This page describes the physics of the carrier models implemented in <a class="reference internal" href="../auto/pynitride.carriers.html#module-pynitride.carriers" title="pynitride.carriers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">carriers</span></code></a>.</p>
+<div class="section" id="semiclassical">
+<span id="carriers-semiclassical"></span><h2>Semiclassical<a class="headerlink" href="#semiclassical" title="Permalink to this headline">¶</a></h2>
+<p>The Semiclassical model is the simplest carrier occupation scheme, employing only the three-dimensional semiconductor bulk bands and Fermi occupation statistics</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  n(z)=\sum_lN^l_{C}(z)\mathcal{F}_{1/2}\left(\frac{E_F(z)-E_C(z)-\Delta E^l_{C}(z)}{kT}\right)\\
+  p(z)=\sum_lN^l_{V}(z)\mathcal{F}_{1/2}\left(\frac{E_V(z)-\Delta E^l_{V}(z)-E_F(z)}{kT}\right)
+\end{align}\end{split}\]</div>
+<p>The <span class="math notranslate nohighlight">\(l\)</span> is a sum over subbands and the <span class="math notranslate nohighlight">\(\Delta E^l_{C/V}\)</span> are subband-specific offsets from the band-edge.
+For instance, the split-off subband in GaN can be hundreds of meV away from the band edge under compressive strain.</p>
+<p>The subband-specific conduction/valence band effective DOS are given by</p>
+<div class="math notranslate nohighlight">
+\[N^l_{C/V}(z)=g_vg_s\left(\frac{2m^l_\mathrm{3D}(z)kT}{2\pi\hbar^2}\right)^{3/2}\]</div>
+<p>where  <span class="math notranslate nohighlight">\(m^l_{3D}\)</span> is the geometric mean of three directional effective masses
+and <span class="math notranslate nohighlight">\(\mathcal{F}_{j}(\eta)\)</span> is the Fermi-Dirac integral of order <span class="math notranslate nohighlight">\(j\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{F}_{j}(\eta)=\frac{1}{\Gamma(j+1)}\int_0^\infty\frac{x^jdx}{1+e^{x-\eta}}\]</div>
+<p>The derivatives with respect to the bands are given by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  n'(z)=-\sum_l\frac{N^l_{C}(z)}{kT}\mathcal{F}_{-1/2}\left(\frac{E_F(z)-E_C(z)-\Delta E^l_{C}(z)}{kT}\right)\\
+  p'(z)=+\sum_l\frac{N^l_{V}(z)}{kT}\mathcal{F}_{-1/2}\left(\frac{E_V(z)-\Delta E^l_{V}(z)-E_F(z)}{kT}\right)
+\end{align}\end{split}\]</div>
+</div>
+<div class="section" id="schrodinger">
+<h2>Schrodinger<a class="headerlink" href="#schrodinger" title="Permalink to this headline">¶</a></h2>
+<p>The Schrodinger model solves for the eigenstates of each subband separately.</p>
+<div class="section" id="full-k-space">
+<h3>Full k-space<a class="headerlink" href="#full-k-space" title="Permalink to this headline">¶</a></h3>
+<p>The “full k-space” Schrodinger option [not implemented yet]
+solves the Schrodinger problem with the BenDaniel and Duke Hamiltonian at a range of points in k-space and integrates up the density.
+For the conduction and valence bands respectively</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  \left[-\partial_z\frac{\hbar^2}{2m^l_z(z)}\partial_z +\frac{\hbar^2k_t^2}{2m^l_t(z)}+ E_C(z)+\Delta E_C^i(z) - E_{i, k_t}\right]\psi_{i, k_t}(z)=0\\
+  \left[\partial_z\frac{\hbar^2}{2m^l_{z}(z)}\partial_z-\frac{\hbar^2k_t^2}{2m^l_t(z)} + E_V^l(z) -\Delta E_V^i(z) - E^l_{i, k_t}\right]\psi^l_{i, k_t}(z)=0
+\end{align}\end{split}\]</div>
+<p>where the <span class="math notranslate nohighlight">\(l\)</span> is a subband index, <span class="math notranslate nohighlight">\(m_z\)</span> and <span class="math notranslate nohighlight">\(m_t\)</span> are the longitudinal and transverse effective masses,
+and the <span class="math notranslate nohighlight">\(\Delta E_{C/V}\)</span> are subband-specific offsets.
+where for electrons <span class="math notranslate nohighlight">\(b=-1,\ U_\sigma=E_C+\Delta E_{Ci}\)</span> and
+for holes <span class="math notranslate nohighlight">\(b=+1,\ U_\sigma=E_V-\Delta E_{Vi}\)</span>.  These levels are occupied as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  n(z)=g_sg_v\sum_{i, l}\int_{k_t}2\pi k_tdk_t \left|\psi^l_i\right|^2 /\left(1+\exp\left\{\frac{E_{i, k_t}-E_F}{kT}\right\}\right)\\
+  p(z)=g_sg_v\sum_{i, l}\int_{k_t}2\pi k_tdk_t \left|\psi^l_i\right|^2 /\left(1+\exp\left\{\frac{E_F-E^l_{i, k_t}}{kT}\right\}\right)
+\end{align}\end{split}\]</div>
+<p>Note that, even though a parabolic E-k relation is assumed for the bulk carrier, the resulting energy levels may not be parabolic
+with respect to transverse momentum because the transverse kinetic term is spatially varying in a general heterostructure, complicating
+the dispersion of the energy levels.  However, often in relevant problems, the carrier is confined to mainly one material and the non-uniformity
+of the transverse effective mass is merely a perturbation.  In such cases, the parabolic k-space solution may suffice.</p>
+</div>
+<div class="section" id="parabolic-k-space">
+<h3>Parabolic k-space<a class="headerlink" href="#parabolic-k-space" title="Permalink to this headline">¶</a></h3>
+<p>The “parabolic” Schrodinger option solves the Schrodinger problem at <span class="math notranslate nohighlight">\(k_t=0\)</span> and then, for each wavefunction, averages harmonically
+over the transverse effective masses which that wavefunction sees to compute the appropriate effective mass to use for the parabolic transverse
+dispersion of that level.</p>
+<p>The Schrodinger equation is the same as above (only solved at at <span class="math notranslate nohighlight">\(k_t=0\)</span>), but the carrier density expressions are simplified:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  \left\{n/p\right\}(z)=g_sg_v\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}kT}{2\pi\hbar^2}\ln\left[1+\exp\left\{\eta^l_{i, n/p}\right\}\right]\\
+\end{align}\end{split}\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+\eta^l_{i, n}=\frac{E_F-E^l_i}{kT},\quad \eta^l_{i, p}=\frac{E^l_i-E_F}{kT}
+\end{equation}\]</div>
+<p>and</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  1/\overline{m}^l_{t,i}=\int dz \frac{\left|\psi_i^l(z)\right|^2}{m^l_{t}(z)}
+\end{equation}\]</div>
+<p>and the derivatives</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  \left\{n'/p'\right\}(z)=g_sg_vb\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}}{2\pi\hbar^2}\frac{\exp\left\{\eta^l_{i, n/p}\right\}}{1+\exp\left\{\eta^l_{i, n/p}\right\}}\\
+\end{align}\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(b\)</span> as above.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="../_static/Logo.svg" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">PyNitride</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="math_and_physics.html">    Math and Physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overall_flow.html">    Software Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../auto/modules.html">    API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="math_and_physics.html">Physics in PyNitride</a><ul>
+      <li>Previous: <a href="math_and_physics.html" title="previous chapter">Physics in PyNitride</a></li>
+      <li>Next: <a href="DC.html" title="next chapter">Dielectric Continuum Model</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Samuel James Bader.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/manual/carriers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

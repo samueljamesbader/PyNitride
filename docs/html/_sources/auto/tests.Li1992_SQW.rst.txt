@@ -1,0 +1,18 @@
+tests.Li1992\_SQW package
+=========================
+
+Submodules
+----------
+
+.. toctree::
+
+   tests.Li1992_SQW.test_SQW
+   tests.Li1992_SQW.test_SQW_convergence
+
+Module contents
+---------------
+
+.. automodule:: tests.Li1992_SQW
+    :members:
+    :undoc-members:
+    :show-inheritance:
