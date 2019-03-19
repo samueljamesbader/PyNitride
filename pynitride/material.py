@@ -176,11 +176,36 @@ class Wurtzite(MaterialSystem):
         beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
         Eg_re=Eg0-alpha*m.T**2/(m.T+beta)
 
+        # 3x3 valence band without strain
+        H1=m.Delta1+m.Delta2
+        H2=m.Delta1-m.Delta2
+        H3=0
+        E1=H1
+        E2=((H2+H3)+np.sqrt((H2+H3)**2-4*(H2*H3-2*m.Delta3**2)))/2
+        E3=((H2+H3)-np.sqrt((H2+H3)**2-4*(H2*H3-2*m.Delta3**2)))/2
 
-        s=(m.exx+m.eyy)/2
-        Sigma2=(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*2*s
-        Sigmac=(m.a1+m.D1)*m.ezz+(m.a2+m.D2)*2*s
+        # This is the top of the kp valence band without strain
+        EV0=MidFunction(m,np.max([m.Delta1+m.Delta2,m.Delta1-m.Delta2,m.zeros_mid],axis=0))
 
+        # 3x3 valence band including strain
+        H1=m.Delta1+m.Delta2+(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*(m.exx+m.eyy)
+        H2=m.Delta1-m.Delta2+(m.D1+m.D3)*m.ezz+(m.D2+m.D4)*(m.exx+m.eyy)
+        H3=                  (m.D1     )*m.ezz+(m.D2     )*(m.exx+m.eyy)
+        E1=H1
+        E2=((H2+H3)+np.sqrt((H2+H3)**2-4*(H2*H3-2*m.Delta3**2)))/2
+        E3=((H2+H3)-np.sqrt((H2+H3)**2-4*(H2*H3-2*m.Delta3**2)))/2
+
+        # This is the top of the kp valence band with strain
+        EV=MidFunction(m,np.max([E1,E2,E3],axis=0))
+
+
+        # How the VB edge moves with strain
+        Sigma2=EV-EV0
+        # How the CB edge moves with strain
+        Sigmac=(m.a1+m.D1)*m.ezz+(m.a2+m.D2)*(m.exx+m.eyy)
+
+        # E0 is the midband energy of the unstrained band
+        # Material offsets will be expressed in terms of difference of E0
         m['Eg']=Eg_re + Sigmac-Sigma2
         m['E0-Ev']=Eg_re/2  -Sigma2
         m['Ec-E0']=Eg_re/2  +Sigmac
@@ -190,7 +215,7 @@ class Wurtzite(MaterialSystem):
         # so subtract that out from Ev to get an Ev_raw.
         # Also, the bandedge in the Hamiltonian is not zero, it's max(Delta1+Delta2,Delta1-Delta2,0)
         # So let's set Ev_raw to Ev minus that amount to make sure the bulk solution top energy is Ev
-        m['EvOffset']=-Sigma2-np.maximum(m.Delta1+m.Delta2,m.Delta1-m.Delta2,MidFunction(m,0))
+        m['EvOffset']=-EV
 
         # Similarly, here's the thing to add to Ec before solving kp
         # so that strain shift is included directly into kp Hamiltonian not Ec

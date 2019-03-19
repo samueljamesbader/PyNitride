@@ -121,3 +121,15 @@ material=AlN
         wTO_perp:   673     2*pi*c/cm
     dielectric
         eps_inf:    4.68    epsilon_0
+
+######
+## VBO
+######
+
+# These settings, along with the VM2003 kp parameters,
+# result in a VBO of .85 for GaN/AlN
+#       and a VBO of .18 for AlN/GaN
+material=GaN
+    DE: 0    eV
+material=AlN
+    DE:  .55 eV
