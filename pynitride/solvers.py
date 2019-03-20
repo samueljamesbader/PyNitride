@@ -183,7 +183,7 @@ class PoissonSolver():
 
         # Solve and update
         fem_solve(self._stiffness_matrix,self._load_matrix,load_vec=m.rho,
-                  val_out=m.phi,dirichelet1=True, dirichelet2=False)
+                  val_out=m.phi,n=1,dirichelet1=True, dirichelet2=False)
         PoissonSolver.update_bands_to_potential(m,sbh=self._sbh)
 
     def newton_step(self, activation=1, doplot=False):
@@ -344,16 +344,16 @@ class SelfConsistentLoop():
     def isolve_fields(self, activation=1):
         return sum(fs.newton_step(activation=activation) for fs in self._fs)
     def solve_fields(self):
-        return sum(fs.solve() for fs in self._fs)
+        return [fs.solve() for fs in self._fs]
     def solve_carriers(self):
         [cs.solve_and_repopulate() for cs in self._cs]
 
-    def loop(self, tol=1e-5, max_iter=100, min_activation=.05):
+    def loop(self, tol=1e-5, max_iter=100, min_activation=.05,init_activation=1):
         adec=2
         with sublog("Starting SC loop"):
             err=np.inf
             i=0
-            a=1
+            a=init_activation
             while err/a>tol:
                 if i>=max_iter:
                     raise Exception("Maximum iteration reached in SC loop")
@@ -422,3 +422,48 @@ class SelfConsistentLoop():
                     # if we passed the end, go back
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
             log("Done eps factor ramp")
+
+    def ramp_param(self, name, xstart, xstop, dxstart=.1, dxmax=.5, dmin=.005,
+            max_iter=20, tol=1e-5, min_activation=.1):
+        with sublog("Starting {} ramp from {:g} to {:g}".format(name,start,stop)):
+            x=xstart
+
+            dxstart*=np.sign(xstop-xstart)
+            dx=dxstart
+            prevx=None
+            while True:
+                log("{}: {:.2g}".format(name,x))
+
+                for fs in self._fs:
+                    fs.store_state()
+                    fs.update_epsfactor(ef)
+                    self.isolve_fields()
+                try:
+                    self.loop(max_iter=max_iter, tol=tol, min_activation=min_activation)
+                    if (x-xstop)<1e-9:
+                        break
+
+                    # Next x
+                    prevx=x
+                    dx=np.sign(dx)*min(np.abs(2*dx),np.abs(dxmax))
+                    x=x+dx
+                    # if we passed the end, go back
+                    if np.sign(x-xstop)!=np.sign(xstart-xstop): x=xstop
+                except Exception as e:
+                    log("Failure: {}".format(str(e)))
+                    if prevx is None:
+                        raise Exception("Failed at initial epsfactor")
+                    x=prevx
+                    log("Restoring at {:.2e}".format(x))
+                    for fs in self._fs:
+                        fs.restore_state()
+                        fs.update_epsfactor(x)
+                    self.solve_carriers()
+
+                    dx=dx/2
+                    if np.abs(dx)<np.abs(dx):
+                        raise Exception("Eps factor step size too small")
+                    x=prevx+dx
+                    # if we passed the end, go back
+                    if np.sign(x-xstop)!=np.sign(xstart-xstop): x=xstop
+            log("Done {} ramp".format(name))
