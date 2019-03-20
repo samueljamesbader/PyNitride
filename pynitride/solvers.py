@@ -317,7 +317,8 @@ class Linear_Fermi():
     def __init__(self,mesh,contacts={'gate':0,'subs':-1}):
         self._mesh=mesh
         interfaces=[(0,None)]+mesh._interfacesp+[((len(mesh.zp)-1),None)]
-        self._contacts=OrderedDict(sorted([(k,interfaces[v][0]) for k,v in contacts.items()],key=lambda x:x[1]))
+        self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexp(v))
+                                   for k,v in contacts.items()],key=lambda x:x[1] if hasattr(x,'__getitem__') else x))
         mesh['EF']=PointFunction(mesh)
 
     def solve(self,**voltages):

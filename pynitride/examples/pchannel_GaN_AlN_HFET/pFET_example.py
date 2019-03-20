@@ -16,17 +16,14 @@ from pynitride.visual import log
 
 def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV):
 
-    assert well_t>4
-
     # Set up the main mesh
     m=sim.dmeshes['main']=Mesh([
         MaterialBlock("epi",AlGaN(spin_splitting=ss),[
-            UniformLayer("cap"  ,  well_t-4, x=0, DeepDonorDonorConc=Ndd),
-            UniformLayer("chan"  ,  4, x=0, DeepDonorDonorConc=Ndd),
+            UniformLayer("well"  ,  well_t, x=0, DeepDonorDonorConc=Ndd),
             UniformLayer("buffer",  buff_t, x=1, DeepDonorDonorConc=Ndd),
         ])],
         max_dz=max_dz,
-        refinements=[[0,.03*nm,2],['chan/buffer',.01*nm,1.5]],
+        refinements=[[0,.03*nm,2],['well/buffer',.01*nm,1.5]],
         uniform=False,boundary=[sbh,"thick"])
     log("Mesh points "+str(m.Np))
 
@@ -38,6 +35,7 @@ def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.
     sim.rmeshes['mbkp_out'  ]=RMesh2D_Polar.regular(kmax=4.8/nm,numabsk=48,numtheta=4,align_theta=True,d=1)
 
     sim.extras['well_t']=well_t
+    sim.extras['sourcepoint']=float(well_t-4)
 
 if __name__=="__main__":
 
