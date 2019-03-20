@@ -129,6 +129,9 @@ material=AlN
 # These settings, along with the VM2003 kp parameters,
 # result in a VBO of .85 for GaN/AlN
 #       and a VBO of .18 for AlN/GaN
+# in rough agreement with pg 425 of
+# Morkoc, "Handbook of Nitride Semiconductors and Devices,
+#   Vol II: Electronic and Optical Processes in Nitrides"
 material=GaN
     DE: 0    eV
 material=AlN
