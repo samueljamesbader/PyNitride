@@ -72,7 +72,7 @@ class Simulation():
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
-        lf=Linear_Fermi(m,dict(gate=0,hg=1,subs=2))
+        lf=Linear_Fermi(m,dict(gate=0,hg=1,subs=-1))
         lf.solve(gate=Va)
         ConstantT(m,T)
         Pseudomorphic(m,straincond=strain)
