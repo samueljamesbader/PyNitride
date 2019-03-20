@@ -356,8 +356,9 @@ class MultibandKP(CarrierModel):
         else:
             izp=0
 
+        assert self._carrier=='hole'
         solved=[eigh(-(C[0][:,:,izp]+2*kz*C[1][:,:,izp]+kz**2*C[3][:,:,izp])) for i, C in enumerate(self._Cmats)]
-        return np.array([-s[0] for s in solved]), np.array([s[1].T for s in solved])
+        return np.array([-s[0]+m.EvOffset[izp] for s in solved]), np.array([s[1].T for s in solved])
 
 
     def repopulate(self):
