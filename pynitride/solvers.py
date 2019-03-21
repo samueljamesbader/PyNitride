@@ -349,18 +349,18 @@ class SelfConsistentLoop():
     def solve_carriers(self):
         [cs.solve_and_repopulate() for cs in self._cs]
 
-    def loop(self, tol=1e-5, max_iter=100, min_activation=.05,init_activation=1):
+    def loop(self, tol=1e-5, max_iter=100, min_activation=.15,init_activation=1):
         adec=2
         with sublog("Starting SC loop"):
             err=np.inf
             i=0
             a=init_activation
-            while err/a>tol:
+            while err>tol:
                 if i>=max_iter:
                     raise Exception("Maximum iteration reached in SC loop")
                 self.solve_carriers()
                 errprev=err
-                err=self.isolve_fields(activation=a)
+                err=self.isolve_fields(activation=a)/a
                 log("iter: {:3d}  err: {:.2e}  activ: {:g}".format(i,err,a))
                 while err>errprev:
                     a/=adec
@@ -369,7 +369,7 @@ class SelfConsistentLoop():
                         raise Exception("Couldn't reduce error in SC loop")
                     for fs in self._fs:fs.shorten_last_step(1/adec)
                     self.solve_carriers()
-                    err=self.isolve_fields(activation=a)
+                    err=self.isolve_fields(activation=a)/a
                     log("       iter: {:3d}  err: {:.2e}".format(i,err))
                 a=min(1.2*a,1)
                 i+=1
