@@ -35,7 +35,7 @@ def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.
     sim.rmeshes['mbkp_out'  ]=RMesh2D_Polar.regular(kmax=4.8/nm,numabsk=48,numtheta=4,align_theta=True,d=1)
 
     sim.extras['well_t']=well_t
-    sim.extras['sourcepoint']=float(well_t-4)
+    sim.extras['sourcepoint']=float(well_t-2.5)
 
 if __name__=="__main__":
 
