@@ -25,9 +25,11 @@ docs/doctrees
 
 # Other caches
 .cache/*
+*.npz
 
-# jupyter backups
+# Jupyter 
 */.ipynb_checkpoints/*
+launchnotebook
 
 # Other special files
 *stats.txt
