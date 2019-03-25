@@ -19,12 +19,19 @@ from pynitride.visual import log, sublog
 class PoissonSolver():
     r""" Solves the Poisson equation on a mesh.
 
-    The boundary conditions assumed are that the potential is zero at the first mesh point, and the electric field
-    goes to zero at the last mesh point (or, to be more precise, at the next midpoint after the last meshpoint).
+    The boundary conditions assumed are Dirichelet at the surface (ie fixed surface barrier) and Neumann at the bottom
+    (ie thick substrate).  Accounts for charge from (1) carriers which are filled into `mesh['n']` and `mesh['p']` by
+    some Carrier Model (2) polarization which is filled into `mesh['P']` (generally by the `MaterialSystem`),
+    differentiating that to fill `mesh['DP']`, and (3) dopants which for which the values are drawn from the mesh (see
+    :func:`~pynitride.solvers.PoissonSolver.ionized_dopants`).
+
     Two solve functions are available: :func:`~PoissonSolver.solve` and
     :func:`~pynitride.solvers.PoissonSolver.newton_step`.  The former is a direct solution, which can be
     obtained directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
     iteration with a carrier solver.
+
+    A static convenience function `~pynitride.solvers.PoissonSolver.update_bands_to_potential` is also available to
+    set bands for simulations where the Poisson equation is not needed.
 
     Args:
         mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
@@ -109,8 +116,7 @@ class PoissonSolver():
         m['Ndp']=0
         m['Ndpderiv']=0
         for d in self._donors:
-            # TODO: Deal with the fact that idd only takes one g
-            g=MaterialFunction(m,d+'g',default=0)[0]
+            g=MaterialFunction(m,d+'g',default=0)
             conc=MaterialFunction(m,d+'Conc',default=0)
             E=MaterialFunction(m,d+'E',default=0)
             eta=((m.EF.tmf()-m.Ec)+E)/kT
@@ -123,8 +129,7 @@ class PoissonSolver():
             Nam=PointFunction(m,value=0)
             m['Namderiv']=0
             for d in self._acceptors:
-                # TODO: Deal with the fact that idd only takes one g
-                g=MaterialFunction(m,d+'g',default=0)[0]
+                g=MaterialFunction(m,d+'g',default=0)
                 conc=MaterialFunction(m,d+'Conc',default=0)
                 E=MaterialFunction(m,d+'E',default=0)
                 eta=((m.Ev-m.EF.tmf())+E)/kT
@@ -138,7 +143,7 @@ class PoissonSolver():
                 Nam=PointFunction(m,value=0)
                 m['Namderiv']=0
                 for d in self._acceptors:
-                    g=MaterialFunction(m,d+'g',default=0)[0]
+                    g=MaterialFunction(m,d+'g',default=0)
                     conc=MaterialFunction(m,d+'Conc',default=0)
                     E=MaterialFunction(m,d+'E',default=0)
                     f=2.1828

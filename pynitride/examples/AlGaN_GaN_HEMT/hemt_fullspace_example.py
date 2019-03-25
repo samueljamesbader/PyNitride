@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pynitride.carriers import MultibandKP
-from pynitride.examples.AlGaN_GaN_HEMT import conduction_band_panels
-from pynitride.examples.AlGaN_GaN_HEMT import define_mesh as define_basic_mesh
+from pynitride.examples.AlGaN_GaN_HEMT.hemt_visualization import conduction_band_panels
+from pynitride.examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_basic_mesh
 from pynitride.maths import dephase
 from pynitride.paramdb import to_unit, nm
 from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
