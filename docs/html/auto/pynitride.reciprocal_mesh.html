@@ -13,7 +13,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.sim module" href="pynitride.sim.html" />
@@ -39,7 +39,7 @@
 <dl class="class">
 <dt id="pynitride.reciprocal_mesh.RMesh">
 <em class="property">class </em><code class="descclassname">pynitride.reciprocal_mesh.</code><code class="descname">RMesh</code><span class="sig-paren">(</span><em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.reciprocal_mesh.RMesh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Superclass for all the reciprocal meshes</p>
 <dl class="attribute">
 <dt id="pynitride.reciprocal_mesh.RMesh.N">
@@ -161,9 +161,9 @@ The endpoints of the mesh are treated as endpoints of integration.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>kmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the largest k-point will be kmax+abskshift</li>
-<li><strong>numabsk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of k-points to have</li>
-<li><strong>abskshift</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – shift all k-points from starting at zero</li>
+<li><strong>kmax</strong> (<em>float</em>) – the largest k-point will be kmax+abskshift</li>
+<li><strong>numabsk</strong> (<em>int</em>) – number of k-points to have</li>
+<li><strong>abskshift</strong> (<em>float</em>) – shift all k-points from starting at zero</li>
 </ul>
 </td>
 </tr>
@@ -259,8 +259,8 @@ See there for more arguments and details.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>kmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the largest k-point will be kmax</li>
-<li><strong>numabsk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of k-points to have</li>
+<li><strong>kmax</strong> (<em>float</em>) – the largest k-point will be kmax</li>
+<li><strong>numabsk</strong> (<em>int</em>) – number of k-points to have</li>
 </ul>
 </td>
 </tr>
@@ -285,11 +285,11 @@ By choosing <cite>d</cite> and <cite>shift_theta</cite>, one can choose any prop
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>absk</strong> – the ordered array of k-points</li>
-<li><strong>numtheta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of theta points to have</li>
-<li><strong>include_zero</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to have a point at 0</li>
-<li><strong>align_theta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If <cite>True</cite> there is a <cite>theta</cite> at 0.
+<li><strong>numtheta</strong> (<em>int</em>) – number of theta points to have</li>
+<li><strong>include_zero</strong> (<em>bool</em>) – whether to have a point at 0</li>
+<li><strong>align_theta</strong> (<em>bool</em>) – If <cite>True</cite> there is a <cite>theta</cite> at 0.
 If <cite>False</cite>, then the points will be shifted so a midpoint between thetas is at 0.</li>
-<li><strong>d</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – what fraction of the k-space to cover angularly
+<li><strong>d</strong> (<em>int</em>) – what fraction of the k-space to cover angularly
 (d=1 is the whole k-space, d=2 is half, etc.)</li>
 </ul>
 </td>

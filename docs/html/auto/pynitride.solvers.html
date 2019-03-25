@@ -13,7 +13,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.strain module" href="pynitride.strain.html" />
@@ -39,7 +39,7 @@
 <dl class="class">
 <dt id="pynitride.solvers.Equilibrium">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">Equilibrium</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Equilibrium" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="pynitride.solvers.Equilibrium.solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Equilibrium.solve" title="Permalink to this definition">¶</a></dt>
@@ -50,7 +50,7 @@
 <dl class="class">
 <dt id="pynitride.solvers.Linear_Fermi">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">Linear_Fermi</code><span class="sig-paren">(</span><em>mesh</em>, <em>contacts={'gate': 0</em>, <em>'subs': -1}</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Linear_Fermi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="pynitride.solvers.Linear_Fermi.solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><em>**voltages</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Linear_Fermi.solve" title="Permalink to this definition">¶</a></dt>
@@ -61,14 +61,19 @@
 <dl class="class">
 <dt id="pynitride.solvers.PoissonSolver">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">PoissonSolver</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.PoissonSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Solves the Poisson equation on a mesh.</p>
-<p>The boundary conditions assumed are that the potential is zero at the first mesh point, and the electric field
-goes to zero at the last mesh point (or, to be more precise, at the next midpoint after the last meshpoint).
-Two solve functions are available: <a class="reference internal" href="#pynitride.solvers.PoissonSolver.solve" title="pynitride.solvers.PoissonSolver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> and
+<p>The boundary conditions assumed are Dirichelet at the surface (ie fixed surface barrier) and Neumann at the bottom
+(ie thick substrate).  Accounts for charge from (1) carriers which are filled into <cite>mesh[‘n’]</cite> and <cite>mesh[‘p’]</cite> by
+some Carrier Model (2) polarization which is filled into <cite>mesh[‘P’]</cite> (generally by the <cite>MaterialSystem</cite>),
+differentiating that to fill <cite>mesh[‘DP’]</cite>, and (3) dopants which for which the values are drawn from the mesh (see
+<a class="reference internal" href="#pynitride.solvers.PoissonSolver.ionized_dopants" title="pynitride.solvers.PoissonSolver.ionized_dopants"><code class="xref py py-func docutils literal notranslate"><span class="pre">ionized_dopants()</span></code></a>).</p>
+<p>Two solve functions are available: <a class="reference internal" href="#pynitride.solvers.PoissonSolver.solve" title="pynitride.solvers.PoissonSolver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> and
 <a class="reference internal" href="#pynitride.solvers.PoissonSolver.newton_step" title="pynitride.solvers.PoissonSolver.newton_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">newton_step()</span></code></a>.  The former is a direct solution, which can be
 obtained directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
 iteration with a carrier solver.</p>
+<p>A static convenience function <cite>~pynitride.solvers.PoissonSolver.update_bands_to_potential</cite> is also available to
+set bands for simulations where the Poisson equation is not needed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -124,7 +129,7 @@ See <a class="reference internal" href="#pynitride.solvers.PoissonSolver.store_s
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the amount (0-1) by which the previous step should be rescaled</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>factor</strong> (<em>float</em>) – the amount (0-1) by which the previous step should be rescaled</td>
 </tr>
 </tbody>
 </table>
@@ -188,7 +193,7 @@ value where the problem is easy down to 1 is a useful way to smoothly approach t
 <dl class="class">
 <dt id="pynitride.solvers.SelfConsistentLoop">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">SelfConsistentLoop</code><span class="sig-paren">(</span><em>fieldsolvers=[]</em>, <em>carriermodels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.add_carrier_model">
 <code class="descname">add_carrier_model</code><span class="sig-paren">(</span><em>cs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.add_carrier_model" title="Permalink to this definition">¶</a></dt>
@@ -201,12 +206,17 @@ value where the problem is easy down to 1 is a useful way to smoothly approach t
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.loop">
-<code class="descname">loop</code><span class="sig-paren">(</span><em>tol=1e-05</em>, <em>max_iter=100</em>, <em>min_activation=0.05</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.loop" title="Permalink to this definition">¶</a></dt>
+<code class="descname">loop</code><span class="sig-paren">(</span><em>tol=1e-05</em>, <em>max_iter=100</em>, <em>min_activation=0.05</em>, <em>init_activation=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.loop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.ramp_epsfactor">
 <code class="descname">ramp_epsfactor</code><span class="sig-paren">(</span><em>start=10000.0</em>, <em>stop=1</em>, <em>dlefstart=0.1</em>, <em>dlefmax=0.5</em>, <em>dlefmin=0.005</em>, <em>max_iter=20</em>, <em>tol=1e-05</em>, <em>min_activation=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.ramp_epsfactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.solvers.SelfConsistentLoop.ramp_param">
+<code class="descname">ramp_param</code><span class="sig-paren">(</span><em>name</em>, <em>xstart</em>, <em>xstop</em>, <em>dxstart=0.1</em>, <em>dxmax=0.5</em>, <em>dmin=0.005</em>, <em>max_iter=20</em>, <em>tol=1e-05</em>, <em>min_activation=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.ramp_param" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">

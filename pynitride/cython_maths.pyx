@@ -14,7 +14,6 @@ from libc.math cimport pow, exp, sqrt
 from scipy.sparse import lil_matrix
 from functools import wraps
 cnp.import_array()
-from pynitride.cython_loops cimport dimsimple
 from cpython cimport bool
 
 ##########
@@ -101,8 +100,7 @@ for j in range(ORDER):
 
 
 # c-function to implement Fermi-Dirac 1/2 integral.  See :py:func:`~pynitride.poissolve.maths.fd12` for more.
-# args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
-cdef double fd12_scalar(double x,void* args):
+cdef double fd12_scalar(double x):
 
     cdef:
         double partial_sum
@@ -133,8 +131,7 @@ cdef double fd12_scalar(double x,void* args):
 
 
 # c-function to implement Fermi-Dirac 1/2 Integral Derivative.  See :py:func:`~pynitride.poissolve.maths.fd12p` for more.
-# args is disregarded but important to match the signature required by :py:func:`~pynitride.util.cython_loops.dimsimple`
-cdef double fd12p_scalar(double x,void* args):
+cdef double fd12p_scalar(double x):
     cdef:
         double partial_sum
         long j
@@ -163,25 +160,64 @@ cdef double fd12p_scalar(double x,void* args):
             partial_sum+=cp[j]*pow(x,.5-2*j)
     return partial_sum
 
-# cdef cnp.ndarray dimsimple(double (*func)(double),x):
-#     r"""Broadcasts the scalar function func over the numpy array x.
-#
-#     :param func: a cdef function which takes a double and returns a double.
-#     :param x: a numpy float array of arbitrary shape and dimensionality
-#     :return: an array of the same shape as ``x``, with the values obtained by calling ``func`` element-wise
-#     """
-#     x=np.asarray(x,dtype='float')
-#     out=np.empty(x.shape,np.float)
-#     cdef double xi
-#
-#     # This is an older syntax... should rewrite in terms of nditer when I get the chance
-#     # but at this point that's just a difference of taste inside of a blackboxed function...
-#     it=cnp.PyArray_MultiIterNew(2,<cnp.PyObject*>x,<cnp.PyObject*>out)
-#     while cnp.PyArray_MultiIter_NOTDONE(it):
-#         xi=(<double*>(cnp.PyArray_MultiIter_DATA(it,0)))[0]
-#         (<double*>cnp.PyArray_MultiIter_DATA(it,1))[0]=func(xi)
-#         cnp.PyArray_MultiIter_NEXT(it)
-#     return out
+@cython.boundscheck(False)
+cdef cnp.ndarray map1(  cnp.ndarray inarr,
+                        double (*func)(double),
+                        cnp.ndarray outarr=None):
+    r""" Map the function `func` over `inarr` to fill `outarr`.
+    
+    Args: 
+        inarr: double array of inputs
+        func: a function to apply to each element of the input
+            takes a single `double` as an argument
+        outarr: optional double array of outputs to fill
+    Returns:
+        the double array of outputs
+    """
+    cdef int j
+    cdef cnp.ndarray[double] subinarr, suboutarr
+
+    assert inarr.dtype==np.float
+    if outarr is None:
+        outarr=np.empty_like(inarr)
+
+    it = np.nditer([inarr,outarr], flags=['external_loop','buffered'],
+                   op_flags=[['readonly'], ['writeonly']])
+    for subinarr, suboutarr in it:
+        for j in range(subinarr.shape[0]):
+            suboutarr[j]=func(subinarr[j])
+    return outarr
+
+@cython.boundscheck(False)
+cdef cnp.ndarray map2(  cnp.ndarray inarr1,
+                        cnp.ndarray inarr2,
+                        double (*func)(double,double),
+                        cnp.ndarray outarr=None):
+    r""" Map the function `func` over `inarr1` and `inarr2` to fill `outarr`.
+    
+    Args: 
+        inarr1: double array of inputs
+        inarr2: double array of inputs
+        func: a function to apply to each element of the inputs
+            takes a two `double`s as arguments
+        outarr: optional double array of outputs to fill
+    Returns:
+        the double array of outputs
+    """
+    cdef int j
+    cdef cnp.ndarray[double] subinarr1, subinarr2, suboutarr
+
+    assert inarr1.dtype==np.float
+    assert inarr2.dtype==np.float
+    if outarr is None:
+        outarr=np.empty_like(inarr1)
+
+    it = np.nditer([inarr1,inarr2,outarr], flags=['external_loop','buffered'],
+                   op_flags=[['readonly'], ['readonly'], ['writeonly']])
+    for subinarr1, subinarr2, suboutarr in it:
+        for j in range(subinarr1.shape[0]):
+            suboutarr[j]=func(subinarr1[j],subinarr2[j])
+    return outarr
 
 # Table 6 and Equations 24-26
 def fd12(x):
@@ -194,11 +230,13 @@ def fd12(x):
     arguments with very negative :math:`x` (ie Fermi-level in midgap), this often results in a several-times
     speedup.
 
-    :param x: the argument to the Fermi-Dirac 1/2 integral, as a numpy array.
-    :returns: the evaluation, as a numpy array.
+    Args:
+        x: the argument to the Fermi-Dirac 1/2 integral, as a numpy array.
+
+    Returns:
+        the evaluation, as a numpy array.
     """
-    #return dimsimple(fd12_scalar,x)
-    return dimsimple(np.asarray(x,dtype=np.double),fd12_scalar)
+    return map1(np.asarray(x,dtype=np.double),fd12_scalar)
 
 def fd12p(x):
     r"""Implements the derivative of the :py:func:`~pynitride.poissolve.maths.fd12`.
@@ -206,45 +244,67 @@ def fd12p(x):
     Computes :math:`\mathcal{F}_{1/2}'(x)`, which is equal to :math:`\mathcal{F}_{-1/2}(x)`.  The appropriate sums
     were obtained by simply differentiating the expressions used to form :py:func:`~pynitride.poissolve.maths.fd12`.
 
-    :param x: the argument to the Fermi-Dirac -1/2 integral, as a numpy array.
-    :returns: the evaluation, as a numpy array.
+    Args:
+        the argument to the Fermi-Dirac -1/2 integral, as a numpy array.
+    Returns:
+        the evaluation, as a numpy array.
     """
-    return dimsimple(np.asarray(x,dtype=np.double),fd12p_scalar)
+    return map1(np.asarray(x,dtype=np.double),fd12p_scalar)
 
 
 
-# c-function to implement ionized dopant density
-# args should be scalar double g
-cdef double idd_scalar(double eta, void* args):
-    cdef:
-        double g
-    g=(<double*> args)[0]
+# See comments for idd
+cdef double idd_scalar(double eta, double g):
     if eta>500:
         return 0
     else:
         return 1/(1+g*exp(eta))
 
 def idd(eta,g):
-    cdef double g2
-    g2=g
-    return dimsimple(np.asarray(eta,dtype=np.double),idd_scalar,&g2)
+    """
+    Computes the ionized dopant density given the normalized Fermi position and degeneracy factor
 
 
-# c-function to implement ionized dopant density derivative
-# args should be scalar double g
-cdef double iddd_scalar(double eta, void* args):
-    cdef:
-        double g
-    g=(<double*> args)[0]
+    See Tiwari Compound Semiconductor Devices pg 31-32.  Prevents underflow by zeroing at large eta.
+
+    Args:
+        eta: For donors,   this should be `\eta=(E_F-E_c + E)/kT`
+                where `E` is the dopant energy down from the conduction edge
+            For acceptors, this should be `\eta=(E_v-E_F + E)/kT`
+                where `E` is the dopant energy down from the valence edge
+        g: degeneracy factor (as given by Tiwari)
+
+    Returns:
+        the evaluation as a numpy array
+    """
+    return map2(np.asarray(eta,dtype=np.double),np.asarray(g,dtype=np.double),idd_scalar)
+
+
+# See comments for iddd
+cdef double iddd_scalar(double eta, double g):
     if eta>500:
         return 0
     else:
         return g*exp(eta)/(1+g*exp(eta))**2
 
 def iddd(eta,g):
-    cdef:
-        double g2
-    g2=g
-    return dimsimple(np.asarray(eta,dtype=np.double),iddd_scalar,&g2)
+    """
+    Computes the derivative of the ionized dopant density (with respect to eta),
+    given the normalized Fermi position and degeneracy factor
+
+
+    See Tiwari Compound Semiconductor Devices pg 31-32.  Prevents underflow by zeroing at large eta.
+
+    Args:
+        eta: For donors,   this should be `\eta=(E_F-E_c + E)/kT`
+                where `E` is the dopant energy down from the conduction edge
+            For acceptors, this should be `\eta=(E_v-E_F + E)/kT`
+                where `E` is the dopant energy down from the valence edge
+        g: degeneracy factor (as given by Tiwari)
+
+    Returns:
+        the evaluation as a numpy array
+    """
+    return map2(np.asarray(eta,dtype=np.double),np.asarray(g,dtype=np.double),iddd_scalar)
 
 

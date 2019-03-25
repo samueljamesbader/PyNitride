@@ -13,7 +13,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.reciprocal_mesh module" href="pynitride.reciprocal_mesh.html" />
@@ -47,10 +47,10 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>first_level</strong> (<em>solvmesh</em><em>,</em><em>rmesh</em><em>,</em><em>keepmesh</em><em>,</em>) – see <a class="reference internal" href="#pynitride.phonons.PhononModel" title="pynitride.phonons.PhononModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">PhononModel</span></code></a></li>
-<li><strong>vecform</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Format for the vecs, ‘XZ’, ‘XYZ’, or ‘Y’</li>
-<li><strong>deformation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to include deformation potential
+<li><strong>vecform</strong> (<em>str</em>) – Format for the vecs, ‘XZ’, ‘XYZ’, or ‘Y’</li>
+<li><strong>deformation</strong> (<em>bool</em>) – whether to include deformation potential
 effects in matrix elements</li>
-<li><strong>piezo</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to solve for the piezoelectric potential
+<li><strong>piezo</strong> (<em>bool</em>) – whether to solve for the piezoelectric potential
 induced by the phonon and use it in matrix elements</li>
 </ul>
 </td>
@@ -91,7 +91,7 @@ eg <span class="math notranslate nohighlight">\(e_{xy}=\frac{1}{2}\left(\partial
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>iq</strong> (<em>int</em>) – index into the <cite>q</cite> array</li>
 <li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
 <li><strong>l</strong> – which eigenvalue to use of those solved for</li>
 </ul>
@@ -113,7 +113,7 @@ eg <span class="math notranslate nohighlight">\(e_{xy}=\frac{1}{2}\left(\partial
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>iq</strong> (<em>int</em>) – index into the <cite>q</cite> array</li>
 <li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
 <li><strong>l</strong> – which eigenvalue to use of those solved for</li>
 </ul>
@@ -186,7 +186,7 @@ eigenvalues will be used.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – name of the mode type,
+<li><strong>name</strong> (<em>str</em>) – name of the mode type,
 eg <cite>‘TOu’</cite> for the TO mode confined to the upper region</li>
 <li><strong>num</strong> – which of the modes solved for to return
 (indexed from 0 being the first solved-for mode of this type)</li>
@@ -287,7 +287,7 @@ found above/below this frequency respectively</td>
 <dl class="class">
 <dt id="pynitride.phonons.PhononModel">
 <em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">PhononModel</code><span class="sig-paren">(</span><em>solvmesh</em>, <em>rmesh</em>, <em>num_eigs</em>, <em>keepmesh=None</em>, <em>first_level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PhononModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Superclass for all phonon models.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -317,7 +317,7 @@ solved for.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>psij</strong> (<em>psii</em><em>,</em>) – the two wavefunctions (as 2-D PointFunctions)</li>
-<li><strong>iq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – index into the <cite>q</cite> array</li>
+<li><strong>iq</strong> (<em>int</em>) – index into the <cite>q</cite> array</li>
 <li><strong>thetaq</strong> – in-plane angle of the phonon propagation (from X toward Y)</li>
 <li><strong>l</strong> – which eigenvalue to use of those solved for</li>
 </ul>
@@ -353,9 +353,9 @@ ie <cite>l</cite> should not be lower than first_level</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>absk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the point in reciprocal space</li>
-<li><strong>l</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – the mode index (absolute)</li>
-<li><strong>bounds_check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to complain if absk is out of
+<li><strong>absk</strong> (<em>float</em>) – the point in reciprocal space</li>
+<li><strong>l</strong> (<em>int</em>) – the mode index (absolute)</li>
+<li><strong>bounds_check</strong> (<em>bool</em>) – whether to complain if absk is out of
 interpolation bounds</li>
 </ul>
 </td>
@@ -373,9 +373,9 @@ interpolation bounds</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>absk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the point in reciprocal space</li>
-<li><strong>l</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – the mode index (absolute)</li>
-<li><strong>bounds_check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to complain if absk is out of
+<li><strong>absk</strong> (<em>float</em>) – the point in reciprocal space</li>
+<li><strong>l</strong> (<em>int</em>) – the mode index (absolute)</li>
+<li><strong>bounds_check</strong> (<em>bool</em>) – whether to complain if absk is out of
 interpolation bounds</li>
 </ul>
 </td>
@@ -416,8 +416,8 @@ will be cleared away and then an error will be raised.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the file to save to</li>
-<li><strong>just_energies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True, read only the energies,
+<li><strong>filename</strong> (<em>str</em>) – the file to save to</li>
+<li><strong>just_energies</strong> (<em>bool</em>) – if True, read only the energies,
 otherwise read energies, mode vecs and/or potentials.</li>
 </ul>
 </td>
@@ -441,8 +441,8 @@ otherwise read energies, mode vecs and/or potentials.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – the file to save to</li>
-<li><strong>just_energies</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – if True, save only the energies,
+<li><strong>filename</strong> (<em>str</em>) – the file to save to</li>
+<li><strong>just_energies</strong> (<em>bool</em>) – if True, save only the energies,
 otherwise save energies, mode vecs and/or potentials.</li>
 </ul>
 </td>
@@ -469,7 +469,7 @@ ie <cite>l</cite> should not be lower than first_level</p>
 <dl class="class">
 <dt id="pynitride.phonons.PiezoPotential">
 <em class="property">class </em><code class="descclassname">pynitride.phonons.</code><code class="descname">PiezoPotential</code><span class="sig-paren">(</span><em>pm</em>, <em>parallel=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.phonons.PiezoPotential" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="pynitride.phonons.PiezoPotential.q">
 <code class="descname">q</code><a class="headerlink" href="#pynitride.phonons.PiezoPotential.q" title="Permalink to this definition">¶</a></dt>

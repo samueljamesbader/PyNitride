@@ -296,6 +296,8 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
+#########################################################
+#########################################################
 # Don't output variable values
 # Simple variant of https://stackoverflow.com/a/25163963/2081118
 from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, ClassLevelDocumenter, InstanceAttributeDocumenter, SUPPRESS
@@ -309,3 +311,10 @@ InstanceAttributeDocumenter.add_directive_header = add_directive_header
 
 
 autoclass_content='both'
+#########################################################
+#########################################################
+
+
+#########################################################
+# To use local mathjax
+mathjax_path="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"

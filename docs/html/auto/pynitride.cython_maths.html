@@ -13,11 +13,11 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.devices module" href="pynitride.devices.html" />
-    <link rel="prev" title="pynitride.cython_loops module" href="pynitride.cython_loops.html" />
+    <link rel="prev" title="pynitride.carriers module" href="pynitride.carriers.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -74,7 +74,7 @@ were obtained by simply differentiating the expressions used to form <code class
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – the argument to the Fermi-Dirac -1/2 integral, as a numpy array.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument to the Fermi-Dirac -1/2 integral</strong><strong>, </strong><strong>as a numpy array.</strong> (<em>the</em>) – </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the evaluation, as a numpy array.</td>
 </tr>
@@ -85,12 +85,59 @@ were obtained by simply differentiating the expressions used to form <code class
 <dl class="function">
 <dt id="pynitride.cython_maths.idd">
 <code class="descclassname">pynitride.cython_maths.</code><code class="descname">idd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.cython_maths.idd" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Computes the ionized dopant density given the normalized Fermi position and degeneracy factor</p>
+<p>See Tiwari Compound Semiconductor Devices pg 31-32.  Prevents underflow by zeroing at large eta.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>eta</strong> – <dl class="docutils">
+<dt>For donors,   this should be <cite>eta=(E_F-E_c + E)/kT</cite></dt>
+<dd>where <cite>E</cite> is the dopant energy down from the conduction edge</dd>
+<dt>For acceptors, this should be <cite>eta=(E_v-E_F + E)/kT</cite></dt>
+<dd>where <cite>E</cite> is the dopant energy down from the valence edge</dd>
+</dl>
+</li>
+<li><strong>g</strong> – degeneracy factor (as given by Tiwari)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the evaluation as a numpy array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pynitride.cython_maths.iddd">
 <code class="descclassname">pynitride.cython_maths.</code><code class="descname">iddd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.cython_maths.iddd" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Computes the derivative of the ionized dopant density (with respect to eta),
+given the normalized Fermi position and degeneracy factor</p>
+<p>See Tiwari Compound Semiconductor Devices pg 31-32.  Prevents underflow by zeroing at large eta.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>eta</strong> – <dl class="docutils">
+<dt>For donors,   this should be <cite>eta=(E_F-E_c + E)/kT</cite></dt>
+<dd>where <cite>E</cite> is the dopant energy down from the conduction edge</dd>
+<dt>For acceptors, this should be <cite>eta=(E_v-E_F + E)/kT</cite></dt>
+<dd>where <cite>E</cite> is the dopant energy down from the valence edge</dd>
+</dl>
+</li>
+<li><strong>g</strong> – degeneracy factor (as given by Tiwari)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the evaluation as a numpy array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pynitride.cython_maths.tdma">
@@ -154,7 +201,7 @@ arguments are given as 1-D numpy arrays of the same length.</p>
   <li><a href="../manual/index.html">Documentation overview</a><ul>
   <li><a href="modules.html">PyNitride</a><ul>
   <li><a href="pynitride.html">pynitride package</a><ul>
-      <li>Previous: <a href="pynitride.cython_loops.html" title="previous chapter">pynitride.cython_loops module</a></li>
+      <li>Previous: <a href="pynitride.carriers.html" title="previous chapter">pynitride.carriers module</a></li>
       <li>Next: <a href="pynitride.devices.html" title="next chapter">pynitride.devices module</a></li>
   </ul></li>
   </ul></li>

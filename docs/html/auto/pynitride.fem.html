@@ -13,7 +13,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.machine module" href="pynitride.machine.html" />
@@ -51,7 +51,7 @@ All arguments should be defined on the mid mesh, and the <span class="math notra
 <li><strong>w</strong> – load-side coefficient</li>
 <li><strong>dzp</strong> – the spacings between mesh nodes</li>
 <li><strong>n</strong> – the size of the <span class="math notranslate nohighlight">\(C\)</span> matrices (eg 1 for scalar equation, 6 for 6x6 kp equation)</li>
-<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
+<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<em>bool</em>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 </ul>
 </td>
 </tr>
@@ -79,7 +79,7 @@ If <cite>Cl</cite> and <cite>Cr</cite> are supplied, the matrix will be of dtype
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>C0</strong><strong>,</strong><strong>Cl</strong><strong>,</strong><strong>Cr</strong><strong>,</strong><strong>C2</strong> – material-dependent differential equation coefficients</li>
 <li><strong>dzp</strong> – the spacings between mesh nodes</li>
-<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
+<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<em>bool</em>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 </ul>
 </td>
 </tr>
@@ -105,13 +105,13 @@ If <cite>Cl</cite> and <cite>Cr</cite> are supplied, the matrix will be of dtype
 <li><strong>eigval_out</strong> – an array into which to fill the eigenvalues, should be shape (number of eigenvalues)</li>
 <li><strong>eigvec_out</strong> – an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zp))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
-<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
+<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<em>bool</em>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>pairwise_GS</strong> – in the case of near degeneracy, the eigensolver often returns eigenvectors which are not totally
 orthogonal.  For instance in a 6x6 wurtzite k.p problem with small CR coupling term, the states form pairs
 that are very close in energy.  This option breaks the eigenvectors into those pairs [note, it just assumes
 the pairing 0-1, 2-3, 4-5, etc, it doesn’t actually check the energies], and in each pair, performs a single
 Gram-Schmidt to ensure the nearly-degenerate eigenvectors are orthogonal.</li>
-<li><strong>ascending</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – by default, energies are sorted from min to max, but for valence band problems,
+<li><strong>ascending</strong> (<em>bool</em>) – by default, energies are sorted from min to max, but for valence band problems,
 you want the highest absolute energies first, so set <cite>ascending=False</cite></li>
 <li><strong>*args</strong><strong>,</strong><strong>**kwargs</strong> – passed onto
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html">scipy.sparse.eigsh</a>
@@ -143,7 +143,7 @@ For the mathematics/definitions of terms, see <a class="reference internal" href
 <li><strong>test</strong> – the test solution vector <span class="math notranslate nohighlight">\(x\)</span>, should be shape (len(zp))</li>
 <li><strong>err_out</strong> – an array into which to fill the error, should be shape (len(zp))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
-<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
+<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<em>bool</em>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>*args</strong><strong>,</strong><strong>**kwargs</strong> – passed onto
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html">scipy.sparse.spsolve</a>
 along with the main arguments <cite>M</cite> and <cite>A&#64;x</cite></li>
@@ -172,7 +172,7 @@ along with the main arguments <cite>M</cite> and <cite>A&#64;x</cite></li>
 <li><strong>load_vec</strong> – the load vector <span class="math notranslate nohighlight">\(b\)</span>, should be shape (len(zp))</li>
 <li><strong>val_out</strong> – an array into which to fill the solution, should be shape (len(zp))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
-<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
+<li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<em>bool</em>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>*args</strong><strong>,</strong><strong>**kwargs</strong> – <p>passed onto
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html">scipy.sparse.spsolve</a>
 along with the main arguments <cite>A</cite> (stiffness) and <cite>M&#64;b</cite> (load)</p>
