@@ -40,10 +40,20 @@
 <dt id="pynitride.solvers.Equilibrium">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">Equilibrium</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simplest Fermi solver, <cite>E_F=0</cite> everywhere.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mesh</strong> – the <a class="reference internal" href="pynitride.mesh.html#pynitride.mesh.Mesh" title="pynitride.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a> on which to perform the solve</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pynitride.solvers.Equilibrium.solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Equilibrium.solve" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sets <cite>E_F=0</cite> everywhere.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -51,10 +61,39 @@
 <dt id="pynitride.solvers.Linear_Fermi">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">Linear_Fermi</code><span class="sig-paren">(</span><em>mesh</em>, <em>contacts={'gate': 0</em>, <em>'subs': -1}</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Linear_Fermi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Allows for a specified piecewise linear Fermi potential.</p>
+<p>An arbitrary number of “contacts” can be designated, and at each of these locations,
+a call to <code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code> may specify a voltage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – the <a class="reference internal" href="pynitride.mesh.html#pynitride.mesh.Mesh" title="pynitride.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a> on which to perform the solve</li>
+<li><strong>contacts</strong> – a dictionary mapping names of contacts to locations in the mesh.
+Keys are arbitrary names, values are either (1) integers,
+in which case they will be interpreted as designating a layer interface
+(0 is the top surface, -1 is the bottom point), or (2) floats, in which
+case they will be interpreted as designating a nearest point to a <cite>z</cite>-value</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pynitride.solvers.Linear_Fermi.solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><em>**voltages</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.Linear_Fermi.solve" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Sets the Fermi level to a linear interpolation of the specific values</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**voltages</strong> – keyword arguments of the form <cite>name=voltage</cite> where <cite>name</cite> is
+one of the keys to the <cite>contacts</cite> dictionary supplied at initialization.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -71,9 +110,10 @@ differentiating that to fill <cite>mesh[‘DP’]</cite>, and (3) dopants which 
 <p>Two solve functions are available: <a class="reference internal" href="#pynitride.solvers.PoissonSolver.solve" title="pynitride.solvers.PoissonSolver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> and
 <a class="reference internal" href="#pynitride.solvers.PoissonSolver.newton_step" title="pynitride.solvers.PoissonSolver.newton_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">newton_step()</span></code></a>.  The former is a direct solution, which can be
 obtained directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
-iteration with a carrier solver.</p>
-<p>A static convenience function <cite>~pynitride.solvers.PoissonSolver.update_bands_to_potential</cite> is also available to
-set bands for simulations where the Poisson equation is not needed.</p>
+iteration with a carrier solver. For use with this method, the carrier models must implement not just <cite>n</cite> and <cite>p</cite>
+but also <cite>nderiv</cite> and <cite>pderiv</cite> to supply the relevant derivative information.</p>
+<p>A static convenience function <a class="reference internal" href="#pynitride.solvers.PoissonSolver.update_bands_to_potential" title="pynitride.solvers.PoissonSolver.update_bands_to_potential"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_bands_to_potential()</span></code></a>
+is also available to set bands for simulations where the Poisson equation is not needed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -102,15 +142,27 @@ material system for it’s surface barrier given the mesh.</p>
 
 <dl class="method">
 <dt id="pynitride.solvers.PoissonSolver.ionized_dopants">
-<code class="descname">ionized_dopants</code><span class="sig-paren">(</span><em>gotzloop=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.PoissonSolver.ionized_dopants" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">ionized_dopants</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.PoissonSolver.ionized_dopants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ionized dopant densities and their derivatives</p>
+<p>Fills the values <cite>Ndp</cite>, <cite>Ndpderiv</cite>, <cite>Nam</cite>, <cite>Namderiv</cite> onto the mesh
+for the total ionized donor and acceptor densities and derivatives.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.PoissonSolver.newton_step">
-<code class="descname">newton_step</code><span class="sig-paren">(</span><em>activation=1</em>, <em>doplot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.PoissonSolver.newton_step" title="Permalink to this definition">¶</a></dt>
+<code class="descname">newton_step</code><span class="sig-paren">(</span><em>activation=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.PoissonSolver.newton_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the phi for one step of Newton iteration.</p>
 <p>The equation is
 <span class="math notranslate nohighlight">\(-\left[\partial_z\epsilon\partial_z+\rho_0'\right]\delta\phi=\rho + \partial_z\epsilon\partial_z\phi_0\)</span>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>activation</strong> – a factor (generally &lt;=1) by which to multiply the determined
+change <span class="math notranslate nohighlight">\(\delta\phi\)</span> before adding it.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -141,7 +193,7 @@ See <a class="reference internal" href="#pynitride.solvers.PoissonSolver.store_s
 <dd><p>Solves the Poisson equation directly (not good for self-consistent looping)</p>
 <p>The equation is <span class="math notranslate nohighlight">\(-\partial_z\epsilon\partial_z\phi=\rho\)</span>.  Do not use this function in
 a self-consistent poisson-carrier loop, because that’s not super stable.  Instead
-use <a class="reference internal" href="#pynitride.solvers.PoissonSolver.newton_step" title="pynitride.solvers.PoissonSolver.newton_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.solvers.PoissonSolver.newton_step()</span></code></a>.</p>
+use <a class="reference internal" href="#pynitride.solvers.PoissonSolver.newton_step" title="pynitride.solvers.PoissonSolver.newton_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">newton_step()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -194,50 +246,158 @@ value where the problem is easy down to 1 is a useful way to smoothly approach t
 <dt id="pynitride.solvers.SelfConsistentLoop">
 <em class="property">class </em><code class="descclassname">pynitride.solvers.</code><code class="descname">SelfConsistentLoop</code><span class="sig-paren">(</span><em>fieldsolvers=[]</em>, <em>carriermodels=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>For Newton-iteration of field and carrier solvers.</p>
+<p>Dielectric ramping is provided for initial solutions and carrier models
+can be swapped in and out to allow for sequential solves by different
+methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fieldsolvers</strong> – a list of <a class="reference internal" href="#pynitride.solvers.PoissonSolver" title="pynitride.solvers.PoissonSolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">PoissonSolver</span></code></a></li>
+<li><strong>carriermodels</strong> – a list of <a class="reference internal" href="pynitride.carriers.html#pynitride.carriers.CarrierModel" title="pynitride.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.add_carrier_model">
 <code class="descname">add_carrier_model</code><span class="sig-paren">(</span><em>cs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.add_carrier_model" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pynitride.solvers.SelfConsistentLoop.isolve_fields">
-<code class="descname">isolve_fields</code><span class="sig-paren">(</span><em>activation=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.isolve_fields" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Add a carrier solver for consideration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cs</strong> – a <a class="reference internal" href="pynitride.carriers.html#pynitride.carriers.CarrierModel" title="pynitride.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.loop">
-<code class="descname">loop</code><span class="sig-paren">(</span><em>tol=1e-05</em>, <em>max_iter=100</em>, <em>min_activation=0.05</em>, <em>init_activation=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.loop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">loop</code><span class="sig-paren">(</span><em>tol=1e-05</em>, <em>max_iter=100</em>, <em>min_activation=0.05</em>, <em>init_activation=1</em>, <em>dec_activation=2</em>, <em>inc_activation=1.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loops the Newton field solution and carrier models until they agree</p>
+<p>If the error increases during a step, the step will be retried with a smaller <cite>activation</cite>
+(see <code class="xref py py-func docutils literal notranslate"><span class="pre">newton_solve()</span></code>).  If the <cite>activation</cite> becomes too small
+or the maximum number of iterations is passed, will raise an exception.</p>
+<p>Note, the first step in the solve is always the carriers, so they may be in any state before
+this function is called, whereas the fields must already be defined, eg by
+<a class="reference internal" href="#pynitride.solvers.PoissonSolver.update_bands_to_potential" title="pynitride.solvers.PoissonSolver.update_bands_to_potential"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_bands_to_potential()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tol</strong> – the absolute tolerance for the error
+as returned by <code class="xref py py-func docutils literal notranslate"><span class="pre">newton_step()</span></code></li>
+<li><strong>max_iter</strong> – Maximum number of iterations allowed
+(not including any lower-activation re-attempts made)</li>
+<li><strong>min_activation</strong> – the smallest activation allowed.</li>
+<li><strong>init_activation</strong> – activation to start looping at</li>
+<li><strong>dec_activation</strong> – factor by which to reduce the <cite>activation</cite> if a step fails</li>
+<li><strong>inc_activation</strong> – factor by which to increase the <cite>activation</cite> if a step succeeds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.solvers.SelfConsistentLoop.newton_fields">
+<code class="descname">newton_fields</code><span class="sig-paren">(</span><em>activation=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.newton_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform one Newton step of the fields (just the fields, not the carriers).</p>
+<p>Calls the <a class="reference internal" href="#pynitride.solvers.PoissonSolver.newton_step" title="pynitride.solvers.PoissonSolver.newton_step"><code class="xref py py-func docutils literal notranslate"><span class="pre">newton_step()</span></code></a> for each field solver.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>activation</strong> – the proportion by which to change the fields
+(see <cite>~pynitride.solvers.PoissonSolver.newton_step</cite>)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the summed error from each field solver’s <cite>newton_step</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.ramp_epsfactor">
-<code class="descname">ramp_epsfactor</code><span class="sig-paren">(</span><em>start=10000.0</em>, <em>stop=1</em>, <em>dlefstart=0.1</em>, <em>dlefmax=0.5</em>, <em>dlefmin=0.005</em>, <em>max_iter=20</em>, <em>tol=1e-05</em>, <em>min_activation=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.ramp_epsfactor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pynitride.solvers.SelfConsistentLoop.ramp_param">
-<code class="descname">ramp_param</code><span class="sig-paren">(</span><em>name</em>, <em>xstart</em>, <em>xstop</em>, <em>dxstart=0.1</em>, <em>dxmax=0.5</em>, <em>dmin=0.005</em>, <em>max_iter=20</em>, <em>tol=1e-05</em>, <em>min_activation=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.ramp_param" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">ramp_epsfactor</code><span class="sig-paren">(</span><em>start=10000.0</em>, <em>stop=1</em>, <em>dlefstart=0.1</em>, <em>dlefmax=0.5</em>, <em>dlefmin=0.005</em>, <em>**loop_opts</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.ramp_epsfactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ramp the dielectric constant for an easy initial condition.</p>
+<p>Performs self-consistent loops at successive values of the <cite>epsfactor</cite>
+(see <a class="reference internal" href="#pynitride.solvers.PoissonSolver.update_epsfactor" title="pynitride.solvers.PoissonSolver.update_epsfactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_epsfactor()</span></code></a>) from <cite>start</cite> until the <cite>stop</cite> value is
+reached. If the loops do not converge, smaller steps of the epsilon factor are attempted, this robustness is
+controlled by the <cite>dlef</cite> arguments, which constrain <cite>dlef</cite> (the logarithmic change in the epsilon factor from
+step to step, ie <cite>log10(epsfactor)</cite> changes by <cite>dlef</cite>).  If the step cannot be reduced further but the loop does
+not converge, an exception will be raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>start</strong> – initial value of epsfactor</li>
+<li><strong>stop</strong> – final value of epsfactor</li>
+<li><strong>dlefstart</strong> – initial logarithmic delta for epsfactor stepping</li>
+<li><strong>dlefmax</strong> – maximum allowed logarithmic delta for epsfactor stepping</li>
+<li><strong>dlefmin</strong> – minimum allowed logarithmic delta for epsfactor stepping</li>
+<li><strong>loop_opts</strong> – passed to each <cite>pynitride.solvers.SelfConsistentLoop.loop</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.remove_carrier_model">
 <code class="descname">remove_carrier_model</code><span class="sig-paren">(</span><em>cs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.remove_carrier_model" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Remove a carrier solver from consideration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cs</strong> – a <a class="reference internal" href="pynitride.carriers.html#pynitride.carriers.CarrierModel" title="pynitride.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a> which should be in the
+list currently considered</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.solve_carriers">
 <code class="descname">solve_carriers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.solve_carriers" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Perform a direct solve of the carriers (just the carriers, not the fields).</p>
+<p>Calls the <a class="reference internal" href="pynitride.carriers.html#pynitride.carriers.CarrierModel.solve" title="pynitride.carriers.CarrierModel.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> for each.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.solve_fields">
 <code class="descname">solve_fields</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.solve_fields" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Perform a direct solve of the fields (just the fields, not the carriers).</p>
+<p>Calls the <a class="reference internal" href="#pynitride.solvers.PoissonSolver.solve" title="pynitride.solvers.PoissonSolver.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> for each field solver.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pynitride.solvers.SelfConsistentLoop.swap_carrier_model">
 <code class="descname">swap_carrier_model</code><span class="sig-paren">(</span><em>remove</em>, <em>add</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.solvers.SelfConsistentLoop.swap_carrier_model" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Swaps out one <a class="reference internal" href="pynitride.carriers.html#pynitride.carriers.CarrierModel" title="pynitride.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a> for another</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>remove</strong> – the model to remove</li>
+<li><strong>add</strong> – the model to add</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 

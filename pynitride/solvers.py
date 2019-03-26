@@ -28,10 +28,11 @@ class PoissonSolver():
     Two solve functions are available: :func:`~PoissonSolver.solve` and
     :func:`~pynitride.solvers.PoissonSolver.newton_step`.  The former is a direct solution, which can be
     obtained directly from charge integration.  The latter is a Newton-method solver appropriate for self-consistent
-    iteration with a carrier solver.
+    iteration with a carrier solver. For use with this method, the carrier models must implement not just `n` and `p`
+    but also `nderiv` and `pderiv` to supply the relevant derivative information.
 
-    A static convenience function `~pynitride.solvers.PoissonSolver.update_bands_to_potential` is also available to
-    set bands for simulations where the Poisson equation is not needed.
+    A static convenience function :func:`~pynitride.solvers.PoissonSolver.update_bands_to_potential`
+    is also available to set bands for simulations where the Poisson equation is not needed.
 
     Args:
         mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
@@ -108,8 +109,14 @@ class PoissonSolver():
         else:
             return m._matblocks[0].matsys.surface_barrier(m._matblocks[0].mesh)
 
-    def ionized_dopants(self,gotzloop=False):
-        # Tiwari Compound Semiconductor Devices pg31-32
+    def ionized_dopants(self):
+        """ Computes the ionized dopant densities and their derivatives
+
+        Fills the values `Ndp`, `Ndpderiv`, `Nam`, `Namderiv` onto the mesh
+        for the total ionized donor and acceptor densities and derivatives.
+
+        """
+        # Tiwari Compound Semiconductor Devices pg 31-32
         m=self._mesh
         kT= kb * m.T
 
@@ -119,46 +126,21 @@ class PoissonSolver():
             g=MaterialFunction(m,d+'g',default=0)
             conc=MaterialFunction(m,d+'Conc',default=0)
             E=MaterialFunction(m,d+'E',default=0)
+
             eta=((m.EF.tmf()-m.Ec)+E)/kT
             m['Ndp']+=(conc*idd(eta,g)).tpf()
             m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tpf()
 
-        if gotzloop is False:
-        #if 1:
-            #m['Nam']=0
-            Nam=PointFunction(m,value=0)
-            m['Namderiv']=0
-            for d in self._acceptors:
-                g=MaterialFunction(m,d+'g',default=0)
-                conc=MaterialFunction(m,d+'Conc',default=0)
-                E=MaterialFunction(m,d+'E',default=0)
-                eta=((m.Ev-m.EF.tmf())+E)/kT
-                #m['Nam']+=(conc*idd(eta,g)).tpf()
-                Nam+=(conc*idd(eta,g)).tpf()
-                m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
+        m['Nam']=0
+        m['Namderiv']=0
+        for d in self._acceptors:
+            g=MaterialFunction(m,d+'g',default=0)
+            conc=MaterialFunction(m,d+'Conc',default=0)
+            E=MaterialFunction(m,d+'E',default=0)
 
-            m['Nam']=Nam
-        else:
-            while True:
-                Nam=PointFunction(m,value=0)
-                m['Namderiv']=0
-                for d in self._acceptors:
-                    g=MaterialFunction(m,d+'g',default=0)
-                    conc=MaterialFunction(m,d+'Conc',default=0)
-                    E=MaterialFunction(m,d+'E',default=0)
-                    f=2.1828
-                    gotz=m[d+'gotzshift']=-m.gotz*f*(q**2)/(4*pi*m.eps)*(m.Nam.tmf())**(1/3)
-                    #gotz=0
-                    eta=((m.Ev-m.EF.tmf())+E+gotz)/kT
-                    Nam+=(conc*idd(eta,g)).tpf()
-                    m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
-                    #log("Gotz max {:.6f}".format(float(np.max(np.abs(gotz)))),'debug')
-                    #log("Namdiffmax {:.2e}".format(float(np.max(np.abs((Nam-m.Nam))))),'debug')
-                if np.max(np.abs((Nam-m.Nam)))<1e16/cm**3:
-                    m['Nam']=Nam
-                    break
-                m['Nam']=Nam
-
+            eta=((m.Ev-m.EF.tmf())+E)/kT
+            m['Nam']+=(conc*idd(eta,g)).tpf()
+            m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
 
 
     def solve(self):
@@ -166,7 +148,7 @@ class PoissonSolver():
 
         The equation is :math:`-\partial_z\epsilon\partial_z\phi=\rho`.  Do not use this function in
         a self-consistent poisson-carrier loop, because that's not super stable.  Instead
-        use :func:`pynitride.solvers.PoissonSolver.newton_step`.
+        use :func:`~pynitride.solvers.PoissonSolver.newton_step`.
 
         """
         m=self._mesh
@@ -191,11 +173,15 @@ class PoissonSolver():
                   val_out=m.phi,n=1,dirichelet1=True, dirichelet2=False)
         PoissonSolver.update_bands_to_potential(m,sbh=self._sbh)
 
-    def newton_step(self, activation=1, doplot=False):
+    def newton_step(self, activation=1):
         r""" Solves the phi for one step of Newton iteration.
 
         The equation is
         :math:`-\left[\partial_z\epsilon\partial_z+\rho_0'\right]\delta\phi=\rho + \partial_z\epsilon\partial_z\phi_0`.
+
+        Args:
+            activation: a factor (generally <=1) by which to multiply the determined
+                change :math:`\delta\phi` before adding it.
 
         """
         m=self._mesh
@@ -280,46 +266,35 @@ class PoissonSolver():
 class Equilibrium():
 
     def __init__(self,mesh):
+        """ Simplest Fermi solver, `E_F=0` everywhere.
+
+        Args:
+            mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
+        """
         self._mesh=mesh
         mesh.ensure_function_exists('EF',0)
 
     def solve(self):
+        """ Sets `E_F=0` everywhere."""
         self._mesh['EF']=0
-
-#class ChargeNeutral():
-#
-#    def __init__(self,mesh,carriersolvers=[],resolve_carriers=False):
-#        self._mesh=mesh
-#        self._mesh.ensure_function_exists('EF',value=0)
-#        #self._mesh.ensure_function_exists('phi',0)
-#        self._cs=carriersolvers
-#        self._ps=PoissonSolver(mesh)
-#        if resolve_carriers:
-#            for cs in self._cs: cs.solve()
-#
-#    def solve(self, check='integrated', tol=None):
-#        with sublog("Neutralizing charge","debug"):
-#            m=self._mesh
-#            if tol is None:
-#                tol={'integrated':1e6/cm**2,'mean':1e9/cm**3}[check]
-#            if check=='mean':
-#                tol*=m.thickness
-#            kT=k*np.max(m.T)
-#            while True:
-#                for cs in self._cs:
-#                    cs.repopulate()
-#                self._ps.ionized_dopants()
-#                rho=(m.p-m.n+m.Ndp-m.Nam+m.DP).integrate(definite=True)
-#                if abs(rho)<tol: break
-#                rhoderiv=(m.pderiv-m.nderiv+m.Ndpderiv-m.Namderiv).integrate(definite=True)
-#                log("Rho: {:.2e}        Rho' {:.2e}".format(float(rho),float(rhoderiv)),"debug")
-#                dEF=np.sign(rho)*min(np.abs(rho/rhoderiv),kT)
-#                m['EF']+=dEF
-
 
 class Linear_Fermi():
 
     def __init__(self,mesh,contacts={'gate':0,'subs':-1}):
+        """ Allows for a specified piecewise linear Fermi potential.
+
+        An arbitrary number of "contacts" can be designated, and at each of these locations,
+        a call to :func:`~pynitride.solvers.LinearFermi.solve` may specify a voltage.
+
+        Args:
+            mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
+            contacts: a dictionary mapping names of contacts to locations in the mesh.
+                Keys are arbitrary names, values are either (1) integers,
+                in which case they will be interpreted as designating a layer interface
+                (0 is the top surface, -1 is the bottom point), or (2) floats, in which
+                case they will be interpreted as designating a nearest point to a `z`-value
+
+        """
         self._mesh=mesh
         interfaces=[(0,None)]+mesh._interfacesp+[((len(mesh.zp)-1),None)]
         self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexp(v))
@@ -327,6 +302,13 @@ class Linear_Fermi():
         mesh['EF']=PointFunction(mesh)
 
     def solve(self,**voltages):
+        """ Sets the Fermi level to a linear interpolation of the specific values
+
+        Args:
+            **voltages: keyword arguments of the form `name=voltage` where `name` is
+                one of the keys to the `contacts` dictionary supplied at initialization.
+
+        """
         lefts=list(self._contacts.items())[:-1]
         rights=list(self._contacts.items())[1:]
         for (clname,cl),(crname,cr) in zip(lefts,rights):
@@ -337,83 +319,221 @@ class Linear_Fermi():
 
 class SelfConsistentLoop():
     def __init__(self,fieldsolvers=[],carriermodels=[]):
+        """ For Newton-iteration of field and carrier solvers.
+
+        Dielectric ramping is provided for initial solutions and carrier models
+        can be swapped in and out to allow for sequential solves by different
+        methods.
+
+        Args:
+            fieldsolvers: a list of :class:`~pynitride.solvers.PoissonSolver`
+            carriermodels: a list of :class:`~pynitride.carriers.CarrierModel`
+        """
         self._fs=fieldsolvers
         self._cs=carriermodels
 
     def remove_carrier_model(self,cs):
+        """ Remove a carrier solver from consideration.
+
+        Args:
+            cs: a :class:`~pynitride.carriers.CarrierModel` which should be in the
+                list currently considered
+        """
         self._cs.remove(cs)
     def add_carrier_model(self,cs):
+        """ Add a carrier solver for consideration.
+
+        Args:
+            cs: a :class:`~pynitride.carriers.CarrierModel`
+        """
         self._cs.append(cs)
     def swap_carrier_model(self,remove,add):
+        """ Swaps out one :class:`~pynitride.carriers.CarrierModel` for another
+
+        Args:
+            remove: the model to remove
+            add: the model to add
+        """
         self.remove_carrier_model(remove)
         self.add_carrier_model(add)
-    def isolve_fields(self, activation=1):
+
+
+    def newton_fields(self, activation=1):
+        """ Perform one Newton step of the fields (just the fields, not the carriers).
+
+        Calls the :func:`~pynitride.solvers.PoissonSolver.newton_step` for each field solver.
+
+        Args:
+            activation: the proportion by which to change the fields
+                (see `~pynitride.solvers.PoissonSolver.newton_step`)
+        Returns:
+            the summed error from each field solver's `newton_step`
+
+        """
         return sum(fs.newton_step(activation=activation) for fs in self._fs)
+
     def solve_fields(self):
-        return [fs.solve() for fs in self._fs]
+        """ Perform a direct solve of the fields (just the fields, not the carriers).
+
+        Calls the :func:`~pynitride.solvers.PoissonSolver.solve` for each field solver.
+
+        """
+        [fs.solve() for fs in self._fs]
     def solve_carriers(self):
+        """ Perform a direct solve of the carriers (just the carriers, not the fields).
+
+        Calls the :func:`~pynitride.carriers.CarrierModel.solve` for each.
+
+        """
         [cs.solve_and_repopulate() for cs in self._cs]
 
-    def loop(self, tol=1e-5, max_iter=100, min_activation=.05,init_activation=1):
-        adec=2
+    def loop(self, tol=1e-5, max_iter=100, min_activation=.05,
+             init_activation=1,dec_activation=2,inc_activation=1.1):
+        """ Loops the Newton field solution and carrier models until they agree
+
+        If the error increases during a step, the step will be retried with a smaller `activation`
+        (see :func:`~pynitride.solvers.PoissonSolver.newton_solve`).  If the `activation` becomes too small
+        or the maximum number of iterations is passed, will raise an exception.
+
+        Note, the first step in the solve is always the carriers, so they may be in any state before
+        this function is called, whereas the fields must already be defined, eg by
+        :func:`~pynitride.solvers.PoissonSolver.update_bands_to_potential`.
+
+        Args:
+            tol:  the absolute tolerance for the error
+                as returned by :func:`~pynitride.SelfConsistentLoop.newton_step`
+            max_iter: Maximum number of iterations allowed
+                (not including any lower-activation re-attempts made)
+            min_activation: the smallest activation allowed.
+            init_activation: activation to start looping at
+            dec_activation: factor by which to reduce the `activation` if a step fails
+            inc_activation: factor by which to increase the `activation` if a step succeeds
+        """
         with sublog("Starting SC loop"):
+
+            # Start at infinite error and zero iterations
             err=np.inf
             i=0
             a=init_activation
+
+            # Until consistency is reached
             while err/a>tol:
+
+                # Limit iterations
                 if i>=max_iter:
                     raise Exception("Maximum iteration reached in SC loop")
+
+                # First solve carriers at fixed field
                 self.solve_carriers()
+
+                # Then step fields
                 errprev=err
-                err=self.isolve_fields(activation=a)
+                err=self.newton_fields(activation=a)
                 log("iter: {:3d}  err: {:.2e}  activ: {:g}".format(i,err,a))
+
+                # If the error was not improved
                 while err>errprev:
-                    a/=adec
+
+                    # Shrink the activation
+                    a/=dec_activation
                     log("Retrying with Poisson activation={:g}".format(a))
+
+                    # Limit activation shrinking
                     if a<min_activation:
                         raise Exception("Couldn't reduce error in SC loop")
-                    for fs in self._fs:fs.shorten_last_step(1/adec)
+
+                    # Reduce the change made by the previous field solve
+                    for fs in self._fs:fs.shorten_last_step(1/dec_activation)
+
+                    # Re-solve the carriers
                     self.solve_carriers()
-                    err=self.isolve_fields(activation=a)
+
+                    # Try stepping the fields from this intermediate point
+                    err=self.newton_fields(activation=a)
                     log("       iter: {:3d}  err: {:.2e}".format(i,err))
-                a=min(1.2*a,1)
+
+                # By now, a step was successful, so increase activation and iteration count
+                a=min(inc_activation*a,1)
                 i+=1
-            #log("Post-solve")
-            #self.solve_fields()
             log("Loop finished in {:2d} iterations with err={:g}".format(i,err))
 
-    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5, dlefmin=.005, max_iter=20, tol=1e-5, min_activation=.1):
+    def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5,
+                       dlefmin=.005,**loop_opts):
+        """ Ramp the dielectric constant for an easy initial condition.
+
+        Performs self-consistent loops at successive values of the `epsfactor`
+        (see :func:`~pynitride.solvers.PoissonSolver.update_epsfactor`) from `start` until the `stop` value is
+        reached. If the loops do not converge, smaller steps of the epsilon factor are attempted, this robustness is
+        controlled by the `dlef` arguments, which constrain `dlef` (the logarithmic change in the epsilon factor from
+        step to step, ie `log10(epsfactor)` changes by `dlef`).  If the step cannot be reduced further but the loop does
+        not converge, an exception will be raised.
+
+
+        Args:
+            start: initial value of epsfactor
+            stop: final value of epsfactor
+            dlefstart: initial logarithmic delta for epsfactor stepping
+            dlefmax: maximum allowed logarithmic delta for epsfactor stepping
+            dlefmin: minimum allowed logarithmic delta for epsfactor stepping
+            loop_opts: passed to each `pynitride.solvers.SelfConsistentLoop.loop`
+
+        """
         with sublog("Starting eps factor ramp from {:g} to {:g}".format(start,stop)):
+
+            # lef will be the log of the epsfactor
             lefstart=np.log10(start)
             lefstop=np.log10(stop)
             lef=lefstart
 
+            # dlef will be the step of the lef
             dlefstart*=np.sign(lefstop-lefstart)
             dlef=dlefstart
             prevlef=None
+
             while True:
                 ef=10**lef
                 log("Eps factor: {:.2e}".format(ef))
 
+                # Store the current fields
                 for fs in self._fs:
                     fs.store_state()
-                    fs.update_epsfactor(ef)
-                    self.isolve_fields()
+
+                # Try solving at the new epsfactor
                 try:
+
+                    # Newton step the fields for the new epsfactor
+                    fs.update_epsfactor(ef)
+                    self.newton_fields()
+
+                    # Do a SC loop
                     self.loop(max_iter=max_iter, tol=tol, min_activation=min_activation)
+
+                    # If that succeeded, we reach here, otherwise an exception was thrown
+
+                    # If we're at the final epsfactor, we're done
                     if (lef-lefstop)<1e-9:
                         break
 
-                    # Next lef
-                    prevlef=lef
-                    dlef=np.sign(dlef)*min(np.abs(2*dlef),np.abs(dlefmax))
-                    lef=lef+dlef
-                    # if we passed the end, go back
-                    if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
+                    # Otherwise, go to the next epsfactor
+                    else:
+                        prevlef=lef
+
+                        # Scale dlef since solve was successful
+                        dlef=np.sign(dlef)*min(np.abs(2*dlef),np.abs(dlefmax))
+                        lef=lef+dlef
+
+                        # if we set dlef past the endpoint, go back
+                        if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
+
+                # If the solve failed at some epsfactor, try to recover
                 except Exception as e:
                     log("Failure: {}".format(str(e)))
+
+                    # If it's the first epsfactor, nothing we can do
                     if prevlef is None:
                         raise Exception("Failed at initial epsfactor")
+
+                    # Otherwise, restore the previous consistent state
                     ef=10**prevlef
                     log("Restoring at {:.2e}".format(ef))
                     for fs in self._fs:
@@ -421,55 +541,17 @@ class SelfConsistentLoop():
                         fs.update_epsfactor(ef)
                     self.solve_carriers()
 
+                    # Halve the step
                     dlef=dlef/2
+
+                    # Limit step shrinking
                     if np.abs(dlef)<np.abs(dlefmin):
                         raise Exception("Eps factor step size too small")
+
+                    # set the new epsfactor
                     lef=prevlef+dlef
+
                     # if we passed the end, go back
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
             log("Done eps factor ramp")
 
-    def ramp_param(self, name, xstart, xstop, dxstart=.1, dxmax=.5, dmin=.005,
-            max_iter=20, tol=1e-5, min_activation=.1):
-        with sublog("Starting {} ramp from {:g} to {:g}".format(name,start,stop)):
-            x=xstart
-
-            dxstart*=np.sign(xstop-xstart)
-            dx=dxstart
-            prevx=None
-            while True:
-                log("{}: {:.2g}".format(name,x))
-
-                for fs in self._fs:
-                    fs.store_state()
-                    fs.update_epsfactor(ef)
-                    self.isolve_fields()
-                try:
-                    self.loop(max_iter=max_iter, tol=tol, min_activation=min_activation)
-                    if (x-xstop)<1e-9:
-                        break
-
-                    # Next x
-                    prevx=x
-                    dx=np.sign(dx)*min(np.abs(2*dx),np.abs(dxmax))
-                    x=x+dx
-                    # if we passed the end, go back
-                    if np.sign(x-xstop)!=np.sign(xstart-xstop): x=xstop
-                except Exception as e:
-                    log("Failure: {}".format(str(e)))
-                    if prevx is None:
-                        raise Exception("Failed at initial epsfactor")
-                    x=prevx
-                    log("Restoring at {:.2e}".format(x))
-                    for fs in self._fs:
-                        fs.restore_state()
-                        fs.update_epsfactor(x)
-                    self.solve_carriers()
-
-                    dx=dx/2
-                    if np.abs(dx)<np.abs(dx):
-                        raise Exception("Eps factor step size too small")
-                    x=prevx+dx
-                    # if we passed the end, go back
-                    if np.sign(x-xstop)!=np.sign(xstart-xstop): x=xstop
-            log("Done {} ramp".format(name))
