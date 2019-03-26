@@ -64,6 +64,7 @@ The :math:`\phi` must then be normalized by the prescription :math:`\int dz\frac
     \begin{align}
       \vec u = \frac{V_u}{e^*}\vec P=\frac{V_u}{e^*}\varepsilon_0\chi\vec E=-\frac{V_u}{e^*}\chi\nabla\phi
     \end{align}
+
 So
 
 .. math::
@@ -145,6 +146,7 @@ If the solution is written in Region 1 with a normalization constant :math:`A` a
     \begin{equation}
       A^2=\frac{\hbar}{2\omega}\big/\left[ \beta^2_{\parallel 1}\gamma_{\parallel 1}^2+\beta^2_{\perp 1}\gamma_{\perp 1}^2 + \left(\frac{B}{A}\right)^2\left(\beta^2_{\parallel 2}\gamma_{\parallel 2}^2+\beta^2_{\perp 2}\gamma_{\perp 2}^2 \right) \right]
     \end{equation}
+
 with
 
 .. math::
@@ -158,6 +160,7 @@ with
     \begin{equation}
       \beta_{\perp     i}^2=\varepsilon^\infty_i\left( \omega_{LOi}^2-\omega_{TOi}^2 \right)\left( \frac{  q}{\omega_{TO\perp i}^2-\omega^2} \right)^2
     \end{equation}
+
 and
 
 .. math::
@@ -201,6 +204,7 @@ with :math:`B/A=\sin(k_1 t_1)e^{k_2t_1}` and
       \gamma_{\parallel 2}=\frac{1}{2k_2}e^{-2k_2t_1}, \quad
       \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
     \end{equation}
+
 Note that if the energy region adjoins :math:`\omega_{LO\perp 1}`, the above does admit one peculiar :math:`n=0` mode which has a very small :math:`q` for all :math:`\omega`.  This mode thus does not contribute to in-plane scattering, but is terrible for the math, so I'd filter it out.
 
 
@@ -260,6 +264,7 @@ Matching interface conditions gives
     \begin{align}
       \theta=\tan^{-1}\left( \frac{\xi_2}{\xi_1}\tanh(k_1t_1) \right)-k_2t_1
     \end{align}
+
 with :math:`B/A=\sinh(k_1t_1)/\sin(k_2t_1+\theta)`.  The :math:`t_2` thickness normalization gives :math:`k_2=\pi (n+1)/t_2`, so
 
 .. math::
