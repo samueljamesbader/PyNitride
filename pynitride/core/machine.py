@@ -17,9 +17,13 @@ class Pool():
         cp=ConfigParser()
         cp.read(os.path.join(ROOT_DIR,"config.ini"))
 
-        globalthreads=cp.getint("parallelism","globalthreads")
-        globalprocesses=cp.getint("parallelism","globalprocesses")
-        cextthread=cp.getint("parallelism","cextthread")
+
+        try: globalthreads=cp.getint("parallelism","globalthreads")
+        except: globalthreads=cpu_count()
+        try: globalprocesses=cp.getint("parallelism","globalprocesses")
+        except: globalprocesses=cpu_count()
+        try: cextthread=cp.getint("parallelism","cextthread")
+        except: cextthread=1
 
         kwargs={'globalthreads':globalthreads,
                 'globalprocesses':globalprocesses,'cextthread':cextthread}
