@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
-from pynitride.material import AlGaN
-from pynitride.mesh import Mesh, MaterialBlock, UniformLayer
-from pynitride.paramdb import to_unit, nm, eV, cm, meV
-from pynitride.reciprocal_mesh import RMesh2D_Polar
-from pynitride.sim import Simulation
-from pynitride.visual import log
+from pynitride.physics.material import AlGaN
+from pynitride import Mesh, MaterialBlock, UniformLayer
+from pynitride import to_unit, nm, eV, cm, meV
+from pynitride import RMesh2D_Polar
+from pynitride import Simulation
+from pynitride import log
 
 
 def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV):
@@ -55,7 +55,7 @@ if __name__=="__main__":
         wf0=rmesh['kppsi'][0,0,:,:]
         wf1=rmesh['kppsi'][0,1,:,:]
         wf2=rmesh['kppsi'][0,2,:,:]
-        from pynitride.mesh import inner_product
+        from pynitride.core.mesh import inner_product
         assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
         assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
         assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)
@@ -84,7 +84,7 @@ if __name__=="__main__":
         plt.xlim(0)
         plt.show()
 
-    from pynitride.carriers import MultibandKP
+    from pynitride.physics.carriers import MultibandKP
     mbkp=MultibandKP(quantum,rmesh,num_eigenvalues=6)
     valence_band_panels(m,mbkp)
     plt.show()

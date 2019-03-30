@@ -3,13 +3,12 @@
  Based on `Li 1992 <https://doi.org/10.1006/jcph.1994.1026>`_.
 """
 
-from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
-from pynitride.material import MaterialSystem
-from pynitride.paramdb import nm, eV, m_e, hbar
-from pynitride.carriers import Schrodinger
-from pynitride.solvers import PoissonSolver, Equilibrium
+from pynitride import Mesh, NodFunction, MidFunction, MaterialBlock, UniformLayer
+from pynitride.physics.material import MaterialSystem
+from pynitride import nm, eV, m_e, hbar, pi
+from pynitride import Schrodinger
+from pynitride import PoissonSolver, Equilibrium
 import numpy as np
-pi=np.pi
 import matplotlib.pyplot as plt
 from scipy.optimize import brentq
 

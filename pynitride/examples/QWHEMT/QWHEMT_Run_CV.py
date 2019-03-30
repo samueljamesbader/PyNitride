@@ -1,13 +1,12 @@
 # AlN/GaN/AlN Quantum Well HEMT with GaN cap
 
 import matplotlib.pyplot as plt
-from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
-from pynitride.material import AlGaN
-from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
-from pynitride.solvers import PoissonSolver, Linear_Fermi, SelfConsistentLoop
-from pynitride.thermal import ConstantT
-from pynitride.strain import Pseudomorphic
+from pynitride import Mesh, NodFunction, MidFunction, MaterialBlock, UniformLayer
+from pynitride.physics.material import AlGaN
+from pynitride import to_unit, nm, eV, m_e, cm
+from pynitride import Schrodinger, Semiclassical, MultibandKP
+from pynitride import PoissonSolver, Linear_Fermi, SelfConsistentLoop
+from pynitride import ConstantT, Pseudomorphic
 from time import time
 import numpy as np
 from operator import itemgetter

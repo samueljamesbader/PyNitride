@@ -1,10 +1,7 @@
-from pynitride.visual import  log, sublog
-from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
-from pynitride.carriers import Schrodinger, Semiclassical, MultibandKP
-from pynitride.thermal import ConstantT
-from pynitride.strain import Pseudomorphic
-from pynitride.paramdb import to_unit
-from operator import itemgetter
+from pynitride import  log, sublog, to_unit
+from pynitride import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
+from pynitride import Schrodinger, Semiclassical, MultibandKP
+from pynitride import ConstantT, Pseudomorphic
 from inspect import signature
 from time import time
 import os.path
@@ -31,8 +28,8 @@ class Simulation():
 
         # General solvers
         Equilibrium(m)
-        ConstantT(m)
-        Pseudomorphic(m)
+        ConstantT(m).solve()
+        Pseudomorphic(m).solve()
         ps=PoissonSolver(m)
 
         # Which carriers will be covered by Schrodinger and which won't
@@ -74,8 +71,8 @@ class Simulation():
         # General solvers
         lf=Linear_Fermi(m,dict(gate=0,hg=sim.extras['sourcepoint'],subs=-1))
         lf.solve(gate=Va)
-        ConstantT(m,T)
-        Pseudomorphic(m,straincond=strain)
+        ConstantT(m,T).solve()
+        Pseudomorphic(m,straincond=strain).solve()
         ps=PoissonSolver(m)
 
         # Which carriers will be covered by MBKP and which won't

@@ -1,7 +1,7 @@
-from pynitride.paramdb import pmdb, hbar, m_e, nm
-from pynitride.mesh import MidFunction, PointFunction, Function, SubMesh
-from pynitride.visual import log
-from pynitride.maths import double_mat
+from pynitride import pmdb, hbar, m_e, nm
+from pynitride import MidFunction, NodFunction, Function, SubMesh
+from pynitride import log
+from pynitride.core.maths import double_mat
 import numpy as np
 
 class MaterialSystem():
@@ -107,10 +107,6 @@ class Wurtzite(MaterialSystem):
             'temperature': [self.bandedge_params],
         })
         self._attrs.update({
-            #'exx':      self.strain,
-            #'eyy':      self.strain,
-            #'ezz':      self.strain,
-
             'Psp':      self.vergard('polarization.Psp'),
             'e33':      self.vergard('polarization.e33'),
             'e31':      self.vergard('polarization.e31'),
@@ -487,11 +483,6 @@ class Wurtzite(MaterialSystem):
         Cr=0*q+MidFunction(m,np.array([[O]]))
         C2=0*q+np.array([[m.C44]])
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
-
-
-    def strain(self,m,key):
-        print("Returning {} even though strain is unsolved".format(key))
-        #raise Exception("Strain state has not been solved yet.")
 
     def strain_to(self,m,straincond={}):
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)

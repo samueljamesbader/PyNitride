@@ -1,15 +1,11 @@
 # Basic AlGaN/GaN HEMT
 import matplotlib.pyplot as plt
-from pynitride.mesh import Mesh, PointFunction, MidFunction, MaterialBlock, UniformLayer
-from pynitride.material import AlGaN
-from pynitride.paramdb import to_unit, nm, eV, m_e, cm
-from pynitride.carriers import Schrodinger, Semiclassical
-from pynitride.solvers import PoissonSolver, Equilibrium, SelfConsistentLoop
-from pynitride.thermal import ConstantT
-from pynitride.strain import Pseudomorphic
-from pynitride.maths import dephase
-from pynitride.visual import log
-from pynitride.sim import Simulation
+from pynitride import Mesh, NodFunction, MaterialBlock, UniformLayer
+from pynitride.physics.material import AlGaN
+from pynitride import to_unit, nm, eV, cm
+from pynitride.core.maths import dephase
+from pynitride import log
+from pynitride import Simulation
 import numpy as np
 
 def define_mesh(sim,barr_t=20*nm,barr_x=.4,buff_t=100*nm,Ndd=5e16/cm**3,max_dz=1*nm):

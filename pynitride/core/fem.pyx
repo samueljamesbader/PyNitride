@@ -27,8 +27,6 @@ cpdef assemble_stiffness_matrix(
         bool dirichelet1=True, bool dirichelet2=True):
     """ Assemble a stiffness matrix from the coefficients of the differential equation.
     
-    Cythonized assembly method, call as `assemble_stiffness_matrix(C0, Cl, Cr, C2, dzp, dirichelet1, dirichelet2)`.
-    
     For the mathematics/definitions of the :math:`C` terms, see :ref:`FEM`.
     All arguments should be defined on the mid mesh except :math:`U`,
     and all the :math:`C` matrices should be three-dimensional, even if they are just scalars.
@@ -110,8 +108,6 @@ cpdef assemble_load_matrix(
         cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
         int n, bool dirichelet1=False, bool dirichelet2=False):
     r""" Assemble a load matrix from the coefficients of the differential equation.
-    
-    Cythonized assembly method, call as `assemble_load_matrix(w, dzp, n)`.
     
     For the mathematics/definitions of the :math:`w` term, see :ref:`FEM`.
     All arguments should be defined on the mid mesh, and the :math:`w` matrix should be one-dimensional floats

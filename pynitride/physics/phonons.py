@@ -1,18 +1,20 @@
-from pynitride.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
-from pynitride.visual import log, sublog
-from pynitride.mesh import PointFunction
-from pynitride.paramdb import pmdb,hbar, meV
-from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
-from pynitride.maths import polar2cart, chunks
-from pynitride.material import AlGaN
-from scipy.sparse.linalg import eigsh
+from collections import OrderedDict
 from functools import partial
-from scipy.interpolate import interp1d
-from scipy.optimize import brentq
 from itertools import product
 from operator import itemgetter
-from collections import OrderedDict
+
 import numpy as np
+from pynitride.core.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
+from pynitride.core.maths import polar2cart, chunks
+from pynitride import NodFunction
+from pynitride import pmdb, hbar, meV
+from pynitride import log
+from scipy.interpolate import interp1d
+from scipy.optimize import brentq
+
+from pynitride.core.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
+from pynitride.physics.material import AlGaN
+
 pi=np.pi
 
 class PhononModel():
@@ -142,13 +144,13 @@ class PhononModel():
                 assert self._vecs.shape==\
                     (self.rmesh.N,self.num_eigs,self._n,self._keepmesh.Np),\
                     "Loaded PhononModel does not match current"
-                self.rmesh['vecs']=PointFunction(self._keepmesh,self._vecs,
+                self.rmesh['vecs']=NodFunction(self._keepmesh,self._vecs,
                         dtype=self._vecs.dtype)
             if 'phi' in self.rmesh:
                 assert self._phi.shape==\
                     (self.rmesh.N,self.num_eigs,self._keepmesh.Np),\
                     "Loaded PhononModel does not match current"
-                self.rmesh['phi']=PointFunction(self._keepmesh,self._phi,
+                self.rmesh['phi']=NodFunction(self._keepmesh,self._phi,
                         dtype=self._phi.dtype)
         except:
             for key in self._save_with_vecs:
@@ -195,7 +197,7 @@ class PhononModel():
         """ The matrix element squared between two wavefunctions
 
         Args:
-            psii, psij: the two wavefunctions (as 2-D PointFunctions)
+            psii, psij: the two wavefunctions (as 2-D NodFunctions)
             iq (int): index into the `q` array
             thetaq: in-plane angle of the phonon propagation (from X toward Y)
             l: which eigenvalue to use of those solved for
@@ -244,7 +246,7 @@ class AcousticPhonon(PhononModel):
             l: which eigenvalue to use of those solved for
 
         Returns:
-            a tuple of three PointFunctions (ux,uy,uz)
+            a tuple of three NodFunctions (ux,uy,uz)
 
         """
 
@@ -367,10 +369,10 @@ class ElasticContinuum(AcousticPhonon):
         if 'en' not in self.rmesh:
             self.rmesh['en']   =np.empty((len(self.q),self.num_eigs))
         if 'vecs' not in self.rmesh and not just_energies:
-            self.rmesh['vecs'] =PointFunction(self._keepmesh,
+            self.rmesh['vecs'] =NodFunction(self._keepmesh,
                     empty=(len(self.q),self.num_eigs,self._n),dtype='complex')
         if not just_energies and self.piezo and 'phi' not in self.rmesh:
-            self.rmesh['phi'] =PointFunction(self._keepmesh,
+            self.rmesh['phi'] =NodFunction(self._keepmesh,
                     empty=(len(self.q),self.num_eigs),dtype='complex')
 
         # Make the EC matrices if we haven't already
@@ -465,11 +467,11 @@ class ElasticContinuum(AcousticPhonon):
 
             if not self.piezo:
                 return en_out,\
-                    PointFunction(m,vec_out,dtype='complex')\
+                    NodFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh)
             else:
                 return en_out,\
-                    PointFunction(m,vec_out,dtype='complex')\
+                    NodFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh),\
                     self.piezo.solve_one_q(q,iq,vec_out)\
                         .restrict(self._keepmesh)
@@ -518,7 +520,7 @@ class PiezoPotential():
     
         # Purely transverse modes have no piezo potential
         if self.vecform=='Y':
-            return PointFunction(m,np.zeros((self.num_eigs,m.Np),dtype='complex'))
+            return NodFunction(m,np.zeros((self.num_eigs,m.Np),dtype='complex'))
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
@@ -532,7 +534,7 @@ class PiezoPotential():
             Mx_pz=self.rmesh['pz_load_matrices_x'][iq]
             Mz_pz=self.rmesh['pz_load_matrices_z'][iq]
 
-        phi=PointFunction(m,empty=(self.num_eigs,),dtype='complex')
+        phi=NodFunction(m,empty=(self.num_eigs,),dtype='complex')
         vslice=slice(1,-1) # dirichelet top, neumann bottom
         for e in range(self.num_eigs):
             b_pz=(Mx_pz @ vec[e,0])[vslice] 
@@ -613,12 +615,12 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
 
         # Make vecs array if needed
         if 'vecs' not in self.rmesh:
-            self.rmesh['vecs'] =PointFunction(self._keepmesh,
+            self.rmesh['vecs'] =NodFunction(self._keepmesh,
                  empty=(len(self.q),self.num_eigs,self._n),dtype='complex')
 
         # Make phi array if needed
         if self.piezo and 'phi' not in self.rmesh:
-            self.rmesh['phi'] =PointFunction(self._keepmesh,
+            self.rmesh['phi'] =NodFunction(self._keepmesh,
                  empty=(len(self.q),self.num_eigs),dtype='complex')
         
         # Parameters
@@ -881,7 +883,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         # Make phi array if needed
         if not just_energies and 'phi' not in self.rmesh:
-            self.rmesh['phi'] =PointFunction(self._keepmesh,
+            self.rmesh['phi'] =NodFunction(self._keepmesh,
                  empty=(len(self.q),self.num_eigs),dtype='double')
 
         lmin=0
@@ -1052,7 +1054,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
             reg: 'u','IF','l' indicating where the mode is (upper/interface/lower)
 
         Returns:
-            the potential as a PointFunction on the `keepmesh`
+            the potential as a NodFunction on the `keepmesh`
         """
         wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l, \
         wTO_perp_u, wTO_para_u, wTO_perp_l, wTO_para_l, \
@@ -1097,7 +1099,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
         B = BoA * A
 
         #TODO: make this actually limit to keepmesh
-        phi_ = PointFunction(self._solvmesh, empty=())
+        phi_ = NodFunction(self._solvmesh, empty=())
         phi = phi_.restrict(self._solvmesh._matblocks[0].mesh)
         if reg == 'u':
             phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
@@ -1166,7 +1168,7 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
 
         # Make phi array if needed
         if 'phi' not in self.rmesh:
-            self.rmesh['phi'] =PointFunction(self._keepmesh,
+            self.rmesh['phi'] =NodFunction(self._keepmesh,
                  empty=(len(self.q),self.num_eigs),dtype='complex')
 
         # Parameters

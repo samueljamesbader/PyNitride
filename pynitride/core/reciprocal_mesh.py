@@ -1,9 +1,9 @@
 import numpy as np
 pi=np.pi
-from pynitride.machine import glob_store_attributes
-from pynitride.maths import polar2cart, cart2polar, round_near
+from pynitride.core.machine import glob_store_attributes
+from pynitride.core.maths import polar2cart, cart2polar, round_near
 from scipy.interpolate import RectBivariateSpline, splrep, splev
-from pynitride.visual import white2red
+from pynitride.visual.bands import white2red
 import matplotlib.pyplot as plt
 
 @glob_store_attributes('_functions')

@@ -25,7 +25,7 @@ shift
 done
 cd sphinx
 if $runapidoc ; then
-    sphinx-apidoc -o auto ../ ../setup.py  ../tests/old -f -e
+    sphinx-apidoc -o auto ../ ../setup.py  ../pynitride/tests/old -f -e
 fi
 
 make html

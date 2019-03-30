@@ -2,15 +2,15 @@
 using the just XZ modes option."""
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator
-from pynitride.mesh import Mesh, MaterialBlock, UniformLayer
-from pynitride.paramdb import to_unit
-from pynitride.material import AlGaN
-from pynitride.paramdb import nm, eV, m_e
-from pynitride.phonons import ElasticContinuum
-from pynitride.reciprocal_mesh import RMesh1D
 import numpy as np
-from tests.Pokatilov2003_phonon.phonon_analysis import sort_modes, is_Y, is_AS
+from matplotlib.ticker import MultipleLocator
+
+from pynitride.physics.material import AlGaN
+from pynitride import Mesh, MaterialBlock, UniformLayer
+from pynitride import to_unit, nm
+from pynitride.physics.phonons import ElasticContinuum
+from pynitride import RMesh1D
+from pynitride.tests.Pokatilov2003_phonon.phonon_analysis import sort_modes, is_AS
 
 if __name__=="__main__":
     m=Mesh([

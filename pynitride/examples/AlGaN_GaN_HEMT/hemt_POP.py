@@ -3,10 +3,10 @@ import matplotlib.transforms as transforms
 import numpy as np
 
 from pynitride.examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_electrical_mesh
-from pynitride.paramdb import to_unit, nm, hbar
-from pynitride.phonons import DielectricContinuum_SWH
-from pynitride.reciprocal_mesh import RMesh1D
-from pynitride.sim import Simulation
+from pynitride import to_unit, nm, hbar
+from pynitride.physics.phonons import DielectricContinuum_SWH
+from pynitride import RMesh1D
+from pynitride import Simulation
 
 
 def define_mesh(sim,**kwargs):
@@ -101,7 +101,7 @@ if __name__=='__main__':
         enLO,phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)
         enTO,phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)
 
-        from tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
+        from pynitride.tests.Analytical_POP import check_POP_interface, check_POP_normalization
         check_POP_interface(phiLO,dc.q[iq],enLO/hbar)
         check_POP_normalization(phiLO,dc.q[iq],enLO/hbar)
         check_POP_interface(phiTO,dc.q[iq],enTO/hbar)

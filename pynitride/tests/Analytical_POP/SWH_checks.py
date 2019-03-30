@@ -1,5 +1,5 @@
 import numpy as np
-from pynitride.paramdb import hbar
+from pynitride import hbar
 from operator import itemgetter
 
 def check_POP_normalization(phi, q, w, overrides={}):

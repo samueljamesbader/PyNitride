@@ -2,15 +2,12 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator
 import numpy as np
-from pynitride.paramdb import to_unit, hbar, m_e
-pi=np.pi
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator
 import numpy as np
-from pynitride.paramdb import to_unit, hbar, m_e, kb, nm
-from pynitride.maths import cart2polar
-pi=np.pi
+from pynitride import to_unit, hbar, m_e, kb, nm, pi
+from pynitride.core.maths import cart2polar
 
 def valence_band_panels(m,mbkp,bdopts={},bsopts={}):
     """ Custom plot of the dispersion, band diagram, DOS, and effective masses."""

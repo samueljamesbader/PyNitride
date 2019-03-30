@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from pynitride.mesh import PointFunction
+from pynitride import NodFunction
 
 def is_Y(v):
     """ Is this mode dominantly along Y?
@@ -65,7 +65,7 @@ def sort_modes(en,vec,criteria):
         countc=min(len(bins[c][0][iq]) for iq in range(len(en)))
         print("Criteria #",c," has ",countc," complete modes.")
         bins[c][0]=np.array([np.array(bins[c][0][iq][:countc]) for iq in range(len(en))])
-        bins[c][1]=PointFunction(m,np.array([np.array(bins[c][1][iq][:countc]) for iq in range(len(en))],dtype='complex'),dtype='complex')
+        bins[c][1]=NodFunction(m,np.array([np.array(bins[c][1][iq][:countc]) for iq in range(len(en))],dtype='complex'),dtype='complex')
     return bins
 
 

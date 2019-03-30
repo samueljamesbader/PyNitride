@@ -1,7 +1,10 @@
-import numpy as np
-from pynitride.mesh import Function
 from functools import partial
-from pynitride.machine import glob_store_attributes
+
+import numpy as np
+from pynitride import Function
+
+from pynitride.core.machine import glob_store_attributes
+
 
 def polar2cart(rho,theta):
     """ Converts a polar rho,theta coordinate to a Cartesian x,y coordinate.

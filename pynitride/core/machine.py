@@ -6,22 +6,24 @@ from operator import itemgetter
 from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial,wraps
-from pynitride.visual import log
+from pynitride import log
+from configparser import ConfigParser
+from pynitride import ROOT_DIR
 
 class Pool():
 
     @classmethod
-    def configure_globalparallel(cls):
-        cls.configure()
+    def configure(cls):
+        cp=ConfigParser()
+        cp.read(os.path.join(ROOT_DIR,"config.ini"))
 
-    @classmethod
-    def configure_onlycextparallel(cls):
-        cls.configure(globalprocesses=1,globalthreads=1,cextthread=None)
+        globalthreads=cp.getint("parallelism","globalthreads")
+        globalprocesses=cp.getint("parallelism","globalprocesses")
+        cextthread=cp.getint("parallelism","cextthread")
 
-    @classmethod
-    def configure(cls, globalthreads=cpu_count()-1,globalprocesses=cpu_count()-1,cextthread=1):
         kwargs={'globalthreads':globalthreads,
                 'globalprocesses':globalprocesses,'cextthread':cextthread}
+        print(kwargs)
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
             log("Pool was already configured with the given arguments.")

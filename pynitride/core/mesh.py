@@ -10,9 +10,9 @@ from matplotlib import pyplot as mpl
 from scipy.interpolate import interp1d
 from math import gcd,ceil
 from functools import reduce
-from pynitride.visual import log
+from pynitride import log
 from scipy.special import lambertw as W
-from pynitride.fem import assemble_load_matrix
+from pynitride.core.fem import assemble_load_matrix
 
 class MaterialBlock():
     def __init__(self,name,matsys,layers):
@@ -22,9 +22,13 @@ class MaterialBlock():
         for l in layers:
             l._matblock=self
 
-    def place(self,mesh):
+    def place(self,mesh,interface_indices):
         self._mesh=mesh
         mesh.name=self.name
+        for k,v in self.matsys._defaults.items():
+            mesh.create_restricted_function(k,MidFunction(mesh,v))
+        for lay,l,r in zip(self.layers,interface_indices[:-1],interface_indices[1:]):
+            lay.place(SubMesh(mesh,'',l,r+1))
 
     @property
     def mesh(self):
@@ -292,15 +296,12 @@ class Mesh():
 
         # Store functions which live on this mesh
         self._functions = {}
-        self._attrs = {}
         self._requested_functions = {}
         self._submeshes= []
 
         self._global_slicep=slice(0,len(self._zp))
         self._global_slicem=slice(0,len(self._zm))
 
-
-        # TODO: break this up so some is done within matblock
 
         # This is the whole world
         self.name='global'
@@ -314,14 +315,8 @@ class Mesh():
             ilr=ill+len(mb.layers)-1
             ml=leftindices[ill]
             mr=rightindices[ilr]
-            mb.place(SubMesh(self, '', ml, mr+1))
-            ###
-            for k,v in mb.matsys._defaults.items():
-                mb.mesh.create_restricted_function(k,MidFunction(mb.mesh,v))
-            ###
-            for lay,l,r in zip(mb.layers,leftindices[ill:ilr+1],rightindices[ill:ilr+1]):
-                lay.place(SubMesh(mb.mesh,'',l-ml,r-ml+1))
-
+            mb.place(SubMesh(self, '', ml, mr+1),interface_indices=
+                [0]+list(interface_indices[ill:(ill+len(mb.layers)+1)])+[len(self.zp)-1])
 
         self.Np=len(self._zp)
         self.Nm=len(self._zm)
@@ -436,7 +431,7 @@ class Mesh():
     #            else:
     #                if pos=='point':
     #                    assert default is not None,"Specified pos=='point' for key "+key+"but no default"
-    #                    self[key]=PointFunction(self,value=default)
+    #                    self[key]=NodFunction(self,value=default)
     #                else:
     #                    self._fill_from_matblocks(key,default)
 
@@ -548,18 +543,10 @@ class Mesh():
         """
         if key in self._functions:
             return self._functions[key]
-        elif key in self._attrs:
-            self._attrs[key]()
-            return self._functions[key]
         elif sum(key in mb for mb in self._matblocks):
             return self._fill_from_matblocks(key)
         else:
             raise Exception("EEH? "+key)
-
-    def add_attr(self,attr,func):
-        self._attrs[attr]=func
-        for sm in self._submeshes:
-            sm.add_attr(attr,func)
 
     def __setitem__(self, key, value, restricted=False):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
@@ -679,7 +666,7 @@ class Mesh():
         with np.load(filename) as data:
             for k,v in data.items():
                 if v.shape[-1]==len(self._zp):
-                    self[k]=PointFunction(self,v)
+                    self[k]=NodFunction(self,v)
                 elif v.shape[-1]==len(self._zm):
                     self[k]=MidFunction(self,v)
                 else:
@@ -755,7 +742,6 @@ class SubMesh(Mesh):
             self._layers=[next(ll for i,ll,lr in (mesh.interfaces_point+[[start+1,mesh._layers[-1],None]]) if i > start)]
 
         self._functions = { k: f.restrict(self) for k, f in mesh._functions.items()}
-        self._attrs = mesh._attrs.copy()
         self._requested_functions = {}
 
 
@@ -822,7 +808,7 @@ class Function(np.ndarray):
         value = np.asarray(value,dtype=dtype)
         vshape=list(value.shape)
 
-        # If the shape matches up to the mesh already, go ahead and just view that value as the PointFunction
+        # If the shape matches up to the mesh already, go ahead and just view that value as the NodFunction
         if hasattr(z,'shape') and len(value.shape) and value.shape[-1]==z.shape[0]:
             obj=value.view(cls)
             obj.mesh = mesh
@@ -991,7 +977,7 @@ def NodFunction(mesh,value=np.NaN,dtype='float',empty=False):
     All other arguments are the same.
     """
     return Function(mesh,pos='point',value=value,dtype=dtype,empty=empty)
-PointFunction=NodFunction
+NodFunction=NodFunction
 
 def MidFunction(mesh,value=np.NaN,dtype='float',empty=False):
     r""" Returns a function defined on the mid mesh
@@ -1004,10 +990,10 @@ def MidFunction(mesh,value=np.NaN,dtype='float',empty=False):
 def ConstantFunction(*args,**kwargs):
     r""" Defines a function which is a single repeated constant.
 
-    At the moment, this is just a do-nothing wrapper around :py:func:`~PointFunction`, but in the future this will provide a
+    At the moment, this is just a do-nothing wrapper around :py:func:`~NodFunction`, but in the future this will provide a
     hook to implement operations which take advantage of the constancy.
     """
-    return PointFunction(*args,**kwargs)
+    return NodFunction(*args,**kwargs)
     #raise NotImplementedError
 
 def MaterialFunction(mesh, prop, default=None,dtype='float',pos='mid'):
@@ -1068,7 +1054,7 @@ def DeltaFunction(mesh, z, integral=1, i=None, pos='point'):
     :param pos: build on a point mesh or mid mesh
     :return: the delta function as a :py:class:`Function`
     """
-    func={'point': PointFunction, 'mid': MidFunction}[pos](mesh,0.0)
+    func={'point': NodFunction, 'mid': MidFunction}[pos](mesh,0.0)
     i={'point': mesh.indexp, 'mid': mesh.indexp}[pos](z) if i is None else i
     func[i]= integral / {'point':mesh._dzp[i], 'mid':mesh.dzm[i]}[pos]
     return func

@@ -1,13 +1,13 @@
 import numpy as np
-from pynitride.paramdb import K
-from pynitride.mesh import MidFunction
+from pynitride import K
+from pynitride import MidFunction
 
 class ConstantT():
 
     def __init__(self,mesh,T=300.*K):
         self._mesh=mesh
         self._T=T
-        mesh.add_attr('T',self.solve)
+        self._mesh.ensure_function_exists('T',0,pos='mid')
 
     def initialize(self):
         pass

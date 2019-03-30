@@ -3,15 +3,15 @@ import numbers
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import eigsh
-from pynitride.paramdb import kb,hbar,q,m_e, cm, pi
-from pynitride.cython_maths import tdma, fd12, fd12p, idd,iddd
-from pynitride.mesh import MaterialFunction, PointFunction, ConstantFunction, MidFunction, SubMesh
-from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_solve, fem_get_error
+from pynitride import kb,hbar,q,m_e, cm, pi
+from pynitride.core.cython_maths import tdma, fd12, fd12p, idd,iddd
+from pynitride import MaterialFunction, NodFunction,  MidFunction, SubMesh
+from pynitride.core.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_solve, fem_get_error
 from collections import OrderedDict
 from operator import mul
 from functools import reduce, lru_cache
 
-from pynitride.visual import log, sublog
+from pynitride import log, sublog
 
 
 
@@ -299,7 +299,7 @@ class Linear_Fermi():
         interfaces=[(0,None)]+mesh._interfacesp+[((len(mesh.zp)-1),None)]
         self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexp(v))
                                    for k,v in contacts.items()],key=lambda x:x[1] if hasattr(x,'__getitem__') else x))
-        mesh['EF']=PointFunction(mesh)
+        mesh['EF']=NodFunction(mesh)
 
     def solve(self,**voltages):
         """ Sets the Fermi level to a linear interpolation of the specific values
@@ -506,7 +506,7 @@ class SelfConsistentLoop():
                     self.newton_fields()
 
                     # Do a SC loop
-                    self.loop(max_iter=max_iter, tol=tol, min_activation=min_activation)
+                    self.loop(**loop_opts)
 
                     # If that succeeded, we reach here, otherwise an exception was thrown
 

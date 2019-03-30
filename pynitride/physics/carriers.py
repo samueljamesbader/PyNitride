@@ -1,18 +1,16 @@
-import numpy as np
-from pynitride.mesh import PointFunction, MidFunction, Function, ConstantFunction
-from pynitride.paramdb import pmdb, kb, pi, hbar, m_e, nm
-from pynitride.cython_maths import fd12, fd12p
-from pynitride.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
-from scipy.sparse import diags
-from scipy.sparse.linalg import eigsh
-from numpy.linalg import eigvalsh, eigh
-from scipy.sparse import lil_matrix
-from pynitride.visual import log, sublog
-from pynitride.machine import Pool, glob_store_attributes, FakePool, raiser
-from pynitride.maths import polar2cart
-from operator import iadd,setitem
-from operator import itemgetter
 from functools import partial
+from operator import iadd, setitem
+
+import numpy as np
+from numpy.linalg import eigh
+from pynitride.core.cython_maths import fd12, fd12p
+from pynitride.core.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh
+from pynitride import NodFunction, MidFunction
+from pynitride import kb, pi, hbar
+from pynitride import log
+
+from pynitride.core.machine import Pool, glob_store_attributes, raiser
+
 
 class CarrierModel():
 
@@ -179,12 +177,12 @@ class Schrodinger(CarrierModel):
         if 'electron' in self._carriers:
             self._nebands=m.mez.shape[0]
             self._een=np.empty([self._nebands, self._neig+self._blend])
-            self._epsi=PointFunction(m, empty=(self._nebands, self._neig+self._blend),dtype=float)
+            self._epsi=NodFunction(m, empty=(self._nebands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
         if 'hole' in self._carriers:
             self._nhbands=m.mhz.shape[0]
             self._hen=np.empty([self._nhbands, self._neig+self._blend])
-            self._hpsi=PointFunction(m, empty=(self._nhbands, self._neig+self._blend),dtype=float)
+            self._hpsi=NodFunction(m, empty=(self._nhbands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
 
         for sb in self._subbands:
@@ -288,9 +286,9 @@ class MultibandKP(CarrierModel):
             if 'kpen' not in self.rmesh:
                 self.rmesh['kpen']=np.empty((self.rmesh.N,self._neig))
             if 'kppsi' not in self.rmesh:
-                self.rmesh['kppsi']=PointFunction(m,dtype=self._Cmats[0][0].dtype,empty=(self.rmesh.N,num_eigenvalues,self._n,))
+                self.rmesh['kppsi']=NodFunction(m,dtype=self._Cmats[0][0].dtype,empty=(self.rmesh.N,num_eigenvalues,self._n,))
             if 'normsqs' not in self.rmesh:
-                self.rmesh['normsqs']=PointFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
+                self.rmesh['normsqs']=NodFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
         self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
 
         self._interp_ready=False
@@ -340,7 +338,7 @@ class MultibandKP(CarrierModel):
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
         H=assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
         eigvals=np.empty([self._neig])
-        eigvecs=PointFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
+        eigvecs=NodFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
         # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
         fem_eigsh(H,self._load_matrix,eigvals,eigvecs,self._n,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
             ascending=ascending,k=self._neig,sigma=sigma,which='LM',tol=0,ncv=self._neig*2)
