@@ -417,7 +417,7 @@ class SelfConsistentLoop():
             a=init_activation
 
             # Until consistency is reached
-            while err/a>tol:
+            while err>tol:
 
                 # Limit iterations
                 if i>=max_iter:
@@ -428,7 +428,7 @@ class SelfConsistentLoop():
 
                 # Then step fields
                 errprev=err
-                err=self.newton_fields(activation=a)
+                err=self.newton_fields(activation=a)/a
                 log("iter: {:3d}  err: {:.2e}  activ: {:g}".format(i,err,a))
 
                 # If the error was not improved
@@ -449,7 +449,7 @@ class SelfConsistentLoop():
                     self.solve_carriers()
 
                     # Try stepping the fields from this intermediate point
-                    err=self.newton_fields(activation=a)
+                    err=self.newton_fields(activation=a)/a
                     log("       iter: {:3d}  err: {:.2e}".format(i,err))
 
                 # By now, a step was successful, so increase activation and iteration count
