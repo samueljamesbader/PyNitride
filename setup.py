@@ -10,9 +10,9 @@ def make_default_config():
     with open("config.ini",'w') as f:
         cp=ConfigParser()
         cp.add_section("parallelism")
-        cp.set("parallelism","globalthreads",str(cpu_count()))
-        cp.set("parallelism","globalprocesses",str(cpu_count()))
-        cp.set("parallelism","cextthread",str(1))
+        cp.set("parallelism","globalthreads","cpu_count")
+        cp.set("parallelism","globalprocesses","cpu_count")
+        cp.set("parallelism","cextthread","1")
         cp.write(f)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
