@@ -4,13 +4,13 @@ from functools import wraps
 import matplotlib.pyplot as plt
 import numpy as np
 
-from pynitride.carriers import MultibandKP
+from pynitride import MultibandKP
 from pynitride.examples.AlGaN_GaN_HEMT.hemt_visualization import conduction_band_panels
 from pynitride.examples.AlGaN_GaN_HEMT.hemt_example import define_mesh as define_basic_mesh
-from pynitride.maths import dephase
-from pynitride.paramdb import to_unit, nm
-from pynitride.reciprocal_mesh import RMesh1D, RMesh2D_Polar
-from pynitride.sim import Simulation
+from pynitride.core.maths import dephase
+from pynitride import to_unit, nm
+from pynitride import RMesh1D, RMesh2D_Polar
+from pynitride import Simulation
 
 
 @wraps(define_basic_mesh)

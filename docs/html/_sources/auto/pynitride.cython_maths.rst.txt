@@ -1,7 +1,0 @@
-pynitride.cython\_maths module
-==============================
-
-.. automodule:: pynitride.cython_maths
-    :members:
-    :undoc-members:
-    :show-inheritance:

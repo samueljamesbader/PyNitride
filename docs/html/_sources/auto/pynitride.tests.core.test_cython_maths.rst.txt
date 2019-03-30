@@ -1,0 +1,7 @@
+pynitride.tests.core.test\_cython\_maths module
+===============================================
+
+.. automodule:: pynitride.tests.core.test_cython_maths
+    :members:
+    :undoc-members:
+    :show-inheritance:

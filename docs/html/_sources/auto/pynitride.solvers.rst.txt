@@ -1,7 +1,0 @@
-pynitride.solvers module
-========================
-
-.. automodule:: pynitride.solvers
-    :members:
-    :undoc-members:
-    :show-inheritance:

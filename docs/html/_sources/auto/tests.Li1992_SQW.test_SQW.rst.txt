@@ -1,7 +1,0 @@
-tests.Li1992\_SQW.test\_SQW module
-==================================
-
-.. automodule:: tests.Li1992_SQW.test_SQW
-    :members:
-    :undoc-members:
-    :show-inheritance:

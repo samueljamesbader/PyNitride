@@ -1,7 +1,0 @@
-pynitride.carriers module
-=========================
-
-.. automodule:: pynitride.carriers
-    :members:
-    :undoc-members:
-    :show-inheritance:

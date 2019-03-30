@@ -1,0 +1,394 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pynitride.core.reciprocal_mesh module &#8212; PyNitride 2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pynitride.core.sim module" href="pynitride.core.sim.html" />
+    <link rel="prev" title="pynitride.core.paramdb module" href="pynitride.core.paramdb.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pynitride.core.reciprocal_mesh">
+<span id="pynitride-core-reciprocal-mesh-module"></span><h1>pynitride.core.reciprocal_mesh module<a class="headerlink" href="#module-pynitride.core.reciprocal_mesh" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pynitride.core.reciprocal_mesh.RMesh">
+<em class="property">class </em><code class="descclassname">pynitride.core.reciprocal_mesh.</code><code class="descname">RMesh</code><span class="sig-paren">(</span><em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Superclass for all the reciprocal meshes</p>
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.N">
+<code class="descname">N</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.N" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of points in the grid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.Omega">
+<code class="descname">Omega</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.Omega" title="Permalink to this definition">¶</a></dt>
+<dd><p>The integration area element assigned to each kpoint as a 1-D array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.absk">
+<code class="descname">absk</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.absk" title="Permalink to this definition">¶</a></dt>
+<dd><p>The absk values of the grid as a 1-D array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.d">
+<code class="descname">d</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.d" title="Permalink to this definition">¶</a></dt>
+<dd><p>The grid covers 1/d of the angular k-space</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>integrand</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrates the integrand over the RMesh.
+For instance, if the integrand is 1, you should get the area of the k-space.
+For a regular mesh with no shift, that would be <span class="math notranslate nohighlight">\(\pi\times kmax^2\)</span>
+For a mesh of the full Brillouin zone, that would be the full <cite>bzarea</cite>.</p>
+<p>Note that this integral is <em>just an integral over k-space</em>, ie does not magically include the
+<span class="math notranslate nohighlight">\(1/4\pi^2\)</span> pre-factor which appears when converting a sum over k-space to an integral over k-space.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>integrand</strong> – a 1-D array of length <cite>RMesh.N</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.kmax">
+<code class="descname">kmax</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.kmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum value of <span class="math notranslate nohighlight">\(|k|\)</span></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.kx">
+<code class="descname">kx</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.kx" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <cite>kx</cite> values of the grid as a 1-D array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.ky">
+<code class="descname">ky</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.ky" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <cite>ky</cite> values of the grid as a 1-D array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.name">
+<code class="descname">name</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A user-specified optional name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filename</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.reciprocal_mesh.RMesh.theta">
+<code class="descname">theta</code><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh.theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <cite>theta</cite> values of the grid as a 1-D array</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.reciprocal_mesh.RMesh1D">
+<em class="property">class </em><code class="descclassname">pynitride.core.reciprocal_mesh.</code><code class="descname">RMesh1D</code><span class="sig-paren">(</span><em>absk</em>, <em>bzarea=None</em>, <em>ival=None</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh" title="pynitride.core.reciprocal_mesh.RMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.core.reciprocal_mesh.RMesh</span></code></a></p>
+<p>A 1-D mesh of k-space.</p>
+<p>Note that when integrating over the mesh via <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh.integrate" title="pynitride.core.reciprocal_mesh.RMesh.integrate"><code class="xref py py-func docutils literal notranslate"><span class="pre">RMesh.integrate()</span></code></a>,
+it will behave as a 2D integral, ie the increased weighting of points
+at higher radius is accounted for intrinsically by this function.</p>
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh1D.absk_subrmesh">
+<code class="descname">absk_subrmesh</code><span class="sig-paren">(</span><em>indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh1D.absk_subrmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh1D.exact_to_index">
+<code class="descname">exact_to_index</code><span class="sig-paren">(</span><em>absk</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh1D.exact_to_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index into the absk1 array for a given k-point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh1D.interpolator">
+<code class="descname">interpolator</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh1D.interpolator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pynitride.core.reciprocal_mesh.RMesh1D.regular">
+<em class="property">classmethod </em><code class="descname">regular</code><span class="sig-paren">(</span><em>kmax</em>, <em>numabsk</em>, <em>abskshift=0</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh1D.regular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a uniform 1D grid.</p>
+<p>The k-points go from 0 to kmax inclusive, but with an optional shift.
+The endpoints of the mesh are treated as endpoints of integration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the largest k-point will be kmax+abskshift</li>
+<li><strong>numabsk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of k-points to have</li>
+<li><strong>abskshift</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – shift all k-points from starting at zero</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh1D" title="pynitride.core.reciprocal_mesh.RMesh1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">RMesh1D</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar">
+<em class="property">class </em><code class="descclassname">pynitride.core.reciprocal_mesh.</code><code class="descname">RMesh2D_Polar</code><span class="sig-paren">(</span><em>absk</em>, <em>theta</em>, <em>d=1</em>, <em>bzarea=None</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh" title="pynitride.core.reciprocal_mesh.RMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.core.reciprocal_mesh.RMesh</span></code></a></p>
+<p>A 2-D mesh of k-space.</p>
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.absk_subrmesh">
+<code class="descname">absk_subrmesh</code><span class="sig-paren">(</span><em>abskstart=1</em>, <em>abskstop=-1</em>, <em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.absk_subrmesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.conv2flat">
+<code class="descname">conv2flat</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.conv2flat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a 2D grid to a 1D array consistent with the mesh conventions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arr</strong> – doesn’t need to be 2D per se, but the first two dimensions
+must be numabsk and numtheta long respectively.  Other
+dimensions just along for the ride.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an (numstates) 1D array + other dimensions</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.conv2grid">
+<code class="descname">conv2grid</code><span class="sig-paren">(</span><em>arr</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.conv2grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a 1D array to a 2D grid consistent with the mesh ordering.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arr</strong> – doesn’t need to be 1D per se, but the first dimension must
+be numstates long.  Other dimensions just along for the ride.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a (numabsk,numtheta) 2D array + other dimensions.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.ikx">
+<code class="descname">ikx</code><span class="sig-paren">(</span><em>sign=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.ikx" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.iky">
+<code class="descname">iky</code><span class="sig-paren">(</span><em>sign=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.iky" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.index_to_partial_indices">
+<code class="descname">index_to_partial_indices</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.index_to_partial_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.interpolator">
+<code class="descname">interpolator</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.interpolator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.partial_indices_to_index">
+<code class="descname">partial_indices_to_index</code><span class="sig-paren">(</span><em>iabsk</em>, <em>itheta</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.partial_indices_to_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.regular">
+<em class="property">classmethod </em><code class="descname">regular</code><span class="sig-paren">(</span><em>kmax</em>, <em>numabsk</em>, <em>numtheta</em>, <em>include_kzero=True</em>, <em>align_theta=False</em>, <em>d=1</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.regular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a regular 2D grid.</p>
+<p>The absk1-points go from <cite>kmax</cite>/<cite>numabsk</cite> to <cite>kmax</cite> or <cite>0</cite> to <cite>kmax</cite> depending on <cite>include_kzero</cite>.
+Regardless, <cite>0</cite> and the <cite>kmax</cite> are treated as endpoints of integration.</p>
+<p>This function is just a thin wrapper around <code class="xref py py-func docutils literal notranslate"><span class="pre">RMesh.uniform_theta()</span></code>.
+See there for more arguments and details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – the largest k-point will be kmax</li>
+<li><strong>numabsk</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of k-points to have</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh1D" title="pynitride.core.reciprocal_mesh.RMesh1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">RMesh1D</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.regular_theta">
+<em class="property">classmethod </em><code class="descname">regular_theta</code><span class="sig-paren">(</span><em>absk</em>, <em>numtheta</em>, <em>align_theta=False</em>, <em>d=1</em>, <em>name=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.regular_theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a 2D grid with regular <cite>theta</cite> spacing.</p>
+<p>Regardless of whether <cite>absk</cite> includes a point at <cite>0</cite>,
+<cite>0</cite> and the max(<cite>absk</cite>) are treated as endpoints of integration.</p>
+<p>The integration endpoints of <cite>theta</cite> are <span class="math notranslate nohighlight">\(-pi/d\)</span> and <span class="math notranslate nohighlight">\(+\pi/d\)</span>.
+By choosing <cite>d</cite> and <cite>shift_theta</cite>, one can choose any proper fraction of k-space to cover.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>absk</strong> – the ordered array of k-points</li>
+<li><strong>numtheta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – number of theta points to have</li>
+<li><strong>include_zero</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to have a point at 0</li>
+<li><strong>align_theta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If <cite>True</cite> there is a <cite>theta</cite> at 0.
+If <cite>False</cite>, then the points will be shifted so a midpoint between thetas is at 0.</li>
+<li><strong>d</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – what fraction of the k-space to cover angularly
+(d=1 is the whole k-space, d=2 is half, etc.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#pynitride.core.reciprocal_mesh.RMesh1D" title="pynitride.core.reciprocal_mesh.RMesh1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">RMesh1D</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.reciprocal_mesh.RMesh2D_Polar.show_func">
+<code class="descname">show_func</code><span class="sig-paren">(</span><em>func</em>, <em>style='balanced'</em>, <em>points=True</em>, <em>lines=True</em>, <em>cax=None</em>, <em>vmax=None</em>, <em>numloc=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.reciprocal_mesh.RMesh2D_Polar.show_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../manual/index.html">
+              <img class="logo" src="../_static/Logo.svg" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="../manual/index.html">PyNitride</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../manual/math_and_physics.html">    Math and Physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/overall_flow.html">    Software Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">    API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../manual/index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">PyNitride</a><ul>
+  <li><a href="pynitride.html">pynitride package</a><ul>
+  <li><a href="pynitride.core.html">pynitride.core package</a><ul>
+      <li>Previous: <a href="pynitride.core.paramdb.html" title="previous chapter">pynitride.core.paramdb module</a></li>
+      <li>Next: <a href="pynitride.core.sim.html" title="next chapter">pynitride.core.sim module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Samuel James Bader.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/auto/pynitride.core.reciprocal_mesh.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,18 @@
+pynitride.tests.Li1992\_SQW package
+===================================
+
+Submodules
+----------
+
+.. toctree::
+
+   pynitride.tests.Li1992_SQW.test_SQW
+   pynitride.tests.Li1992_SQW.test_SQW_convergence
+
+Module contents
+---------------
+
+.. automodule:: pynitride.tests.Li1992_SQW
+    :members:
+    :undoc-members:
+    :show-inheritance:

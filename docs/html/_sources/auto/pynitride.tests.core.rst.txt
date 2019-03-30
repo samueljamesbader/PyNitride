@@ -1,0 +1,17 @@
+pynitride.tests.core package
+============================
+
+Submodules
+----------
+
+.. toctree::
+
+   pynitride.tests.core.test_cython_maths
+
+Module contents
+---------------
+
+.. automodule:: pynitride.tests.core
+    :members:
+    :undoc-members:
+    :show-inheritance:

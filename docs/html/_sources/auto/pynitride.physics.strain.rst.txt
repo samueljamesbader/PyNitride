@@ -1,0 +1,7 @@
+pynitride.physics.strain module
+===============================
+
+.. automodule:: pynitride.physics.strain
+    :members:
+    :undoc-members:
+    :show-inheritance:

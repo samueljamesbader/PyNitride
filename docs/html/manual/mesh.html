@@ -16,7 +16,7 @@
     <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Shared values on the mesh" href="shared_values.html" />
+    <link rel="next" title="Units in PyNitride" href="units.html" />
     <link rel="prev" title="The global parameters database" href="parameter_database.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -36,30 +36,32 @@
             
   <div class="section" id="meshing-scheme">
 <span id="mesh"></span><h1>Meshing Scheme<a class="headerlink" href="#meshing-scheme" title="Permalink to this headline">¶</a></h1>
-<p>This page describes the mathematical properties of the mesh scheme implemented in <code class="xref py py-mod docutils literal notranslate"><span class="pre">mesh</span></code>.</p>
+<p>This page describes the properties of the mesh scheme implemented in <code class="xref py py-mod docutils literal notranslate"><span class="pre">mesh</span></code>.</p>
 <div class="section" id="dual-mesh">
 <h2>Dual mesh<a class="headerlink" href="#dual-mesh" title="Permalink to this headline">¶</a></h2>
-<p>The “main” meshes in PyNitride are referred to as <em>point meshes</em>.  But for every point mesh, there is a dual <em>mid mesh</em>
-whose points are simply the midpoints between the point mesh locations.  In general solution variables and all other
-continuous functions are defined on the main mesh.  There is guaranteed to be aligned to all interfaces; conversely,
+<p>The “main” meshes in PyNitride are referred to as <em>node meshes</em>.  But for every node mesh, there is a dual <em>mid mesh</em>
+whose points are simply the midpoints between the node mesh locations.  In general solution variables and all other
+continuous functions are defined on the node mesh.  There is guaranteed to be aligned to all interfaces; conversely,
 the mid mesh will never contain a point at an interface; all points of the mid mesh are specifically in one layer.  This
 makes the mid mesh the correct place to put material properties which are intrinsically discontinuous at interfaces.</p>
 <p>Differentiating or integrating a function on one mesh “naturally” produces a function defined on the dual mesh, but any
-function can be re-interpolated between the two using the <a class="reference internal" href="../auto/pynitride.mesh.html#pynitride.mesh.Function.tpf" title="pynitride.mesh.Function.tpf"><code class="xref py py-func docutils literal notranslate"><span class="pre">tpf()</span></code></a> and
-<a class="reference internal" href="../auto/pynitride.mesh.html#pynitride.mesh.Function.tmf" title="pynitride.mesh.Function.tmf"><code class="xref py py-func docutils literal notranslate"><span class="pre">tmf()</span></code></a> functions.</p>
+function can be re-interpolated between the two using the <code class="xref py py-func docutils literal notranslate"><span class="pre">tpf()</span></code> and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">tmf()</span></code> functions.</p>
+<p><a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0021999184710266">Li_1994</a> discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) the
+preferred method to address the ambiguity of of the material property <span class="math notranslate nohighlight">\(a\)</span> at an interface and the effect of that
+choice on the convergence of the solution.
+But in this formalism, there is no ambiguity, because <span class="math notranslate nohighlight">\(a\)</span> is only ever defined and requested on the mid mesh.
+Note that the <a class="reference internal" href="../auto/pynitride.tests.Li1992_SQW.test_SQW_convergence.html#module-pynitride.tests.Li1992_SQW.test_SQW_convergence" title="pynitride.tests.Li1992_SQW.test_SQW_convergence"><code class="xref py py-mod docutils literal notranslate"><span class="pre">test_SQW_convergence</span></code></a> test shows that, empirically, this
+discretization appears to work similarly to their recommendation.</p>
 </div>
-<div class="section" id="example-generic-differential-equation">
-<h2>Example: generic differential equation<a class="headerlink" href="#example-generic-differential-equation" title="Permalink to this headline">¶</a></h2>
-<p>For example, many equations we solve are of the form</p>
-<div class="math notranslate nohighlight">
-\[\partial_z \left[a(z) \partial_z f(z) \right]= b(z)\]</div>
-<p>where <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are functions (such as electric potential and charge density), and <span class="math notranslate nohighlight">\(a\)</span> is a material property (such as dielectric constant).  Then <span class="math notranslate nohighlight">\(f\)</span> and <span class="math notranslate nohighlight">\(b\)</span> are defined on the point mesh, and <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(\partial_z f\)</span> are defined on the mid mesh, and <span class="math notranslate nohighlight">\(\partial_z [a \partial_z f]\)</span> is defined on the point mesh.</p>
-<p>Employing a central-difference discrete derivative on a potentially non-uniform mesh, this produces an equation at each point <span class="math notranslate nohighlight">\(\sigma\)</span>:</p>
-<div class="math notranslate nohighlight">
-\[\frac{1}{dz^m_{\sigma}}\left[a_{\sigma+.5}\frac{ f_{\sigma+1}-f_\sigma}{dz^p_{\sigma+.5}}
--a_{\sigma-.5}\frac{f_\sigma-f_{\sigma-1}}{dz^p_{\sigma-.5}}\right]=b_\sigma\]</div>
-<p>where subscript <span class="math notranslate nohighlight">\(\sigma+.5\)</span> is understood to indicate the midpoint between <span class="math notranslate nohighlight">\(\sigma\)</span> and <span class="math notranslate nohighlight">\(\sigma+1\)</span>, and <span class="math notranslate nohighlight">\(dz^p\)</span> are the differences between subsequent point mesh positions (defined on the mid mesh) and <span class="math notranslate nohighlight">\(dz^m\)</span> are the differences between subsequent mid mesh positions (defined on the point mesh).</p>
-<p>Considering this expression where <span class="math notranslate nohighlight">\(\sigma\)</span> happens to be an interface point reveals a beauty of this discretization scheme.  <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0021999184710266">Li_1994</a> discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) the preferred method to address the ambiguity of of the material property <span class="math notranslate nohighlight">\(a\)</span> at an interface.  But in this formalism, there is no ambiguity, because <span class="math notranslate nohighlight">\(a\)</span> is only ever defined and requested on the mid mesh.  Note that the <code class="xref py py-func docutils literal notranslate"><span class="pre">test_schrodinger_li1994()</span></code> test shows that, empirically, this discretization appears to work similarly to their recommendation.</p>
+<div class="section" id="shared-values-on-the-mesh">
+<h2>Shared values on the mesh<a class="headerlink" href="#shared-values-on-the-mesh" title="Permalink to this headline">¶</a></h2>
+<p>Different solvers, carrier models, materials, and such all interact through the variables shared on a
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">Mesh</span></code>.  In writing any of these components, it is important to understand how the variables get
+on the mesh and the rules for using them safely.</p>
+<div class="section" id="materials">
+<h3>Materials<a class="headerlink" href="#materials" title="Permalink to this headline">¶</a></h3>
+</div>
 </div>
 </div>
 
@@ -95,7 +97,7 @@ function can be re-interpolated between the two using the <a class="reference in
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="overall_flow.html">Overall meshing/simulation flow</a><ul>
       <li>Previous: <a href="parameter_database.html" title="previous chapter">The global parameters database</a></li>
-      <li>Next: <a href="shared_values.html" title="next chapter">Shared values on the mesh</a></li>
+      <li>Next: <a href="units.html" title="next chapter">Units in PyNitride</a></li>
   </ul></li>
   </ul></li>
 </ul>

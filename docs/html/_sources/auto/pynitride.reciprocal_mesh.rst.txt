@@ -1,7 +1,0 @@
-pynitride.reciprocal\_mesh module
-=================================
-
-.. automodule:: pynitride.reciprocal_mesh
-    :members:
-    :undoc-members:
-    :show-inheritance:

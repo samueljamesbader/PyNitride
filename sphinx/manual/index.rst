@@ -56,8 +56,7 @@ Authors
 `Prof Jena <https://djena.engineering.cornell.edu/>`_ and `Prof Xing <http://grace.engineering.cornell.edu/>`_
 at Cornell University, working on p-channel III-Nitride devices.
 
-`Martin Schubert <https://www.linkedin.com/in/mfschubert/>`_, PhD, is a Founder and Technical Lead
-at X, the Moonshot Factory.
+And `Martin Schubert <https://www.linkedin.com/in/mfschubert/>`_ works on early-stage projects at Google X.
 
 If you find this useful let me know! And show some love by citing the project!
 

@@ -1,0 +1,7 @@
+pynitride.tests.Pokatilov2003\_phonon.phonon\_analysis module
+=============================================================
+
+.. automodule:: pynitride.tests.Pokatilov2003_phonon.phonon_analysis
+    :members:
+    :undoc-members:
+    :show-inheritance:

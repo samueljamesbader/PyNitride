@@ -24,7 +24,6 @@ View output
 
             Parameter Database <parameter_database>
             Mesh scheme <mesh>
-            Sharing values on the global mesh <shared_values>
             Units system <units>
 
 

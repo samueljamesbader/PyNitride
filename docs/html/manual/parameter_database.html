@@ -48,7 +48,7 @@ The first line of a file describes its syntax.</p>
 </div>
 <div class="section" id="accessing-parameters">
 <h2>Accessing parameters<a class="headerlink" href="#accessing-parameters" title="Permalink to this headline">¶</a></h2>
-<p>Parameters can be accessed from a <a class="reference internal" href="../auto/pynitride.paramdb.html#pynitride.paramdb.ParamDB" title="pynitride.paramdb.ParamDB"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParamDB</span></code></a> object.  They will be returned in the internal unit system of PyNitride.  For example, if the relative dielectric constant of GaN is <span class="math notranslate nohighlight">\(\epsilon_r=10.4\)</span>, then</p>
+<p>Parameters can be accessed from a <code class="xref py py-class docutils literal notranslate"><span class="pre">ParamDB</span></code> object.  They will be returned in the internal unit system of PyNitride.  For example, if the relative dielectric constant of GaN is <span class="math notranslate nohighlight">\(\epsilon_r=10.4\)</span>, then</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynitride</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pmdb</span><span class="o">=</span><span class="n">ParamDB</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">epsilon</span><span class="o">=</span><span class="n">pmdb</span><span class="p">[</span><span class="s1">&#39;GaN.dielectric.eps&#39;</span><span class="p">]</span>

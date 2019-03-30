@@ -1,7 +1,0 @@
-pynitride.machine module
-========================
-
-.. automodule:: pynitride.machine
-    :members:
-    :undoc-members:
-    :show-inheritance:
