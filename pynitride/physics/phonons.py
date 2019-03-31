@@ -17,6 +17,7 @@ from pynitride.physics.material import AlGaN
 
 pi=np.pi
 
+@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
 class PhononModel():
 
     def __init__(self, solvmesh, rmesh, num_eigs, keepmesh=None, first_level=0):
@@ -321,8 +322,7 @@ class AcousticPhonon(PhononModel):
         return np.abs(I)**2
 
 
-# TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_solvmesh','_keepmesh','_ec_load_matrix','rmesh','_splines')
+@glob_store_attributes('_ec_load_matrix')
 class ElasticContinuum(AcousticPhonon):
     def __init__(self,solvmesh,rmesh,num_eigs,keepmesh=None,
             vecform='XYZ',first_level=0,parallel=True,
@@ -559,8 +559,6 @@ class OpticalPhonon(PhononModel):
         I=psij_phi_psii
         return np.abs(I)**2
 
-# TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
 class ElasticContinuum_BulkWurtzite(AcousticPhonon):
 
     def __init__(self,solvmesh,rmesh,num_eigs,
@@ -1113,11 +1111,6 @@ class DielectricContinuum_SWH(OpticalPhonon):
         return phi_.restrict(self._keepmesh)
 
 
-
-
-
-# TODO: Figure out how to move the glob_store _splines safely to superclass
-@glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
 class DielectricContinuum_BulkWurtzite(OpticalPhonon):
 
     def __init__(self,solvmesh,rmesh,num_eigs,
