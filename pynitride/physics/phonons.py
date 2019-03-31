@@ -12,7 +12,7 @@ from pynitride import log
 from scipy.interpolate import interp1d
 from scipy.optimize import brentq
 
-from pynitride.core.machine import Pool, glob_store_attributes, FakePool, Counter, raiser
+from pynitride.core.machine import glob_store_attributes, FakePool, Counter, raiser, process_pool, parallel_enabled
 from pynitride.physics.material import AlGaN
 
 pi=np.pi
@@ -386,8 +386,8 @@ class ElasticContinuum(AcousticPhonon):
             else:
                 Cmats=m._matblocks[0].matsys.ec_Cmats(m,self.q)
 
-            if parallel: pool=Pool.process_pool(new=True)
-            else: pool=Pool.FakePool()
+            if parallel: pool=process_pool(new=True)
+            else: pool=FakePool()
             self.rmesh['ec_stiffness_matrices']=pool.starmap(
                     assemble_stiffness_matrix,\
                         [(C0,Cl,Cr,C2,m._dzp,False,self._dbot)
@@ -408,9 +408,9 @@ class ElasticContinuum(AcousticPhonon):
                 counter.increment()
         iqchunks=chunks(range(self.rmesh.N),tasksize)
         for iqchunk in iqchunks:
-            if len(iqchunks)>1 and parallel is True and not Pool._no_parallel:
+            if len(iqchunks)>1 and parallel is True and not parallel_enabled():
                 log("Task: "+str(iqchunk[0])+"-"+str(iqchunk[-1]))
-            pool=Pool.process_pool(new=True) if parallel else FakePool()
+            pool=process_pool(new=True) if parallel else FakePool()
             asyncs=[pool.apply_async(self.solve_one_q,args=(None,iq,just_energies),
                     callback=partial(save_solve,iq), error_callback=raiser)
                     for iq in iqchunk]
@@ -489,8 +489,8 @@ class PiezoPotential():
 
         if rmesh and ('pz_stiffness_matrices' not in rmesh):
             log("Assembling PZ matrices ...",level='info')
-            if parallel: pool=Pool.process_pool(new=True)
-            else: pool=Pool.FakePool()
+            if parallel: pool=process_pool(new=True)
+            else: pool=FakePool()
             self._eps_x=np.expand_dims(np.expand_dims(m.eps,0),0)
             self._eps_z=np.expand_dims(np.expand_dims(m.epsperp,0),0)
             self._O    =np.expand_dims(np.expand_dims(m.zeros_mid,0),0)

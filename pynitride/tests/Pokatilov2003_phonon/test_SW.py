@@ -1,6 +1,5 @@
 """ Solves the thin sandwich of `Pokatilov 2003 <https://doi.org/10.1016/S0749-6036(03)00069-7>`_ for comparison."""
 
-from pynitride.core.machine import Pool; Pool.configure_globalparallel()
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 from pynitride import Mesh, MaterialBlock, UniformLayer

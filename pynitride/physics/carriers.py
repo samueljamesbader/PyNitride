@@ -9,7 +9,7 @@ from pynitride import NodFunction, MidFunction
 from pynitride import kb, pi, hbar
 from pynitride import log
 
-from pynitride.core.machine import Pool, glob_store_attributes, raiser
+from pynitride.core.machine import process_pool, glob_store_attributes, raiser
 
 
 class CarrierModel():
@@ -309,7 +309,7 @@ class MultibandKP(CarrierModel):
 
         def save_solve(ik,res):
             self.kpen[ik,:],self.kppsi[ik,:,:,:],self.normsqs[ik,:,:]= res
-        pool=Pool.process_pool(new=True)
+        pool=process_pool(new=True)
         asyncs=[pool.apply_async(self.solve_one_k,args=(None,None,ik),
                  callback=partial(save_solve,ik),error_callback=raiser)
             for ik in range(self.rmesh.N)]

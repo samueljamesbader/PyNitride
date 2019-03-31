@@ -1,0 +1,7 @@
+pynitride.visual.bands module
+=============================
+
+.. automodule:: pynitride.visual.bands
+    :members:
+    :undoc-members:
+    :show-inheritance:

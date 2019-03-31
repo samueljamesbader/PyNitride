@@ -1,3 +1,20 @@
+"""
+Utilities to manage parallelism via multiprocessing.
+
+Importing this module (as is done automatically by importing `pynitride`, configures the environment in accordance
+with `config.py` (by default, this enables PyNitride to parallelize with as many processes as CPUs, and prevents numpy/
+scipy or other common c-extensions which PyNitride uses from employing any internal parallelization.
+
+Worker pools of both the process and thread variety are available by calling :func:`process_pool` and
+:func:`thread_pool` respectively.  A :class:`FakePool` class is provided to mimic either of these without actually
+creating more processes or threads.  A :func:`no_parallel` context manager is provided to temporarily make the other
+functions use `FakePools` instead of real pools.
+
+Functions such as :func:`glob_store` enable large objects to be stored by a reference so that they don't get pickled
+when spawning new processes.  This utility is further enhanced by the :func:`glob_store_attributes` wrapper which can
+automatically employ the :func:`glob_store` functions behind the scenes for specified large attributes so that the
+object can be safely pickled.
+"""
 import os
 from multiprocessing import cpu_count
 from multiprocessing import Pool as _ProcessPool
@@ -10,102 +27,98 @@ from pynitride import log
 from configparser import ConfigParser
 from pynitride import ROOT_DIR
 
-class Pool():
+###
+# Implementing configuration of parallelism
+###
 
-    @classmethod
-    def configure(cls):
-        cp=ConfigParser()
-        cp.read(os.path.join(ROOT_DIR,"config.ini"))
+# Read configuration
+cp=ConfigParser()
+cp.read(os.path.join(ROOT_DIR,"config.ini"))
+globalthreads=cp.getint("parallelism","globalthreads")
+globalprocesses=cp.getint("parallelism","globalprocesses")
+cextthread=cp.getint("parallelism","cextthread")
+del cp
 
-        globalthreads=cp.getint("parallelism","globalthreads")
-        globalprocesses=cp.getint("parallelism","globalprocesses")
-        cextthread=cp.getint("parallelism","cextthread")
+# Apply configuration
+if cextthread is not None:
+    os.environ["OMP_NUM_THREADS"] = str(cextthread)
+    os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
+    os.environ["MKL_NUM_THREADS"] = str(cextthread)
+    os.environ["VECLIB_MAXIMUM_THREADS"] = str(cextthread)
+    os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
 
-        kwargs={'globalthreads':globalthreads,
-                'globalprocesses':globalprocesses,'cextthread':cextthread}
-        if hasattr(cls,'_kwargs'):
-            assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
-            log("Pool was already configured with the given arguments.")
-            return
+# Create initial pools
+if globalprocesses>1:
+    _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
+else: _procpool=_FakePool()
+if globalthreads>1:
+    _thrdpool=_ThreadPool(processes=globalprocesses)
+else: _thrdpool=_FakePool()
 
-        cls._kwargs={'globalthreads':globalthreads,
-                'globalprocesses':globalprocesses,'cextthread':cextthread}
-        cls._globs={}
-        cls._globlck=RLock()
-        if cextthread is not None:
-            os.environ["OMP_NUM_THREADS"] = str(cextthread)
-            os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
-            os.environ["MKL_NUM_THREADS"] = str(cextthread)
-            os.environ["VECLIB_MAXIMUM_THREADS"] = str(cextthread)
-            os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
+# Start with parallelism on
+_no_parallel=False
 
-        if globalprocesses>1:
-            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
-        else: cls._procpool=FakePool()
-        if globalthreads>1:
-            cls._thrdpool=_ThreadPool(processes=globalprocesses)
-        else: cls._thrdpool=FakePool()
+###
+# Providing the worker pools
+###
 
-    _no_parallel=False
+def process_pool(new=False):
+    """ Returns a pool of worker processes.
 
-    @classmethod
-    def process_pool(cls,new=False):
-        if cls._no_parallel: return FakePool()
-        if not hasattr(cls,'_kwargs'):
-            cls.configure()
-        elif new:
-            cls._refresh_pool()
-        return cls._procpool
+    If parallelism is enabled in this context, this will be a :py:class:`multiprocessing.pool.Pool`.
+    Otherwise, it will be an object which superficially implements the same methods, but runs tasks serially.
 
-    @classmethod
-    def thread_pool(cls):
-        if cls._no_parallel: return FakePool()
-        if not hasattr(cls,'_kwargs'):
-            cls.configure()
-        return cls._thrdpool
+    Args:
+        new: if returning a real `Pool`, then refresh it first
 
-    @classmethod
-    def _refresh_pool(cls):
-        if cls._no_parallel: return
-        globalprocesses=itemgetter('globalprocesses')(cls._kwargs)
-        if globalprocesses>1:
-            cls._procpool.close()
-            cls._procpool.join()
-            cls._procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
+    Returns:
+        an object at least superficially resembling :class:`~multiprocessing.pool.Pool`
 
-    @classmethod
-    @contextmanager
-    def no_parallel(cls):
-        prev=cls._no_parallel
-        cls._no_parallel=True
-        yield
-        cls._no_parallel=prev
+    """
+    if _no_parallel: return FakePool()
+    elif new: _refresh_pool()
+    return _procpool
 
-    
-    @classmethod
-    @contextmanager
-    def reference(cls,*args):
-        if not hasattr(cls,'_kwargs'):
-            cls.configure()
-        with cls._globlck:
-            n=range(len(cls._globs),len(cls._globs)+len(args))
-            for i,ni in enumerate(n):
-                cls._globs[ni]=args[i]
+def thread_pool():
+    """ Returns a pool of worker threads.
 
-        #cls._refresh_pool()
-        if len(args)==1: yield list(n)[0]
-        else: yield list(n)
+    If parallelism is enabled in this context, this will be a :class:`~multiprocessing.dummy.pool.Pool`.
+    Otherwise, it will be an object which superficially implements the same methods, but runs tasks serially.
 
+    Returns:
+        an object at least superficially resembling :class:`~multiprocessing.pool.Pool`
 
-        with cls._globlck:
-            for ni in n:
-                del cls._globs[ni]
-    @classmethod
-    def dereference(cls,*args):
-        return itemgetter(*args)(cls._globs)
-class FakeAsynchronousResult():
+    """
+    if _no_parallel: return FakePool()
+    return _thrdpool
+
+# To close, join, and re-open a process pool
+def _refresh_pool():
+    global _procpool
+    if _no_parallel: return
+    if globalprocesses>1:
+        _procpool.close()
+        _procpool.join()
+        _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
+
+@contextmanager
+def no_parallel():
+    """ Context manager to temporarily disable PyNitride-based parallelism."""
+    global _no_parallel
+    prev=_no_parallel
+    _no_parallel=True
+    yield
+    _no_parallel=prev
+
+def parallel_enabled():
+    """ Returns whether parallelism is enabled in this context, see :func:`no_parallel`"""
+    return _no_parallel
+
+# Classes to mimic Pool but perform serial tasks
+class _FakeAsynchronousResult():
     def wait(self,timeout=None): pass
 class FakePool():
+    """ Same API as :class:`multiprocessing.pool.Pool` but actually applies serially, no processes/threads."""
     def starmap(self,func,iterable,chunksize=1):
         assert chunksize==1, "Fake pool not implementend for non-unity chunksize"
         return [func(*i) for i in iterable]
@@ -117,17 +130,42 @@ class FakePool():
     def apply_async(self,func,args=(),kwds={},callback=None,error_callback=None):
         ret=func(*args,**kwds)
         callback(ret)
-        return FakeAsynchronousResult()
+        return _FakeAsynchronousResult()
     def close(self):
         pass
     def join(self):
         pass
 
+###
+# Global readable-writable storage for read-only use with multiprocessing, to avoid pickling large items
+###
+
+# key to use for the next object which needs storage
 _nextkey=0
+
+# dict to hold all the globals
 _storage={}
+
+# pid of the process which stores each value
 _storagepids={}
+
+# lock for accessing storage
 _storagelock=RLock()
+
 def glob_store(obj):
+    """ Add `obj` to the global storage.
+
+    Note: when multiprocessing, be aware that changes made in one process
+    do not affect a previously spawned worker process.
+    Use `new=True` with :func:`process_pool` in the parent process to incorporate recent updates.
+
+    Args:
+        obj: anything.
+
+    Returns:
+        a key which can be used in :func:`glob_read` or :func:`glob_write` or :func:`glob_remove`.
+
+    """
     global _nextkey
     with _storagelock:
         key=_nextkey
@@ -136,15 +174,57 @@ def glob_store(obj):
         _storagepids[key]=os.getpid()
     return key
 def glob_read(key):
+    """ Returns an object from the global storage.
+
+    Note: when multiprocessing, be aware that changes made in one process
+    do not affect a previously spawned worker process.
+    Use `new=True` with :func:`process_pool` in the parent process to incorporate recent updates.
+
+    Args:
+        key: returned from :func:`glob_store`
+
+    Returns:
+        the stored object
+    """
     return _storage[key]
 def glob_update(key,obj):
+    """ Updates an object in the global storage.
+
+    Note: when multiprocessing, be aware that changes made in one process
+    do not affect a previously spawned worker process.
+    Use `new=True` with :func:`process_pool` in the parent process to incorporate recent updates.
+
+    Args:
+        key: returned from :func:`glob_store`
+        obj: the new value
+
+    Returns:
+        None
+    """
     assert key in _storage
     _storage[key]=obj
+
 def glob_remove(key):
+    """ Remove an object from the global storage.
+
+    Note: if called a child process other than the one which placed this object on the store,
+    this method will not even attempt removal.
+
+    Note: when multiprocessing, be aware that changes made in one process
+    do not affect a previously spawned worker process.
+    Use `new=True` with :func:`process_pool` in the parent process to incorporate recent updates.
+
+    Args:
+        key: returned from :func:`glob_store`
+
+    Returns:
+        None
+    """
     with _storagelock:
         if _storagepids[key]==os.getpid():
             del _storage[key]
             del _storagepids[key]
+
 def glob_store_attributes(*attrs):
     """ Class decorator to automatically store certain attributes in the glob_store system.
 
@@ -161,6 +241,9 @@ def glob_store_attributes(*attrs):
     such that the MyClass instance does not actually hold a reference to `big_obj` (just the key to retreive it from
     the glob_store system). Thus if an instance of `MyClass` is sent through a multiprocessing function and gets
     pickled, `big_obj` will not be shared through the pickling but instead through process inheritance.
+
+    Note: when subclassing a class which uses this wrapper, make sure that, if the subclass implements an `__init__` or
+    `__del__` function, these implementations call the superclass `__init__` or `__del__` functions.
 
     """
 
@@ -213,15 +296,25 @@ def glob_store_attributes(*attrs):
 
 class Counter():
     def __init__(self, print_every=10, print_message="Count: {}"):
+        """ Provides a thread-safe counter.
+
+        Args:
+            print_every: every time this many increments has been met or passed, log a message
+            print_message: the message to log
+        """
         self._count=0
         self._lock=Lock()
         self._print_every=print_every
         self._print_message=print_message
+
     def increment(self,inc=1):
+        """ Increments the counter by `inc`."""
         with self._lock:
             next_milestone=int(self._count/self._print_every)*self._print_every+self._print_every
             self._count+=inc
             if self._count>=next_milestone:
                 log(self._print_message.format(self._count))
 
-def raiser(e): raise e
+def raiser(e):
+    """ Trivial functional form of the `raise` keyword"""
+    raise e

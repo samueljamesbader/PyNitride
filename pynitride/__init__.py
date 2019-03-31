@@ -11,8 +11,7 @@ from pynitride.core.logging import log, sublog
 # With that in-place we can set up parallelism
 # before any other scripts which would preempt its configuration
 # eg by importing numpy
-from pynitride.core.machine import Pool
-Pool.configure()
+import pynitride.core.machine
 
 # Common core components
 from pynitride.core.paramdb import pmdb, parse, to_unit, kb, hbar, pi, m_e, cm, nm, eV, meV, K, q

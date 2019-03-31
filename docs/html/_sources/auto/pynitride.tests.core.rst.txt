@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    pynitride.tests.core.test_cython_maths
+   pynitride.tests.core.test_machine
 
 Module contents
 ---------------

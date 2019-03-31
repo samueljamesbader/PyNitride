@@ -8,13 +8,13 @@ Submodules
 
    pynitride.core.cython_maths
    pynitride.core.fem
+   pynitride.core.logging
    pynitride.core.machine
    pynitride.core.maths
    pynitride.core.mesh
    pynitride.core.paramdb
    pynitride.core.reciprocal_mesh
    pynitride.core.sim
-   pynitride.core.visual
 
 Module contents
 ---------------
