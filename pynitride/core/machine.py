@@ -17,17 +17,12 @@ class Pool():
         cp=ConfigParser()
         cp.read(os.path.join(ROOT_DIR,"config.ini"))
 
-
-        try: globalthreads=cp.getint("parallelism","globalthreads")
-        except: globalthreads=cpu_count()
-        try: globalprocesses=cp.getint("parallelism","globalprocesses")
-        except: globalprocesses=cpu_count()
-        try: cextthread=cp.getint("parallelism","cextthread")
-        except: cextthread=1
+        globalthreads=cp.getint("parallelism","globalthreads")
+        globalprocesses=cp.getint("parallelism","globalprocesses")
+        cextthread=cp.getint("parallelism","cextthread")
 
         kwargs={'globalthreads':globalthreads,
                 'globalprocesses':globalprocesses,'cextthread':cextthread}
-        print(kwargs)
         if hasattr(cls,'_kwargs'):
             assert kwargs==cls._kwargs, "Pool cannot be reconfigured."
             log("Pool was already configured with the given arguments.")
@@ -173,12 +168,14 @@ def glob_store_attributes(*attrs):
     def wrapper(cls):
 
         # Grab any __init__ defined for the new class
-        oinit=cls.__dict__.get('__init__',lambda self: None)
+        def __default_init__(self): super(cls,self).__init__()
+        oinit=cls.__dict__.get('__init__',__default_init__)
 
         # Make an __init__ that runs glob_store for the given attributes and tracks their keys
         @wraps(cls.__init__)
         def __init__(self,*args,**kwargs):
-            self._globkeys={attr:glob_store(None) for attr in attrs}
+            self._globkeys=self._globkeys if hasattr(self,'_globkeys') else {}
+            self._globkeys[cls]={attr:glob_store(None) for attr in attrs}
 
             # and then calls the original __init__
             oinit(self,*args,**kwargs)
@@ -189,20 +186,22 @@ def glob_store_attributes(*attrs):
         # Make each attribute a property so the actual getting/setting
         # is done via glob_read/glob_update
         def getter(attr,self):
-            return glob_read(self._globkeys[attr])
+            return glob_read(self._globkeys[cls][attr])
         def setter(attr,self,val):
-            return glob_update(self._globkeys[attr],val)
+            return glob_update(self._globkeys[cls][attr],val)
         for attr in attrs:
             setattr(cls,attr,property(partial(getter,attr),partial(setter,attr),doc=''))
 
         # Grab any __del__ defined for the new class
-        odel=cls.__dict__.get('__del__',lambda self: None)
+        def __default_del__(self):
+            if hasattr(super(cls,self),'__del__'): super(cls,self).__del__()
+        odel=cls.__dict__.get('__del__',__default_del__)
 
         # Make a __del__ that runs glob_remove for the given attributes
         # after calling the original __del__
         def __del__(self):
             odel(self)
-            for k,key in self._globkeys.items():
+            for k,key in self._globkeys[cls].items():
                 try: glob_remove(key)
                 except: log("Trouble removing key",level='debug')
 
