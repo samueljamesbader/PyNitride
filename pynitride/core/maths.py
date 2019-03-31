@@ -66,25 +66,25 @@ def dephase(vec):
 def round_near(arr,ival):
     return np.round(np.asarray(arr)/ival,0)*ival
 
-@glob_store_attributes("_cache")
-class Memoizer:
-    def __init__(self):
-        self._cache={}
-    def mfunc(self,func,name,*args,**kwargs):
-        class hashabledict(dict):
-            def __key(self):
-                return tuple((k,self[k]) for k in sorted(self))
-            def __hash__(self):
-                return hash(self.__key())
-            def __eq__(self, other):
-                return self.__key() == other.__key()
-        key=(args,hashabledict(kwargs))
-        if key not in self._cache[name]:
-            self._cache[name][key]=func(*args,**kwargs)
-        else:
-            print("Got {} from cache".format(name))
-        return self._cache[name][key]
-    def memoize(self,func,name):
-        if name not in self._cache: self._cache[name]={}
-        return partial(self.mfunc,func,name)
-memoizer=Memoizer()
+#@glob_store_attributes("_cache")
+#class Memoizer:
+#    def __init__(self):
+#        self._cache={}
+#    def mfunc(self,func,name,*args,**kwargs):
+#        class hashabledict(dict):
+#            def __key(self):
+#                return tuple((k,self[k]) for k in sorted(self))
+#            def __hash__(self):
+#                return hash(self.__key())
+#            def __eq__(self, other):
+#                return self.__key() == other.__key()
+#        key=(args,hashabledict(kwargs))
+#        if key not in self._cache[name]:
+#            self._cache[name][key]=func(*args,**kwargs)
+#        else:
+#            print("Got {} from cache".format(name))
+#        return self._cache[name][key]
+#    def memoize(self,func,name):
+#        if name not in self._cache: self._cache[name]={}
+#        return partial(self.mfunc,func,name)
+#memoizer=Memoizer()
