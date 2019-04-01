@@ -60,19 +60,23 @@ class MaterialSystem():
             def __init__(self,**kwargs):
 
                 # Set up properties to impersonate both a MaterialSystem and a trivial Mesh
-                self._matsys=matsys
+                self._matsys=self.matsys=matsys
                 self.mesh=self
                 self.zm=0
                 self.ztrans=1
+                self._matblocks=[self]
+                self.ones_mid=1
+                self.zeros_mid=0
 
                 # Initialize as a MaterialSystem
                 self._dopants=[]
                 super().__init__()
                 self._funcs=matsys._defaults.copy()
 
-                # Default strains to 0
+                # Default strains to 0, T to 300
                 assert ('exx' not in kwargs) and ('eyy' not in kwargs)
                 kwargs2={k:0 for k in ['exx','eyy','exy','exz','eyz','ezz']}
+                kwargs2['T']=300
                 kwargs2.update(kwargs)
 
                 # Other specials supplied
@@ -224,12 +228,6 @@ class Wurtzite(MaterialSystem):
         log("Using explicit masses from file",'TODO')
         m['eg']=MidFunction(m,2)
         m['hg']=MidFunction(m,2)
-        m['medos']=np.atleast_2d(
-            self.vergard('carrier=electron.band=.mdos')(m,None))
-        m['mhdos']=MidFunction(m,np.vstack([
-            self.vergard('carrier=hole.band=HH.mdos')(m,None),
-            self.vergard('carrier=hole.band=LH.mdos')(m,None),
-            self.vergard('carrier=hole.band=CH.mdos')(m,None)]))
         m['mez']=np.atleast_2d(
             self.vergard('carrier=electron.band=.mzs')(m,None))
         m['mhz']=MidFunction(m,np.vstack([
@@ -242,6 +240,8 @@ class Wurtzite(MaterialSystem):
             self.vergard('carrier=hole.band=HH.mxys')(m,None),
             self.vergard('carrier=hole.band=LH.mxys')(m,None),
             self.vergard('carrier=hole.band=CH.mxys')(m,None)]))
+        m['medos']=m.mez**(1/3)*m.mexy**(2/3)
+        m['mhdos']=m.mhz**(1/3)*m.mhxy**(2/3)
         m['cDE']=np.atleast_2d(
             self.vergard('carrier=electron.band=.DE')(m,None))
         m['vDE']=MidFunction(m,np.vstack([

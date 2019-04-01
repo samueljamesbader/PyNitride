@@ -25,7 +25,7 @@ class AlGaAs(MaterialSystem):
             'DE':       self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
-            'eps':      lambda m,key: 0*m.zp,
+            'eps':      lambda m,key: 0*m.zn,
         }
         self._defaults={'x': 0}
         self._updates={}
@@ -78,8 +78,8 @@ if __name__=="__main__":
         refinements=[['l/m',.007*nm,1.2],['m/r',.007*nm,1.2]],uniform=False)
         #refinements=[['l/m',.14*nm,1.2],['m/r',.14*nm,1.2]],uniform=True)
         #refinements=[['l/m',.04*nm,1.2],['m/r',.04*nm,1.2]],uniform=False)
-    print("Mesh points: ",len(m.zp))
-    imid=int(len(m.zp)/2)
+    print("Mesh points: ", len(m.zn))
+    imid=int(len(m.zn) / 2)
 
     Equilibrium(m)
     PoissonSolver.update_bands_to_potential(m,0.)
@@ -107,10 +107,10 @@ if __name__=="__main__":
         import matplotlib.pyplot as plt
         plt.plot(m.zm,m.Ec,'.-b',markersize=5)
         plt.plot(m.zm,m.Ev,'g')
-        plt.plot(m.zp,m.EF,'r')
-        plt.plot(m.zp,np.real(s._epsi[0,0,:])+np.expand_dims(s._een[0,0],1),'.-',color='purple',markersize=5)
-        plt.plot(m.zp,np.real(s._epsi[0,1,:])+np.expand_dims(s._een[0,1],1),'.-',color='pink',markersize=5)
-        plt.plot(m.zp,np.real(s._epsi[0,2,:])+np.expand_dims(s._een[0,2],1),'.-',color='black',markersize=5)
+        plt.plot(m.zn, m.EF, 'r')
+        plt.plot(m.zn, np.real(s._epsi[0, 0, :]) + np.expand_dims(s._een[0, 0], 1), '.-', color='purple', markersize=5)
+        plt.plot(m.zn, np.real(s._epsi[0, 1, :]) + np.expand_dims(s._een[0, 1], 1), '.-', color='pink', markersize=5)
+        plt.plot(m.zn, np.real(s._epsi[0, 2, :]) + np.expand_dims(s._een[0, 2], 1), '.-', color='black', markersize=5)
         plt.show()
     print("E0 pct err {:+.5f}%".format(E0err))
     assert(np.abs(E0err)<5e-4)

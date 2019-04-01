@@ -196,7 +196,7 @@ class Schrodinger(CarrierModel):
             sb['energies']=self._een if elec else self._hen
             sb['psi']=self._epsi if elec else self._hpsi
 
-        self._M=assemble_load_matrix(w=MidFunction(m,1),dzp=m._dzp,
+        self._M=assemble_load_matrix(w=MidFunction(m,1),dzn=m._dzn,
                               n=1,dirichelet1=True,dirichelet2=True)
 
     def solve(self):
@@ -210,7 +210,7 @@ class Schrodinger(CarrierModel):
                 C0=U+sb['C0_kinetic'],
                 Cl=None,Cr=None,
                 C2=sb['C2'],
-                dzp=m._dzp,
+                dzn=m._dzn,
                 dirichelet1=True,dirichelet2=True
             )
             fem_eigsh(stiffness_matrix=H,load_matrix=self._M,
@@ -272,15 +272,19 @@ class MultibandKP(CarrierModel):
         self._neig=num_eigenvalues
         self.rmesh=rmesh
 
+
+        self._interp_ready=False
+
         if rmesh is not None:
+            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky, carrier=self._carrier)
+            if np.array(m.zm).shape==(): return
+
             if self._carrier=='electron':
                 m.ensure_function_exists("n",value=0)
                 m.ensure_function_exists("nderiv",value=0)
             if self._carrier=='hole':
                 m.ensure_function_exists("p",value=0)
                 m.ensure_function_exists("pderiv",value=0)
-
-            self._Cmats=m._matblocks[0].matsys.kp_Cmats(m, kx=self.rmesh.kx, ky=self.rmesh.ky, carrier=self._carrier)
 
             # Initialize other functions
             if 'kpen' not in self.rmesh:
@@ -289,9 +293,8 @@ class MultibandKP(CarrierModel):
                 self.rmesh['kppsi']=NodFunction(m,dtype=self._Cmats[0][0].dtype,empty=(self.rmesh.N,num_eigenvalues,self._n,))
             if 'normsqs' not in self.rmesh:
                 self.rmesh['normsqs']=NodFunction(m,dtype='float',empty=(self.rmesh.N,num_eigenvalues))
-        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=self._n,dirichelet1=True,dirichelet2=True)
+        self._load_matrix=assemble_load_matrix(m.ones_mid, m.dzn, n=self._n, dirichelet1=True, dirichelet2=True)
 
-        self._interp_ready=False
 
     @property
     def kppsi(self): return self.rmesh['kppsi']
@@ -336,7 +339,7 @@ class MultibandKP(CarrierModel):
             ascending=True
             sigma=float(np.min(pot))
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
-        H=assemble_stiffness_matrix(C0,Cl,Cr,C2,m.dzp,dirichelet1=True,dirichelet2=True)
+        H=assemble_stiffness_matrix(C0, Cl, Cr, C2, m.dzn, dirichelet1=True, dirichelet2=True)
         eigvals=np.empty([self._neig])
         eigvecs=NodFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
         # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
@@ -347,16 +350,17 @@ class MultibandKP(CarrierModel):
         normsqs=np.sum(abs(eigvecs)**2,axis=1)
         return eigvals,eigvecs,normsqs
 
-    def solve_point_as_bulk(self,zp=None,kz=0):
+    def solve_point_as_bulk(self,zn=None,kz=0):
         m=self.mesh
-        if zp is not None:
-            izp=m.indexp(zp)
-        else:
-            izp=0
-
         assert self._carrier=='hole'
-        solved=[eigh(-(C[0][:,:,izp]+2*kz*C[1][:,:,izp]+kz**2*C[3][:,:,izp])) for i, C in enumerate(self._Cmats)]
-        return np.array([-s[0]+m.EvOffset[izp] for s in solved]), np.array([s[1].T for s in solved])
+        if zn is not None:
+            izn=m.indexn(zn)
+            solved=[eigh(-(C[0][:,:,izn]+2*kz*C[1][:,:,izn]+kz**2*C[3][:,:,izn])) for i, C in enumerate(self._Cmats)]
+            return np.array([-s[0]+m.EvOffset[izn] for s in solved]), np.array([s[1].T for s in solved])
+        else:
+            solved=[eigh(-(C[0][:,:]+2*kz*C[1][:,:]+kz**2*C[3][:,:])) for i, C in enumerate(self._Cmats)]
+            return np.array([-s[0]+m.EvOffset for s in solved]), np.array([s[1].T for s in solved])
+
 
 
     def repopulate(self):

@@ -340,8 +340,8 @@ class ElasticContinuum(AcousticPhonon):
         assert len(m._matblocks)==1,\
             "ElasticContinuum only works on a mesh with a single material system for now"
 
-        self._ec_load_matrix=assemble_load_matrix(w=m.density,dzp=m.dzp,n=self._n,
-                dirichelet1=False,dirichelet2=self._dbot)
+        self._ec_load_matrix=assemble_load_matrix(w=m.density, dzn=m.dzn, n=self._n,
+                                                  dirichelet1=False, dirichelet2=self._dbot)
 
         if rmesh is not None:
 
@@ -390,7 +390,7 @@ class ElasticContinuum(AcousticPhonon):
             else: pool=FakePool()
             self.rmesh['ec_stiffness_matrices']=pool.starmap(
                     assemble_stiffness_matrix,\
-                        [(C0,Cl,Cr,C2,m._dzp,False,self._dbot)
+                        [(C0,Cl,Cr,C2,m._dzn,False,self._dbot)
                             for [C0,Cl,Cr,C2] in Cmats])
             log("Done assembly.",level='info')
         if self.piezo is True:
@@ -425,7 +425,7 @@ class ElasticContinuum(AcousticPhonon):
                 C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_CmatsY( m,np.array([q]))[0]
             else:
                 C0,Cl,Cr,C2=m._matblocks[0].matsys.ec_Cmats(  m,np.array([q]))[0]
-            A=assemble_stiffness_matrix(C0,Cl,Cr,C2,m._dzp,
+            A=assemble_stiffness_matrix(C0,Cl,Cr,C2,m._dzn,
                     dirichelet1=False,dirichelet2=self._dbot)
         else:
             A=self._ec_stiffness_matrices[iq]
@@ -500,15 +500,15 @@ class PiezoPotential():
 
             self.rmesh['pz_stiffness_matrices']=pool.starmap(
                     assemble_stiffness_matrix,\
-                        [(q**2*self._eps_x,None,None,self._eps_z,m._dzp,True,True)
+                        [(q**2*self._eps_x,None,None,self._eps_z,m._dzn,True,True)
                             for q in self.q])
             self.rmesh['pz_load_matrices_z']=pool.starmap(
                     assemble_stiffness_matrix,\
-                        [(q**2*self._e51,None,None,self._e33,m._dzp,False,False)
+                        [(q**2*self._e51,None,None,self._e33,m._dzn,False,False)
                             for q in self.q])
             self.rmesh['pz_load_matrices_x']=pool.starmap(
                     assemble_stiffness_matrix,\
-                        [(self._O,q*self._e51,q*self._e31,self._O,m._dzp,False,False)
+                        [(self._O,q*self._e51,q*self._e31,self._O,m._dzn,False,False)
                             for q in self.q])
             log("Done assembly.",level='info')
     
@@ -524,11 +524,11 @@ class PiezoPotential():
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
-                q**2*self._eps_x,None,None,self._eps_z,m._dzp,True,True)
+                q**2*self._eps_x,None,None,self._eps_z,m._dzn,True,True)
             Mz_pz=assemble_stiffness_matrix(q**2*self._e51,None,None,self._e33,
-                    m._dzp,False,False)
+                    m._dzn,False,False)
             Mx_pz=assemble_stiffness_matrix(self._O,q*self._e51,q*self._e31,self._O,
-                    m._dzp,False,False)
+                    m._dzn,False,False)
         else:
             A_pz =self.rmesh['pz_stiffness_matrices'][iq]
             Mx_pz=self.rmesh['pz_load_matrices_x'][iq]
@@ -660,9 +660,9 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
 
             # Get vectors as product of e^(i beta z) and component weighting
             comps=np.atleast_3d(comps)
-            self._vecs[iq,:,:]=\
-                np.exp(1j*np.swapaxes(np.atleast_3d(self._beta[iq,:]),0,1)\
-                    *self._keepmesh.zp)*comps
+            self._vecs[iq,:,:]= \
+                np.exp(1j * np.swapaxes(np.atleast_3d(self._beta[iq,:]),0,1) \
+                       * self._keepmesh.zn) * comps
 
     def _solve_energies(self):
         print("in _solve_energies")
@@ -1100,14 +1100,14 @@ class DielectricContinuum_SWH(OpticalPhonon):
         phi_ = NodFunction(self._solvmesh, empty=())
         phi = phi_.restrict(self._solvmesh._matblocks[0].mesh)
         if reg == 'u':
-            phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zp)
-            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
+            phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zn)
+            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zn)
         if reg == 'IF':
-            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
-            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zp)
+            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zn)
+            phi.restrict(self._lmesh)[:] = B * np.exp(-k_l * self._lmesh.zn)
         if reg == 'l':
-            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zp)
-            phi.restrict(self._lmesh)[:] = B * np.sin(k_l * self._lmesh.zp + theta)
+            phi.restrict(self._umesh)[:] = A * np.sinh(k_u * self._umesh.zn)
+            phi.restrict(self._lmesh)[:] = B * np.sin(k_l * self._lmesh.zn + theta)
         return phi_.restrict(self._keepmesh)
 
 
@@ -1167,7 +1167,7 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
         # Parameters
         wLO_para,wLO_perp,wTO_para,wTO_perp,eps_inf=itemgetter(
             '_wLO_para','_wLO_perp','_wTO_para','_wTO_perp','_eps_inf')(self.__dict__)
-        phi=np.exp(1j*np.expand_dims(self._beta,-1)*self._keepmesh.zp)
+        phi=np.exp(1j * np.expand_dims(self._beta,-1) * self._keepmesh.zn)
         w=self._en/hbar
         ew2 = eps_inf * ((wLO_para ** 2 - wTO_para ** 2) + (wLO_perp ** 2 - wTO_perp ** 2)) / 2
         Nint=(self._thickness*ew2*((self._beta.T/(wTO_para**2-w.T**2))**2+(self.q/(wTO_perp**2-w.T**2))**2)).T

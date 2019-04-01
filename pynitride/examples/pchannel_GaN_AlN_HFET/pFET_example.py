@@ -25,7 +25,7 @@ def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.
         max_dz=max_dz,
         refinements=[[0,.03*nm,2],['well/buffer',.01*nm,1.5]],
         uniform=False,boundary=[sbh,"thick"])
-    log("Mesh points "+str(m.Np))
+    log("Mesh points " + str(m.Nn))
 
     # Set up a quantum mesh
     sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm],['mbkp','semi'])
@@ -41,7 +41,7 @@ if __name__=="__main__":
 
     sim=Simulation('pFET',define_mesh=define_mesh,
        solve_flow=Simulation.flow_semiclassicalramp_mbkp,
-       solve_opts ={'mbkp_opts':{'num_eigenvalues':6},'Va':4})
+       solve_opts ={'mbkp_opts':{'num_eigenvalues':6},'Va':4,'mbkp_loop_opts':{'init_activation':.1, 'inc_activation':1.3}})
     sim.load(force=True)
     m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
     rmesh=sim.rmeshes['mbkp_out']
@@ -67,13 +67,13 @@ if __name__=="__main__":
         plt.figure()
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
-        plt.plot(m.zp,m.EF,'r')
+        plt.plot(m.zn, m.EF, 'r')
         i=1
-        plt.plot(quantum.zp,rmesh['normsqs'][0,0,:]+rmesh['kpen'][0,0],'purple')
-        plt.plot(quantum.zp,rmesh['normsqs'][0,2,:]+rmesh['kpen'][0,2],'pink')
-        plt.plot(quantum.zp,rmesh['normsqs'][0,4,:]+rmesh['kpen'][0,2],'black')
+        plt.plot(quantum.zn, rmesh['normsqs'][0, 0, :] + rmesh['kpen'][0, 0], 'purple')
+        plt.plot(quantum.zn, rmesh['normsqs'][0, 2, :] + rmesh['kpen'][0, 2], 'pink')
+        plt.plot(quantum.zn, rmesh['normsqs'][0, 4, :] + rmesh['kpen'][0, 2], 'black')
         plt.twinx()
-        plt.fill_between(m.zp,m.p,color='b',alpha=.2)
+        plt.fill_between(m.zn, m.p, color='b', alpha=.2)
         plt.xlim(0,50*nm)
         plt.ylim(0)
         plt.figure()

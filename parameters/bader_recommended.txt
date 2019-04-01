@@ -5,7 +5,7 @@ Omniscient v1
 ##
 ## This parameter file represents Sam Bader's preferred parameter
 ## set for simulating the III-Nitrides, drawn from a wide variety
-## of referenced works and occassionally involving some additional
+## of referenced works and occasionally involving some additional
 ## computation.
 ##
 ######
@@ -123,6 +123,18 @@ material=AlN
         eps_inf:    4.68    epsilon_0
 
 ######
+## Acoustic phonons
+######
+
+# Morkoc Vol I, pg 16
+material=GaN
+    density: 6.15 g/cm^3
+
+# Morkoc Vol I, pg 23
+material=AlN
+    density: 3.23 g/cm^3
+
+######
 ## VBO
 ######
 
@@ -136,3 +148,77 @@ material=GaN
     DE: 0    eV
 material=AlN
     DE:  .55 eV
+
+######
+## Dopants
+######
+
+# GaN:
+# For Si, using the E_A and alpha from Morkoc Vol II, pg 141
+# For Mg, using the E_A from Morkoc Vol II, pg 145
+# Morkoc also gives 2 and 4 as the g-factors
+# It would be better to use the values from Kozodoy with alpha
+# but I haven't included alpha into actual calculation yet
+material=GaN
+    dopant=Si
+        type: 'Donor'
+        E: 29.7         meV
+        g: 2
+        # Note: alpha not incorporated into calculation yet
+        alpha: 2.59e-5  meV cm
+    dopant=Mg
+        type: 'Acceptor'
+        E: 170 meV
+        g: 4
+# AlN
+# For Si, using E_A from Nakarmi 2004
+#  (https://doi.org/10.1063/1.1809272)
+# For Mg, using E_A from Nakarmi 2003,
+#  (https://doi.org/10.1063/1.1594833)
+material=AlN
+    dopant=Si
+        type: 'Donor'
+        E: 180          meV
+        g: 2
+    dopant=Mg
+        type: 'Acceptor'
+        E: 510 meV
+        g: 4
+
+######
+## Effective masses
+######
+material=GaN
+    carrier=hole
+        band=HH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  2.00 m_e
+            DE: 0 eV
+        band=LH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  0.14 m_e
+            DE: 5 meV
+        band=CH
+            g: 2
+            mzs:   0.14 m_e
+            mxys:  2.27 m_e
+            DE: 21 meV
+material=AlN
+    carrier=hole
+        band=HH
+            g: 2
+            mzs:   3.57 m_e
+            mxys: 10.00 m_e
+            DE: 163 eV
+        band=LH
+            g: 2
+            mzs:  3.57 m_e
+            mxys: 0.33 m_e
+            DE: 176 meV
+        band=CH
+            g: 2
+            mzs:  0.26 m_e
+            mxys: 4.00 m_e
+            DE: 0 meV

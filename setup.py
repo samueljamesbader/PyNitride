@@ -13,6 +13,8 @@ def make_default_config():
         cp.set("parallelism","globalthreads","cpu_count")
         cp.set("parallelism","globalprocesses","cpu_count")
         cp.set("parallelism","cextthread","1")
+        cp.add_section("logging")
+        cp.set("logging","level","info")
         cp.write(f)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))

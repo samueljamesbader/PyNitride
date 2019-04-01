@@ -24,23 +24,19 @@ from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial,wraps
 from pynitride import log
-from configparser import ConfigParser
-from pynitride import ROOT_DIR
+from pynitride import config
 
 ###
 # Implementing configuration of parallelism
 ###
 
 # Read configuration
-cp=ConfigParser()
-cp.read(os.path.join(ROOT_DIR,"config.ini"))
-try:globalthreads=cp.getint("parallelism","globalthreads")
+try:globalthreads=config.getint("parallelism","globalthreads")
 except: globalthreads=cpu_count()
-try: globalprocesses=cp.getint("parallelism","globalprocesses")
+try: globalprocesses=config.getint("parallelism","globalprocesses")
 except: globalprocesses=cpu_count()
-try: cextthread=cp.getint("parallelism","cextthread")
+try: cextthread=config.getint("parallelism","cextthread")
 except: cextthread=1
-del cp
 
 # Apply configuration
 if cextthread is not None:

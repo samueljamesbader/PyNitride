@@ -21,7 +21,7 @@ if __name__=="__main__":
         ])],
         max_dz=.025*nm,
         refinements=[],uniform=True)
-    print("Mesh points: ",m.Np)
+    print("Mesh points: ", m.Nn)
 
     ec=ElasticContinuum(m,num_eigenvalues=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm),justXZ=True)
     ec.solve()
