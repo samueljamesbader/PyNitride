@@ -67,8 +67,8 @@ class PoissonSolver():
         self.update_bands_to_potential(m,0,sbh=self._sbh)
 
         # Assemble the load matrix
-        self._load_matrix=assemble_load_matrix(m.ones_mid,m.dzp,n=1,
-                               dirichelet1=True,dirichelet2=False)
+        self._load_matrix=assemble_load_matrix(m.ones_mid, m.dzn, n=1,
+                                               dirichelet1=True, dirichelet2=False)
 
     def update_epsfactor(self,epsfactor):
         """ Scales the epsilon used by this solver without actually changing epsilon on the mesh.
@@ -87,7 +87,7 @@ class PoissonSolver():
         eps=np.expand_dims(np.expand_dims(self._eps,0),0)
         self._stiffness_matrix= \
             assemble_stiffness_matrix(C0=O,Cl=None,Cr=None,
-                                      C2=eps,dzp=self._mesh.dzp,
+                                      C2=eps,dzn=self._mesh.dzn,
                                       dirichelet1=True,dirichelet2=False)
 
     @staticmethod
@@ -209,9 +209,9 @@ class PoissonSolver():
         # Assemble stiffness from eps
         eps=np.expand_dims(np.expand_dims(self._eps,0),0)
         stiffness_matrix= \
-            assemble_stiffness_matrix(C0=-drhodphi,Cl=None,Cr=None,
-                                      C2=eps,dzp=self._mesh.dzp,
-                                      dirichelet1=True,dirichelet2=False)
+            assemble_stiffness_matrix(C0=-drhodphi, Cl=None, Cr=None,
+                                      C2=eps, dzn=self._mesh.dzn,
+                                      dirichelet1=True, dirichelet2=False)
 
         # The error is calculated using the direct solution stiffness_matrix (which depends only on epsilon,
         # not on the rho derivatives
@@ -296,8 +296,8 @@ class Linear_Fermi():
 
         """
         self._mesh=mesh
-        interfaces=[(0,None)]+mesh._interfacesp+[((len(mesh.zp)-1),None)]
-        self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexp(v))
+        interfaces=[(0,None)]+mesh.interfaces_node+[((len(mesh.zn)-1),None)]
+        self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexn(v))
                                    for k,v in contacts.items()],key=lambda x:x[1] if hasattr(x,'__getitem__') else x))
         mesh['EF']=NodFunction(mesh)
 
@@ -314,7 +314,7 @@ class Linear_Fermi():
         for (clname,cl),(crname,cr) in zip(lefts,rights):
             l=-voltages.get(clname,0)
             r=-voltages.get(crname,0)
-            self._mesh['EF'][cl:(cr+1)]=(self._mesh.zp[cl:(cr+1)]-self._mesh.zp[cl])/(self._mesh.zp[cr]-self._mesh.zp[cl])*(r-l)+l
+            self._mesh['EF'][cl:(cr+1)]=(self._mesh.zn[cl:(cr+1)]-self._mesh.zn[cl])/(self._mesh.zn[cr]-self._mesh.zn[cl])*(r-l)+l
 
 
 class SelfConsistentLoop():

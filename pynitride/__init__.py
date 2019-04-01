@@ -1,7 +1,10 @@
 import os.path
+from configparser import ConfigParser
 
 # Needed for reading configuration
 ROOT_DIR= os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
+config=ConfigParser()
+config.read(os.path.join(ROOT_DIR,"config.ini"))
 """ The directory of the PyNitride project"""
 
 # Logging is needed everywhere and doesn't require anything (eg numpy)

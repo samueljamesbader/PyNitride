@@ -65,7 +65,7 @@ class Simulation():
         pass
 
     @staticmethod
-    def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={}):
+    def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={},mbkp_loop_opts={}):
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
@@ -99,7 +99,7 @@ class Simulation():
             # Put in MBKP and loop again
             sim.extras['mbkp']=mbkp=MultibandKP(quantum,rmesh=rmesh,**mbkp_opts)
             scl.swap_carrier_model(remove=semi_solver,add=mbkp)
-            scl.loop(**loop_opts)
+            scl.loop(**mbkp_loop_opts)
 
             endtime=time()
             log("MBKP loop took {:.1f} sec".format(endtime-starttime))

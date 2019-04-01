@@ -168,7 +168,7 @@ class RMesh1D(RMesh):
         tck, fp, ier, msg=splrep(self.absk1,func,full_output=True)
         assert ier<=0, msg
 
-        def interp(absk, dabsk=0, bounds_check=True):
+        def interp(absk, theta=0, dabsk=0, bounds_check=True):
             # for out of bounds, ext=0 extrapolates, ext=2 raises an error
             return splev(absk,tck,der=dabsk,ext=bounds_check*2)
         return interp

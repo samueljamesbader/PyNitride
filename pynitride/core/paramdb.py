@@ -1,17 +1,14 @@
 from pynitride import ROOT_DIR
 import os.path
 import pint
-import re
-import scipy.constants as const
-import numbers
-import numpy as np
 from omniscient import Brain
 
-# This is ugly
+# Configures Pint to use "nanoelectronic units"
 Brain._ureg=pint.UnitRegistry(system='neu')
 Brain._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","_system.txt"))
 
 def parse(val):
+    """ Reads the value in as a string and returns a number in nanoelectronic units"""
     v=Brain._ureg(val)
     return v.to_base_units().magnitude
 
@@ -27,9 +24,11 @@ def to_unit(val,unit):
     constants such as ``hbar``) is provided in the
     `Pint docs <https://github.com/hgrecco/pint/blob/master/pint/default_en.txt>`_.
 
-    :param val: A numerical quantity which is in the internal unit system of PyNitride
-    :param unit: The desired units for the result as a string (eg "cm**-2")
-    :return: the number representing that quantity in the desired units.
+    Args:
+        val: A numerical quantity which is in the internal unit system of PyNitride
+        unit: The desired units for the result as a string (eg "cm**-2")
+    Returns:
+        the number representing that quantity in the desired units.
     """
     return val/Brain._ureg(unit).to_base_units().magnitude
 
@@ -40,30 +39,14 @@ class ParamDB(Brain):
             return val
         else:
             return Brain._ureg.Quantity(val).to_base_units().magnitude
-    #def quantity(self,*args):
-    #    # If it's a single array, and not made of numeric or Pint quantity elements, just return as is
-    #    if len(args)==1 and hasattr(args[0],'__getitem__') and not isinstance(args[0],str):
-    #        if args[0]==[]: return np.array([])
-    #        elif not (isinstance(args[0][0],numbers.Number) or hasattr(args[0][0],"units")):
-    #            return args[0]
 
-    #    if self._units=='neu':
-    #        if len(args)==1 and isinstance(args[0],str):
-    #            if "," in args[0]:
-    #                return [self.quantity(s) for s in args[0].split(',')]
-    #        elif len(args)==1 and hasattr(args[0],'__getitem__'):
-    #            return np.array([self.quantity(a) for a in args[0]])
-    #        return ParamDB._ureg.Quantity(*args).to_base_units().magnitude
-
+# Get some constants
 kb, hbar, pi, m_e, cm, nm, eV, meV, K, q =[parse(x) for x in\
         "k,hbar,pi,m_e,cm,nm,eV,meV,K,e".split(',')]
+
+# Read in some parameter files
 pmdb=ParamDB(os.path.join(ROOT_DIR,"parameters"))
 pmdb.read("VM2003.txt")
 pmdb.read("BFV2001.txt")
 pmdb.read("fake.txt")
 pmdb.read("bader_recommended.txt")
-#print("WHAT")
-#print(pmdb['GaN.dielectric.eps'])
-#print(pmdb['GaN.dopant'])
-#print("ME")
-#exit()

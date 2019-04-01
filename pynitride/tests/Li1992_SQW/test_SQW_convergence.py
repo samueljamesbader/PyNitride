@@ -28,7 +28,7 @@ class AlGaAs(MaterialSystem):
             'DE':       self.bandedge_params,
             'Ec-E0':    self.bandedge_params,
             'E0-Ev':    self.bandedge_params,
-            'eps':      lambda m,key: 0*m.zp,
+            'eps':      lambda m,key: 0*m.zn,
         }
         self._defaults={'x': 0}
         self._updates={}
@@ -113,8 +113,8 @@ def compare(refinement,uniform):
         ])],
         max_dz=10*nm,
         refinements=[['l/m',refinement,1.2],['m/r',refinement,1.2]],uniform=uniform)
-    print("Mesh points: ",len(m.zp))
-    imid=int(len(m.zp)/2)
+    print("Mesh points: ", len(m.zn))
+    imid=int(len(m.zn) / 2)
 
     Equilibrium(m)
     PoissonSolver.update_bands_to_potential(m,0.)
@@ -124,7 +124,7 @@ def compare(refinement,uniform):
 
     # Compare with analytic answers
     E=(s._een[0,:]-m.Ec[imid])
-    return m.Np,E
+    return m.Nn, E
 
 
 if __name__=="__main__":

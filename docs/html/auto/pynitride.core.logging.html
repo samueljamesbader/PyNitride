@@ -39,22 +39,81 @@
 <dl class="function">
 <dt id="pynitride.core.logging.log">
 <code class="descclassname">pynitride.core.logging.</code><code class="descname">log</code><span class="sig-paren">(</span><em>msg</em>, <em>level='info'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Logs a message if it is severe enough.</p>
+<p>For info on the severity setting, see <a class="reference internal" href="#pynitride.core.logging.set_level" title="pynitride.core.logging.set_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_level()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>msg</strong> – the string to log</li>
+<li><strong>level</strong> – the severity of the message, one of
+“error”, “warning”, “info”, “debug”, “TODO”</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pynitride.core.logging.log_fail">
 <code class="descclassname">pynitride.core.logging.</code><code class="descname">log_fail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log_fail" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Convenience function which logs the most recent traceback.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynitride.core.logging.set_level">
+<code class="descclassname">pynitride.core.logging.</code><code class="descname">set_level</code><span class="sig-paren">(</span><em>level=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.set_level" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the minimum severity for a message to be printed.</p>
+<p>The <a class="reference internal" href="#pynitride.core.logging.log" title="pynitride.core.logging.log"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a> function will ignore messages below the set level.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>level</strong> – the severity of the message, one of
+“error”, “warning”, “info”, “debug”, “TODO”.
+Or <cite>None</cite>, to use the default from <cite>config.ini</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pynitride.core.logging.start_log_file">
 <code class="descclassname">pynitride.core.logging.</code><code class="descname">start_log_file</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.start_log_file" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Establishes a log file to direct subsequent messages</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> – path of the log file</li>
+<li><strong>overwrite</strong> – whether to overwrite or append</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="pynitride.core.logging.sublog">
 <code class="descclassname">pynitride.core.logging.</code><code class="descname">sublog</code><span class="sig-paren">(</span><em>msg</em>, <em>level='info'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.sublog" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Context manager to log a message and temporarily indent further messages</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>msg</strong> – the “heading” message</li>
+<li><strong>level</strong> – the severity, see <a class="reference internal" href="#pynitride.core.logging.log" title="pynitride.core.logging.log"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 

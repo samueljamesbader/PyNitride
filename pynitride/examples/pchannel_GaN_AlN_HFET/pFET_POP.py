@@ -21,7 +21,7 @@ def solve_flow(sim,model='SWH'):
         dc=DielectricContinuum_SWH(m,rmesh,
             {'TOu':5,'TOIF':1,'TOl':50,'LOu':5,'LOIF':1,'LOl':50})
     if model=='bulk':
-        dc=DielectricContinuum_BulkWurtzite(m,rmesh,50,m.zp[-1],'GaN',pol='L')
+        dc=DielectricContinuum_BulkWurtzite(m, rmesh, 50, m.zn[-1], 'GaN', pol='L')
 
     dc.solve(just_energies=False)
     sim.extras['dc' ]=dc
@@ -133,12 +133,12 @@ if __name__=='__main__':
             check_POP_interface(phiTO,dc.q[iq],enTO/hbar)
             check_POP_normalization(phiTO,dc.q[iq],enTO/hbar)
 
-            plt.plot(dc._keepmesh.zp,phiLO,'b',label='LO')
-            plt.plot(dc._keepmesh.zp,phiTO,'r',label='TO')
+            plt.plot(dc._keepmesh.zn, phiLO, 'b', label='LO')
+            plt.plot(dc._keepmesh.zn, phiTO, 'r', label='TO')
             plt.title({'u':'Confined to upper layer', 'IF': 'Interface Mode', 'l': 'Confined to lower layer'}[reg])
             if np.min(phiLO)>=0 and np.min(phiTO)>=0: plt.ylim(0)
             plt.axvline(dc._keepmesh._layers[0].thickness,color='k')
-            plt.xlim(0,dc._keepmesh.zp[-1])
+            plt.xlim(0, dc._keepmesh.zn[-1])
             plt.axhline(0,color='k')
             plt.ylabel("Potential [eV]")
             plt.xlabel("Depth [nm]")
@@ -152,10 +152,10 @@ if __name__=='__main__':
 
         check_POP_normalization(phiLO,dc.q[iq],enLO/hbar,dc.__dict__)
 
-        plt.plot(dc._keepmesh.zp,phiLO.real,'b',label='LO')
-        plt.plot(dc._keepmesh.zp,phiLO.imag,'b--',label='LO')
+        plt.plot(dc._keepmesh.zn, phiLO.real, 'b', label='LO')
+        plt.plot(dc._keepmesh.zn, phiLO.imag, 'b--', label='LO')
         plt.axvline(dc._keepmesh._layers[0].thickness,color='k')
-        plt.xlim(0,dc._keepmesh.zp[-1])
+        plt.xlim(0, dc._keepmesh.zn[-1])
         plt.axhline(0,color='k')
         plt.ylabel("Potential [eV]")
         plt.xlabel("Depth [nm]")

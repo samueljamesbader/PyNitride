@@ -23,9 +23,11 @@ ctypedef fused scalar_var:
 cpdef assemble_stiffness_matrix(
         CMat C0, CMat Cl,
         CMat Cr, CMat C2,
-        cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
+        cnp.ndarray[cnp.float64_t   ,ndim=1] dzn,
         bool dirichelet1=True, bool dirichelet2=True):
     """ Assemble a stiffness matrix from the coefficients of the differential equation.
+    
+    Cythonized assembly method, call as `assemble_stiffness_matrix(C0, Cl, Cr, C2, dzn, dirichelet1, dirichelet2)`.
     
     For the mathematics/definitions of the :math:`C` terms, see :ref:`FEM`.
     All arguments should be defined on the mid mesh except :math:`U`,
@@ -36,7 +38,7 @@ cpdef assemble_stiffness_matrix(
     
     Args:
         C0,Cl,Cr,C2: material-dependent differential equation coefficients
-        dzp: the spacings between mesh nodes
+        dzn: the spacings between mesh nodes
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
     
     Returns:
@@ -47,7 +49,7 @@ cpdef assemble_stiffness_matrix(
         list rinds, rdata
         bool complex
     n =C0.shape[0]
-    nz=dzp.shape[0]+1
+    nz=dzn.shape[0]+1
     complex = (Cl is not None)
     lil=lil_matrix((n*(nz-dirichelet1-dirichelet2),n*(nz-dirichelet1-dirichelet2)),
                    dtype='complex' if complex else 'float')
@@ -64,8 +66,8 @@ cpdef assemble_stiffness_matrix(
                 rdata+=[0]*n
                 for j in range(n):
                     rdata[j]= \
-                        +C0[i,j,z-1]*dzp[z-1]/6\
-                        -C2[i,j,z-1]/dzp[z-1]
+                        +C0[i,j,z-1]*dzn[z-1]/6\
+                        -C2[i,j,z-1]/dzn[z-1]
                     if complex:rdata[j]+= \
                         +.5j*(Cl[i,j,z-1]+Cr[i,j,z-1])
             #put in diag
@@ -74,15 +76,15 @@ cpdef assemble_stiffness_matrix(
             if z>0:
                 for j in range(n):
                     rdata[(zmat>0)*n+j]+= \
-                        +C0[i,j,z-1]*dzp[z-1]/3 \
-                        +C2[i,j,z-1]/dzp[z-1]
+                        +C0[i,j,z-1]*dzn[z-1]/3 \
+                        +C2[i,j,z-1]/dzn[z-1]
                     if complex: rdata[(zmat>0)*n+j]+= \
                         +.5j*(-Cl[i,j,z-1]+Cr[i,j,z-1])
             if z<nz-1:
                 for j in range(n):
                     rdata[(zmat>0)*n+j]+= \
-                        +C0[i,j,z]*dzp[z]/3 \
-                        +C2[i,j,z]/dzp[z]
+                        +C0[i,j,z]*dzn[z]/3 \
+                        +C2[i,j,z]/dzn[z]
                     if complex: rdata[(zmat>0)*n+j]+= \
                         +.5j*(+Cl[i,j,z]-Cr[i,j,z])\
             #put in right
@@ -91,8 +93,8 @@ cpdef assemble_stiffness_matrix(
                 rdata+=[0]*n
                 for j in range(n):
                     rdata[(1+(zmat>0))*n+j]= \
-                        +C0[i,j,z]*dzp[z]/6\
-                        -C2[i,j,z]/dzp[z]
+                        +C0[i,j,z]*dzn[z]/6\
+                        -C2[i,j,z]/dzn[z]
                     if complex: rdata[(1+(zmat>0))*n+j]+= \
                         -.5j*(Cl[i,j,z]+Cr[i,j,z])
     return lil.asformat('csc')
@@ -105,16 +107,18 @@ cpdef assemble_stiffness_matrix(
 #@cython.cdivision(True)
 cpdef assemble_load_matrix(
         scalar_var w,
-        cnp.ndarray[cnp.float64_t   ,ndim=1] dzp,
+        cnp.ndarray[cnp.float64_t   ,ndim=1] dzn,
         int n, bool dirichelet1=False, bool dirichelet2=False):
     r""" Assemble a load matrix from the coefficients of the differential equation.
+    
+    Cythonized assembly method, call as `assemble_load_matrix(w, dzn, n)`.
     
     For the mathematics/definitions of the :math:`w` term, see :ref:`FEM`.
     All arguments should be defined on the mid mesh, and the :math:`w` matrix should be one-dimensional floats
     
     Args:
         w: load-side coefficient
-        dzp: the spacings between mesh nodes
+        dzn: the spacings between mesh nodes
         n: the size of the :math:`C` matrices (eg 1 for scalar equation, 6 for 6x6 kp equation)
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
     
@@ -125,7 +129,7 @@ cpdef assemble_load_matrix(
         int i,r,nz,z, zmat
         double tmp
         list rinds, rdata
-    nz=dzp.shape[0]+1
+    nz=dzn.shape[0]+1
 
     if w.dtype == np.float64:
         lil=lil_matrix((n*(nz-dirichelet1-dirichelet2),n*(nz-dirichelet1-dirichelet2)),dtype='float')
@@ -141,17 +145,17 @@ cpdef assemble_load_matrix(
             #put in left
             if zmat>0:
                 rinds+=[n*zmat-n+i]
-                rdata+=[w[z-1]*dzp[z-1]/6]
+                rdata+=[w[z-1]*dzn[z-1]/6]
 
             #put in diag
             rinds+=[n*zmat+i]
-            rdata+=[(w[z-1]*dzp[z-1]/3 if z>0    else 0)+ 
-                    (w[z  ]*dzp[z  ]/3 if z<nz-1 else 0)] 
+            rdata+=[(w[z-1]*dzn[z-1]/3 if z>0    else 0)+
+                    (w[z  ]*dzn[z  ]/3 if z<nz-1 else 0)]
 
             #put in right
             if z<nz-1-dirichelet2:
                 rinds+=[n*zmat+n+i]
-                rdata+=[w[z  ]*dzp[z  ]/6]
+                rdata+=[w[z  ]*dzn[z  ]/6]
 
     return lil.asformat('csc')
 
@@ -166,7 +170,7 @@ def fem_eigsh(stiffness_matrix,load_matrix,
         stiffness_matrix: a stiffness matrix :math:`A` from :func:`pynitride.fem.assemble_stiffness_matrix`
         load_matrix: a load matrix :math:`M` from :func:`pynitride.fem.assemble_load_matrix`
         eigval_out: an array into which to fill the eigenvalues, should be shape (number of eigenvalues)
-        eigvec_out: an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zp))
+        eigvec_out: an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zn))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
         pairwise_GS: in the case of near degeneracy, the eigensolver often returns eigenvectors which are not totally
@@ -237,8 +241,8 @@ def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,
     Args:
         stiffness_matrix: a stiffness matrix :math:`A` from :func:`pynitride.fem.assemble_stiffness_matrix`
         load_matrix: a load matrix :math:`M` from :func:`pynitride.fem.assemble_load_matrix`
-        load_vec: the load vector :math:`b`, should be shape (len(zp))
-        val_out: an array into which to fill the solution, should be shape (len(zp))
+        load_vec: the load vector :math:`b`, should be shape (len(zn))
+        val_out: an array into which to fill the solution, should be shape (len(zn))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
         *args,**kwargs: passed onto
@@ -274,9 +278,9 @@ def fem_get_error(stiffness_matrix,load_matrix,load_vec,test,err_out,n,
     Args:
         stiffness_matrix: a stiffness matrix :math:`A` from :func:`pynitride.fem.assemble_stiffness_matrix`
         load_matrix: a load matrix :math:`M` from :func:`pynitride.fem.assemble_load_matrix`
-        load_vec: the load vector :math:`b`, should be shape (len(zp))
-        test: the test solution vector :math:`x`, should be shape (len(zp))
-        err_out: an array into which to fill the error, should be shape (len(zp))
+        load_vec: the load vector :math:`b`, should be shape (len(zn))
+        test: the test solution vector :math:`x`, should be shape (len(zn))
+        err_out: an array into which to fill the error, should be shape (len(zn))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
         *args,**kwargs: passed onto

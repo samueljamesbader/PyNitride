@@ -40,6 +40,7 @@
 <dt id="pynitride.core.fem.assemble_load_matrix">
 <code class="descclassname">pynitride.core.fem.</code><code class="descname">assemble_load_matrix</code><a class="headerlink" href="#pynitride.core.fem.assemble_load_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assemble a load matrix from the coefficients of the differential equation.</p>
+<p>Cythonized assembly method, call as <cite>assemble_load_matrix(w, dzn, n)</cite>.</p>
 <p>For the mathematics/definitions of the <span class="math notranslate nohighlight">\(w\)</span> term, see <a class="reference internal" href="../manual/FEM.html#fem"><span class="std std-ref">Finite Element Method</span></a>.
 All arguments should be defined on the mid mesh, and the <span class="math notranslate nohighlight">\(w\)</span> matrix should be one-dimensional floats</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -48,7 +49,7 @@ All arguments should be defined on the mid mesh, and the <span class="math notra
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>w</strong> – load-side coefficient</li>
-<li><strong>dzp</strong> – the spacings between mesh nodes</li>
+<li><strong>dzn</strong> – the spacings between mesh nodes</li>
 <li><strong>n</strong> – the size of the <span class="math notranslate nohighlight">\(C\)</span> matrices (eg 1 for scalar equation, 6 for 6x6 kp equation)</li>
 <li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 </ul>
@@ -65,6 +66,7 @@ All arguments should be defined on the mid mesh, and the <span class="math notra
 <dt id="pynitride.core.fem.assemble_stiffness_matrix">
 <code class="descclassname">pynitride.core.fem.</code><code class="descname">assemble_stiffness_matrix</code><a class="headerlink" href="#pynitride.core.fem.assemble_stiffness_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Assemble a stiffness matrix from the coefficients of the differential equation.</p>
+<p>Cythonized assembly method, call as <cite>assemble_stiffness_matrix(C0, Cl, Cr, C2, dzn, dirichelet1, dirichelet2)</cite>.</p>
 <p>For the mathematics/definitions of the <span class="math notranslate nohighlight">\(C\)</span> terms, see <a class="reference internal" href="../manual/FEM.html#fem"><span class="std std-ref">Finite Element Method</span></a>.
 All arguments should be defined on the mid mesh except <span class="math notranslate nohighlight">\(U\)</span>,
 and all the <span class="math notranslate nohighlight">\(C\)</span> matrices should be three-dimensional, even if they are just scalars.</p>
@@ -76,7 +78,7 @@ If <cite>Cl</cite> and <cite>Cr</cite> are supplied, the matrix will be of dtype
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>C0</strong><strong>,</strong><strong>Cl</strong><strong>,</strong><strong>Cr</strong><strong>,</strong><strong>C2</strong> – material-dependent differential equation coefficients</li>
-<li><strong>dzp</strong> – the spacings between mesh nodes</li>
+<li><strong>dzn</strong> – the spacings between mesh nodes</li>
 <li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 </ul>
 </td>
@@ -101,7 +103,7 @@ If <cite>Cl</cite> and <cite>Cr</cite> are supplied, the matrix will be of dtype
 <li><strong>stiffness_matrix</strong> – a stiffness matrix <span class="math notranslate nohighlight">\(A\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_stiffness_matrix()</span></code></li>
 <li><strong>load_matrix</strong> – a load matrix <span class="math notranslate nohighlight">\(M\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_load_matrix()</span></code></li>
 <li><strong>eigval_out</strong> – an array into which to fill the eigenvalues, should be shape (number of eigenvalues)</li>
-<li><strong>eigvec_out</strong> – an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zp))</li>
+<li><strong>eigvec_out</strong> – an array into which to fill the eigenvectors, should be shape (number of eigenvalues x n x len(zn))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
 <li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>pairwise_GS</strong> – in the case of near degeneracy, the eigensolver often returns eigenvectors which are not totally
@@ -137,9 +139,9 @@ For the mathematics/definitions of terms, see <a class="reference internal" href
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>stiffness_matrix</strong> – a stiffness matrix <span class="math notranslate nohighlight">\(A\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_stiffness_matrix()</span></code></li>
 <li><strong>load_matrix</strong> – a load matrix <span class="math notranslate nohighlight">\(M\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_load_matrix()</span></code></li>
-<li><strong>load_vec</strong> – the load vector <span class="math notranslate nohighlight">\(b\)</span>, should be shape (len(zp))</li>
-<li><strong>test</strong> – the test solution vector <span class="math notranslate nohighlight">\(x\)</span>, should be shape (len(zp))</li>
-<li><strong>err_out</strong> – an array into which to fill the error, should be shape (len(zp))</li>
+<li><strong>load_vec</strong> – the load vector <span class="math notranslate nohighlight">\(b\)</span>, should be shape (len(zn))</li>
+<li><strong>test</strong> – the test solution vector <span class="math notranslate nohighlight">\(x\)</span>, should be shape (len(zn))</li>
+<li><strong>err_out</strong> – an array into which to fill the error, should be shape (len(zn))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
 <li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>*args</strong><strong>,</strong><strong>**kwargs</strong> – passed onto
@@ -167,8 +169,8 @@ along with the main arguments <cite>M</cite> and <cite>A&#64;x</cite></li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>stiffness_matrix</strong> – a stiffness matrix <span class="math notranslate nohighlight">\(A\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_stiffness_matrix()</span></code></li>
 <li><strong>load_matrix</strong> – a load matrix <span class="math notranslate nohighlight">\(M\)</span> from <code class="xref py py-func docutils literal notranslate"><span class="pre">pynitride.fem.assemble_load_matrix()</span></code></li>
-<li><strong>load_vec</strong> – the load vector <span class="math notranslate nohighlight">\(b\)</span>, should be shape (len(zp))</li>
-<li><strong>val_out</strong> – an array into which to fill the solution, should be shape (len(zp))</li>
+<li><strong>load_vec</strong> – the load vector <span class="math notranslate nohighlight">\(b\)</span>, should be shape (len(zn))</li>
+<li><strong>val_out</strong> – an array into which to fill the solution, should be shape (len(zn))</li>
 <li><strong>n</strong> – dimension of the differential equation</li>
 <li><strong>dirichelet1</strong><strong>,</strong><strong>dirichelet2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.</li>
 <li><strong>*args</strong><strong>,</strong><strong>**kwargs</strong> – <p>passed onto

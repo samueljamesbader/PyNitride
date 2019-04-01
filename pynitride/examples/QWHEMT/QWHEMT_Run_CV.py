@@ -32,7 +32,7 @@ def make_mesh(name):
         max_dz=5*nm,
         refinements=[['barr/cap',.01*nm,1.4],['well/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])
 
-    print("Mesh points: ",m.Np)
+    print("Mesh points: ", m.Nn)
     schro,semi=m.submesh_cover([cap_t+barr_t+well_t+5*nm])
 
     return {'main':m,'schro':schro,'semi':semi,'name':name}
@@ -113,10 +113,10 @@ if __name__=="__main__":
     plt.figure()
     plt.plot(m.Ec,m.zm,color='b')
     plt.plot(m.Ev,m.zm,color='g')
-    plt.plot(m.EF,m.zp,color='r')
+    plt.plot(m.EF, m.zn, color='r')
     scale=10
-    plt.fill_betweenx(m.zp,-scale*m.p+m.EF,m.EF,color='g',alpha=.2)
-    plt.fill_betweenx(m.zp,+scale*m.n+m.EF,m.EF,color='b',alpha=.2)
+    plt.fill_betweenx(m.zn, -scale * m.p + m.EF, m.EF, color='g', alpha=.2)
+    plt.fill_betweenx(m.zn, +scale * m.n + m.EF, m.EF, color='b', alpha=.2)
     plt.ylim(40,0)
     plt.ylabel("Depth [nm]")
     plt.xlabel("Energy [eV]")
@@ -153,10 +153,10 @@ if __name__=="__main__":
     plt.figure()
     plt.plot(m.Ec,m.zm,color='b')
     plt.plot(m.Ev,m.zm,color='g')
-    plt.plot(m.EF,m.zp,color='r')
+    plt.plot(m.EF, m.zn, color='r')
     scale=10
-    plt.fill_betweenx(m.zp,-scale*m.p+m.EF,m.EF,color='g',alpha=.2)
-    plt.fill_betweenx(m.zp,+scale*m.n+m.EF,m.EF,color='b',alpha=.2)
+    plt.fill_betweenx(m.zn, -scale * m.p + m.EF, m.EF, color='g', alpha=.2)
+    plt.fill_betweenx(m.zn, +scale * m.n + m.EF, m.EF, color='b', alpha=.2)
     plt.ylim(40,0)
     plt.ylabel("Depth [nm]")
     plt.xlabel("Energy [eV]")

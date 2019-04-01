@@ -35,7 +35,7 @@ def is_AS(v):
     maxpoint=np.argmax(np.abs(v[dominant_component]))
 
     # Find the index of the point which is located most nearly opposite
-    oppositepoint=m.indexp(m.zp[-1]-m.zp[maxpoint])
+    oppositepoint=m.indexn(m.zn[-1] - m.zn[maxpoint])
 
     # Take the ratio between the two values
     ratio=np.real(v[dominant_component,maxpoint]/v[dominant_component,oppositepoint])
