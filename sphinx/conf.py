@@ -318,4 +318,4 @@ autoclass_content='both'
 
 #########################################################
 # To use local mathjax
-mathjax_path="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+#mathjax_path="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
