@@ -1,0 +1,21 @@
+pynitride package
+=================
+
+Subpackages
+-----------
+
+.. toctree::
+
+    pynitride.core
+    pynitride.examples
+    pynitride.physics
+    pynitride.tests
+    pynitride.visual
+
+Module contents
+---------------
+
+.. automodule:: pynitride
+    :members:
+    :undoc-members:
+    :show-inheritance:

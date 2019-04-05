@@ -1,0 +1,7 @@
+pynitride.examples.pchannel\_GaN\_AlN\_HFET.pFET\_visualization module
+======================================================================
+
+.. automodule:: pynitride.examples.pchannel_GaN_AlN_HFET.pFET_visualization
+    :members:
+    :undoc-members:
+    :show-inheritance:

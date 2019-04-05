@@ -1,0 +1,824 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pynitride.core.mesh module &#8212; PyNitride 2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pynitride.core.paramdb module" href="pynitride.core.paramdb.html" />
+    <link rel="prev" title="pynitride.core.maths module" href="pynitride.core.maths.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pynitride.core.mesh">
+<span id="pynitride-core-mesh-module"></span><h1>pynitride.core.mesh module<a class="headerlink" href="#module-pynitride.core.mesh" title="Permalink to this headline">¶</a></h1>
+<p>Meshing, submeshing, and manipulating functions defined on meshes.</p>
+<dl class="function">
+<dt id="pynitride.core.mesh.DeltaFunction">
+<code class="descclassname">pynitride.core.mesh.</code><code class="descname">DeltaFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>z</em>, <em>integral=1</em>, <em>i=None</em>, <em>pos='node'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.DeltaFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which is only non-zero at a single location</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mesh</strong> – the mesh on which this function is defined</li>
+<li><strong>z</strong> – the location of the delta function (index nearest this point will be used)</li>
+<li><strong>integral</strong> – the integrated value of this delta function (ie prefactor)</li>
+<li><strong>i</strong> – if specified, <code class="docutils literal notranslate"><span class="pre">z</span></code> will be ignored and <code class="docutils literal notranslate"><span class="pre">i</span></code> is the exact index where the delta will be placed</li>
+<li><strong>pos</strong> – build on a node mesh or mid mesh</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the delta function as a <a class="reference internal" href="#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.Function">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">Function</code><a class="headerlink" href="#pynitride.core.mesh.Function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+<p>Represents a generic function defined on a <code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code>.</p>
+<p>This classes subclasses Numpy’s
+<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html">ndarray</a> so vectorized math should
+just work.  Functions are arbitrarily shaped/dimensioned <code class="docutils literal notranslate"><span class="pre">ndarray</span></code>’s, with the constraint that the last dimension
+matches the length of the (point or mid) mesh on which it is defined.</p>
+<p>A Function can be initialized via the <code class="docutils literal notranslate"><span class="pre">value</span></code> or <code class="docutils literal notranslate"><span class="pre">empty</span></code> parameter in numerous ways:</p>
+<blockquote>
+<div><ul class="simple">
+<li>if the <code class="docutils literal notranslate"><span class="pre">empty</span></code> argument is supplied, an empty (ie values uninitialized) array will be constructed with the
+shape specified as a tuple to <code class="docutils literal notranslate"><span class="pre">empty</span></code></li>
+<li>if <code class="docutils literal notranslate"><span class="pre">value</span></code> is an array whose last dimension matches the mesh already, this function will just be a
+view of <code class="docutils literal notranslate"><span class="pre">value</span></code>.</li>
+<li>if <code class="docutils literal notranslate"><span class="pre">value</span></code> is a number (or generally, a non-iterable), it will be repeated to the length of the mesh.</li>
+<li>if <code class="docutils literal notranslate"><span class="pre">value</span></code> is one-dimensional but doesn’t match the mesh, it will be converted to two-dimensional and
+tiled along the trival axis to the length of the node mesh.</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – the <code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code> on which this function is defined</li>
+<li><strong>value</strong> – (see above) the default value to initialize this array with</li>
+<li><strong>dtype</strong> – <p>the Numpy data type of the array (See
+<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html">ndarray</a>.)</p>
+</li>
+<li><strong>empty</strong> – (see above) False to use <code class="docutils literal notranslate"><span class="pre">value</span></code>, or shape tuple to construct an array.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.differentiate">
+<code class="descname">differentiate</code><span class="sig-paren">(</span><em>fill_value=nan</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.differentiate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Central-difference derivative</p>
+<p>Differentiate, accounting for the appropriate potentially non-uniform mesh spacing.
+Note that the derivative of a node function is a mid function, and vice-versa.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fill_value</strong> – when differentiating a mid-function to a node-function, the central-difference derivative
+at the boundary is not defined, this parameter provides a way to fill those boundary points in.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a Function representing the derivative.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.integrate">
+<code class="descname">integrate</code><span class="sig-paren">(</span><em>flipped=False</em>, <em>definite=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cumulative integral in either direction, or definite integral</p>
+<p>Integrate, accounting for the appropriate potentially non-uniform mesh spacing
+Note that the integral of a node function is a mid function, and vice-versa.
+When integrating a node function to a mid function, the last point is ignored.
+When integrating a mid function to a node function, the first point is zero.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>flipped</strong> – If True, integrate from <span class="math notranslate nohighlight">\(+z\)</span> to <span class="math notranslate nohighlight">\(-z\)</span>,
+rather than the default <span class="math notranslate nohighlight">\(-z\)</span> to <span class="math notranslate nohighlight">\(+z\)</span></li>
+<li><strong>definite</strong> – give just the total integral rather than computing the cumulative.  Note that, when integrating
+a mid function, this the last point of the cumulative result, but that’s not true for a node function.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Function or, if <code class="docutils literal notranslate"><span class="pre">definite</span></code>, just a number</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function to plot this function versus mesh positions via matplotlib.</p>
+<p><code class="docutils literal notranslate"><span class="pre">*args</span></code> and <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> are passed directly to matplotlib’s <code class="docutils literal notranslate"><span class="pre">plot()</span></code>
+(See <a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot">Matplotlib docs</a>.)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.restrict">
+<code class="descname">restrict</code><span class="sig-paren">(</span><em>submesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.restrict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a view of this function restricted to the given submesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>submesh</strong> – the submesh on which this function is needed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a Function of the same type, which shares, not copies, data with the original</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.tmf">
+<code class="descname">tmf</code><span class="sig-paren">(</span><em>interp='z'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.tmf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure that a Function is defined on the node mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>interp</strong> – <code class="docutils literal notranslate"><span class="pre">'z'</span></code> for a linear interpolation which accounts for non-uniform point spacing (and boundaries
+by extrapolation).
+<code class="docutils literal notranslate"><span class="pre">'unweighted'</span></code> for a straightforward average of adjacent points (and boundaries are the boundaries
+of the mid mesh).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a node function (which is the original if its already a node function)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Function.tpf">
+<code class="descname">tpf</code><span class="sig-paren">(</span><em>interp='z'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Function.tpf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensure that a Function is defined on the node mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>interp</strong> – <code class="docutils literal notranslate"><span class="pre">'z'</span></code> for a linear interpolation which accounts for non-uniform point spacing (and boundaries
+by extrapolation).
+<code class="docutils literal notranslate"><span class="pre">'unweighted'</span></code> for a straightforward average of adjacent points (and boundaries are the boundaries
+of the mid mesh).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a node function (which is the original if its already a node function)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.Layer">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">Layer</code><span class="sig-paren">(</span><em>name</em>, <em>thickness</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A chunk of simulation domain which will be guaranteed to end on node-points</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – an arbitrary name for the layer</li>
+<li><strong>thickness</strong> – the thickness of the layer</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Layer.matblock">
+<code class="descname">matblock</code><a class="headerlink" href="#pynitride.core.mesh.Layer.matblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>The material block which contains this layer</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Layer.mesh">
+<code class="descname">mesh</code><a class="headerlink" href="#pynitride.core.mesh.Layer.mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>The submesh owned by this layer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Layer.place">
+<code class="descname">place</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Layer.place" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places the layer onto the mesh (called by <a class="reference internal" href="#pynitride.core.mesh.MaterialBlock.place" title="pynitride.core.mesh.MaterialBlock.place"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaterialBlock.place</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.MaterialBlock">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">MaterialBlock</code><span class="sig-paren">(</span><em>name</em>, <em>matsys</em>, <em>layers</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.MaterialBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Represents a region of the simulation consisting of one material system</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – arbitrary name for this region</li>
+<li><strong>matsys</strong> – the <a class="reference internal" href="pynitride.physics.material.html#pynitride.physics.material.MaterialSystem" title="pynitride.physics.material.MaterialSystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaterialSystem</span></code></a></li>
+<li><strong>layers</strong> – a list of layers inside this block</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.core.mesh.MaterialBlock.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>item</em>, <em>destmesh=None</em>, <em>destfunc=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.MaterialBlock.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the requested function retrieving from the material if necessary.</p>
+<p>Typical use with no <cite>destmesh</cite> or <cite>destfunc</cite>:
+If the function is already defined on this mesh, returns it.
+Otherwise, if it’s available from the material system, regturn it</p>
+<p>Other use (internal by <a class="reference internal" href="#pynitride.core.mesh.Mesh" title="pynitride.core.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a>):
+If a <cite>destfunc</cite> is supplied, the results will be filled into the proper slice of <cite>destfunc</cite>,
+and <cite>destfunc</cite> will be returned.</p>
+<p>If a <cite>destfunc</cite> is not supplied, but <cite>destmesh</cite> is (and that <cite>destmesh</cite> is not the mesh of this block),
+a function will be created matching the <cite>dtype</cite> found for this key on <cite>destmesh</cite>, and the values will be filled
+into the proper slice, and the function will be returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>item</strong> – the key (string) sought</li>
+<li><strong>destmesh</strong> – (see above)</li>
+<li><strong>destfunc</strong> – (see above)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.MaterialBlock.mesh">
+<code class="descname">mesh</code><a class="headerlink" href="#pynitride.core.mesh.MaterialBlock.mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>The submesh owned by this material block.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.MaterialBlock.place">
+<code class="descname">place</code><span class="sig-paren">(</span><em>mesh</em>, <em>interface_indices</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.MaterialBlock.place" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places the block onto the submesh, and places all its layers</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – the submesh assigned to this block</li>
+<li><strong>interface_indices</strong> – list of interfaces (including start and end)
+along which the layers will be placed</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynitride.core.mesh.MaterialFunction">
+<code class="descclassname">pynitride.core.mesh.</code><code class="descname">MaterialFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>prop</em>, <em>default=None</em>, <em>dtype='float'</em>, <em>pos='mid'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.MaterialFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Function by a piecewise-constant-over-materials definition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mesh</strong> – the mesh on which the function is defined.</li>
+<li><strong>prop</strong> – either (1) a function which will be called separately for each layer with the relevant
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.paramdb.Material</span></code> as the sole argument or (2) a property key which
+will be requested from each dictionary eg <cite>“electron.mdos”</cite>.</li>
+<li><strong>default</strong><strong>,</strong><strong>pos</strong> – passed to <a class="reference internal" href="#pynitride.core.mesh.MidFunction" title="pynitride.core.mesh.MidFunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">MidFunction()</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a <a class="reference internal" href="#pynitride.core.mesh.MidFunction" title="pynitride.core.mesh.MidFunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">MidFunction()</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.Mesh">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">Mesh</code><span class="sig-paren">(</span><em>stack, max_dz, refinements=[], uniform=False, boundary=['GenericMetal', 'thick']</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Generates and manages a dual, potentially non-uniform mesh and functions defined on it.</p>
+<p>See <a class="reference internal" href="../manual/mesh.html#mesh"><span class="std std-ref">Meshing Scheme</span></a> for a discussion of the defintion and properties of the mesh.</p>
+<p>The algorithm to create the mesh is to step through the regions one-by-one and build the mesh point-by-point.
+At a point <span class="math notranslate nohighlight">\(z\)</span>, the mesh will be extended by adding a maximal <span class="math notranslate nohighlight">\(dz\)</span> which satisfies all the refinement
+criteria (as a simplification, the criteria are evaluated at <span class="math notranslate nohighlight">\(z\)</span>, but not <span class="math notranslate nohighlight">\(z+dz\)</span>).  When the mesh being
+constructed passes an interface, the entire mesh built since the last interface is shrunk uniformly so that the
+most recent mesh point matches that interface.</p>
+<p>Refinement criteria are given as a max spacing <span class="math notranslate nohighlight">\(dz^p_0\)</span> near a refinement point <span class="math notranslate nohighlight">\(z_0\)</span>, and an
+exponential growth rate for that <span class="math notranslate nohighlight">\(dz\)</span>.  This makes it easy to evaluate at any <span class="math notranslate nohighlight">\(z\)</span> what is the maximal
+allowed <span class="math notranslate nohighlight">\(dz\)</span>.  As mentioned, when the mesh is built, the criteria are evaluated at the most recent point z,
+not at <span class="math notranslate nohighlight">\(z+dz\)</span>.  So it is possible that <span class="math notranslate nohighlight">\(dz\)</span> may be slightly larger than the refinement criteria if the
+limiting refinement is to the right.  If the mesh is sufficiently dense, the refinement criteria will be
+approximately satisfied. But, because of this detail, note that these criteria are targets (which will be nearly
+hit), not guarantees.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stack</strong> – the <code class="xref py py-class docutils literal notranslate"><span class="pre">EpiStack</span></code> representing the device</li>
+<li><strong>max_dz</strong> – (number) the maximum mesh spacing allowed globally.</li>
+<li><strong>refinements</strong> – a list of spots where the mesh should be refined.
+Each element is a triple <span class="math notranslate nohighlight">\((z^p_0,dz^p_0,r)\)</span>,
+where <span class="math notranslate nohighlight">\(z_0\)</span> is the location that should be refined,
+<span class="math notranslate nohighlight">\(dz^p_0\)</span> is the target mesh spacing in the region of <span class="math notranslate nohighlight">\(z_0\)</span>,
+and <span class="math notranslate nohighlight">\(r\)</span> is the target rate at which the mesh spacing is allowed to exponentially increase
+moving away from <span class="math notranslate nohighlight">\(z_0\)</span>. ie each refinement enforces a constraint of the form
+<span class="math notranslate nohighlight">\(dz \lesssim dz^p_0  r^{|z-z_0|}\)</span>.
+Note that, when creating a uniform mesh, the only effect of this argument is to reduce <code class="docutils literal notranslate"><span class="pre">max_dz</span></code> if a
+refinement with <cite>dz^p_0</cite> tighter than <code class="docutils literal notranslate"><span class="pre">max_dz</span></code> is included.</li>
+<li><strong>uniform</strong> – if True, keep the spacing uniform instead of applying the complicated meshing above</li>
+<li><strong>boundary</strong> – a two-tuple of boundary conditions.  At present, the second element must be “thick”, but the first
+element can be the name of a metal which which the top material knows its Schottky barrier, or can be a
+number directly specifying the barrier</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.Nm">
+<code class="descname">Nm</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.Nm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of mid points</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.Nn">
+<code class="descname">Nn</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.Nn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of node points</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.dzm">
+<code class="descname">dzm</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.dzm" title="Permalink to this definition">¶</a></dt>
+<dd><p>the spacing between locations in the mid mesh as a numpy array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.dzn">
+<code class="descname">dzn</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.dzn" title="Permalink to this definition">¶</a></dt>
+<dd><p>the spacing between locations in the node mesh as a numpy array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.ensure_function_exists">
+<code class="descname">ensure_function_exists</code><span class="sig-paren">(</span><em>func</em>, <em>value=nan</em>, <em>dim=()</em>, <em>pos='node'</em>, <em>dtype='float'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.ensure_function_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>If it doesn’t exist, make it in the global mesh, if it does, check the dim/pos.</p>
+<p>Propagates the function upward to supermeshes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fund</strong> – name of the function</li>
+<li><strong>value</strong><strong>,</strong><strong>dim</strong><strong>,</strong><strong>pos</strong><strong>,</strong><strong>dtype</strong> – passed to <a class="reference internal" href="#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get by name a function defined on this mesh.</p>
+<p>Search order: (1) if the function is already defined on this mesh, return it. (2) If any material block seems
+to have the variable, ask all material blocks to fill it in.  If they can’t ALL fill it in, an exception will
+be raised.</p>
+<p>Note: if the function is defined on submeshes but not on the global mesh, this method will not find it, but
+you can call py:func:<cite>pynitride.mesh.globalize</cite> to bring it onto the global mesh.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.globalize">
+<code class="descname">globalize</code><span class="sig-paren">(</span><em>func</em>, <em>default=None</em>, <em>submeshes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.globalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the function <cite>func</cite> on submeshes and expands it to a function on the full mesh, ensuring that
+the functions on submeshes are just restricted views of the full mesh function (no longer independent).</p>
+<p>If the function is defined on multiple submeshes in incompatible ways (ie different shapes) or a <cite>default</cite> is
+supplied which is incompatible with the way this function is defined on some submesh, the results are not
+defined and errors may be raised.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>func</strong> – (str) the function name to look for</li>
+<li><strong>default</strong> – a default value to fill into the function where not defined on a submesh</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.indexm">
+<code class="descname">indexm</code><span class="sig-paren">(</span><em>zm</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.indexm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the index of the mid mesh location nearest to <code class="docutils literal notranslate"><span class="pre">zm</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>zm</strong> – <span class="math notranslate nohighlight">\(z\)</span> position</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an index into the mid mesh</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.indexn">
+<code class="descname">indexn</code><span class="sig-paren">(</span><em>zn</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.indexn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the index of the node mesh location nearest to <code class="docutils literal notranslate"><span class="pre">zn</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>zn</strong> – <span class="math notranslate nohighlight">\(z\)</span> position</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an index into the node mesh</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.interfaces_mid">
+<code class="descname">interfaces_mid</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.interfaces_mid" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of interfaces and adjacent <a class="reference internal" href="#pynitride.core.mesh.Layer" title="pynitride.core.mesh.Layer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></a>’s on the mid mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">each element is a tuple of the form
+<code class="docutils literal notranslate"><span class="pre">(index_to_left,</span> <span class="pre">index_to_right,</span> <span class="pre">layer_to_left,</span> <span class="pre">layer_to_right)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.interfaces_node">
+<code class="descname">interfaces_node</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.interfaces_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of interfaces and adjacent <a class="reference internal" href="#pynitride.core.mesh.Layer" title="pynitride.core.mesh.Layer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Layer</span></code></a>’s on the node mesh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">each element is a tuple of the form <code class="docutils literal notranslate"><span class="pre">(index,</span> <span class="pre">layer_to_left,</span> <span class="pre">layer_to_right)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.matblock">
+<code class="descname">matblock</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.matblock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the material block with the given name (error if not found)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.ones_mid">
+<code class="descname">ones_mid</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.ones_mid" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 1-D all-ones mid function on this mesh</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.ones_nod">
+<code class="descname">ones_nod</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.ones_nod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 1-D all-ones node function on this mesh</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.plot_mesh">
+<code class="descname">plot_mesh</code><span class="sig-paren">(</span><em>xlim=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.plot_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a 1-D representation of the mesh for visual inspection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the mesh functions from a file (a numpy .npz)</p>
+<p>Mesh should match the one saved from.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> – path at which to save</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the mesh functions to a file (a numpy .npz)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename</strong> – path at which to save</li>
+<li><strong>keys</strong> – if provided, restrict the saved keys to only these</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.submesh">
+<code class="descname">submesh</code><span class="sig-paren">(</span><em>zbounds</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.submesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a class="reference internal" href="#pynitride.core.mesh.SubMesh" title="pynitride.core.mesh.SubMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubMesh</span></code></a> viewing a range of this mesh.</p>
+<p>The range is specified by desired <span class="math notranslate nohighlight">\(z\)</span> locations.  If you want to specify exact indices instead, use the
+<a class="reference internal" href="#pynitride.core.mesh.SubMesh" title="pynitride.core.mesh.SubMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubMesh</span></code></a> constructor directly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>zbounds</strong> – two-element tuple of <span class="math notranslate nohighlight">\(z\)</span> locations to start and stop the submesh (inclusive)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <a class="reference internal" href="#pynitride.core.mesh.SubMesh" title="pynitride.core.mesh.SubMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubMesh</span></code></a> which views this mesh in the desired range</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pynitride.core.mesh.Mesh.submesh_cover">
+<code class="descname">submesh_cover</code><span class="sig-paren">(</span><em>znoints</em>, <em>names</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.Mesh.submesh_cover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a cover of the mesh split into submeshes at each point</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>znoints</strong> – list of locations (nearest point in node mesh will be used) where to divide the meshes</li>
+<li><strong>names</strong> – a list of names (length one greater than <cite>znoints</cite>)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of submeshes</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.zeros_mid">
+<code class="descname">zeros_mid</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.zeros_mid" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 1-D all-zeros mid function on this mesh</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.zeros_nod">
+<code class="descname">zeros_nod</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.zeros_nod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A 1-D all-zeros node function on this mesh</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.zm">
+<code class="descname">zm</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.zm" title="Permalink to this definition">¶</a></dt>
+<dd><p>the locations of the mid mesh as a numpy array</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynitride.core.mesh.Mesh.zn">
+<code class="descname">zn</code><a class="headerlink" href="#pynitride.core.mesh.Mesh.zn" title="Permalink to this definition">¶</a></dt>
+<dd><p>the locations of the node mesh as a numpy array</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynitride.core.mesh.MidFunction">
+<code class="descclassname">pynitride.core.mesh.</code><code class="descname">MidFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>value=nan</em>, <em>dtype='float'</em>, <em>empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.MidFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a function defined on the mid mesh</p>
+<p>This is a convenience equivalent to calling <code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code> with <code class="docutils literal notranslate"><span class="pre">pos='mid'</span></code>.
+All other arguments are the same.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynitride.core.mesh.NodFunction">
+<code class="descclassname">pynitride.core.mesh.</code><code class="descname">NodFunction</code><span class="sig-paren">(</span><em>mesh</em>, <em>value=nan</em>, <em>dtype='float'</em>, <em>empty=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.NodFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a function defined on the node mesh</p>
+<p>This is a convenience equivalent to calling <code class="xref py py-func docutils literal notranslate"><span class="pre">Function()</span></code> with <code class="docutils literal notranslate"><span class="pre">pos='node'</span></code>.
+All other arguments are the same.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.SubMesh">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">SubMesh</code><span class="sig-paren">(</span><em>mesh</em>, <em>name</em>, <em>start</em>, <em>stop</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.SubMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.core.mesh.Mesh" title="pynitride.core.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.core.mesh.Mesh</span></code></a></p>
+<p>Represents a Mesh restricted to to particular segment of a larger mesh.</p>
+<p>A submesh is essentially just a view of a mesh within that segment, ie it has all of the same functionality as the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code> from which it is created, except that all operations on it (eg setting
+or getting mesh functions) will only affect those functions within the prescribed range.  Vitally, the data is
+<em>shared</em>, not copied, between a mesh and its submeshes.</p>
+<p>Note: the constructor for SubMesh takes exact <em>indices</em> as bounds of the submesh region.  If you wish to instead specify
+<span class="math notranslate nohighlight">\(z\)</span>-positions, see the <a class="reference internal" href="#pynitride.core.mesh.Mesh.submesh" title="pynitride.core.mesh.Mesh.submesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">Mesh.submesh()</span></code></a> function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mesh</strong> – the super <code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code> within which this submesh will reside</li>
+<li><strong>start</strong> – The lower index (inclusive) of the submesh in the larger mesh</li>
+<li><strong>stop</strong> – The upper index (exclusive) of the submesh in the larger mesh</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="pynitride.core.mesh.UniformLayer">
+<em class="property">class </em><code class="descclassname">pynitride.core.mesh.</code><code class="descname">UniformLayer</code><span class="sig-paren">(</span><em>name</em>, <em>thickness</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.UniformLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.core.mesh.Layer" title="pynitride.core.mesh.Layer"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.core.mesh.Layer</span></code></a></p>
+<p>A uniform chunk of simulation domain which will be guaranteed to end on node-points</p>
+<p>That is to say, the properties specified by kwargs will be uniform</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – an arbitrary name for the layer</li>
+<li><strong>thickness</strong> – the thickness of the layer</li>
+<li><strong>kwargs</strong> – any other properties specified uniformly in the region</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pynitride.core.mesh.UniformLayer.place">
+<code class="descname">place</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.UniformLayer.place" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places the layer onto the mesh (called by <a class="reference internal" href="#pynitride.core.mesh.MaterialBlock.place" title="pynitride.core.mesh.MaterialBlock.place"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaterialBlock.place</span></code></a>, filling in uniform values.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pynitride.core.mesh.inner_product">
+<code class="descclassname">pynitride.core.mesh.</code><code class="descname">inner_product</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.mesh.inner_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the FEM inner product between two functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong><strong>,</strong><strong>b</strong> – the two <a class="reference internal" href="#pynitride.core.mesh.NodFunction" title="pynitride.core.mesh.NodFunction"><code class="xref py py-func docutils literal notranslate"><span class="pre">NodFunction()</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the inner product with respect to the FEM metric</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../manual/index.html">
+              <img class="logo" src="../_static/Logo.svg" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="../manual/index.html">PyNitride</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../manual/math_and_physics.html">    Math and Physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/overall_flow.html">    Software Structure</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">    API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../manual/index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">PyNitride</a><ul>
+  <li><a href="pynitride.html">pynitride package</a><ul>
+  <li><a href="pynitride.core.html">pynitride.core package</a><ul>
+      <li>Previous: <a href="pynitride.core.maths.html" title="previous chapter">pynitride.core.maths module</a></li>
+      <li>Next: <a href="pynitride.core.paramdb.html" title="next chapter">pynitride.core.paramdb module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Samuel James Bader.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/auto/pynitride.core.mesh.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

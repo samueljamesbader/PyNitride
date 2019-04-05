@@ -1,0 +1,7 @@
+pynitride.physics.phonons module
+================================
+
+.. automodule:: pynitride.physics.phonons
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,0 +1,7 @@
+pynitride.examples.QWHEMT.QWHEMT\_TMUSIC module
+===============================================
+
+.. automodule:: pynitride.examples.QWHEMT.QWHEMT_TMUSIC
+    :members:
+    :undoc-members:
+    :show-inheritance:

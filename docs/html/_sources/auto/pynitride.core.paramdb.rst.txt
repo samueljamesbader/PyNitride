@@ -1,0 +1,7 @@
+pynitride.core.paramdb module
+=============================
+
+.. automodule:: pynitride.core.paramdb
+    :members:
+    :undoc-members:
+    :show-inheritance:

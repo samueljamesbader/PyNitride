@@ -1,0 +1,269 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Elastic Continuum Model &#8212; PyNitride 2.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="/home/sam/Desktop/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Finite Element Method" href="FEM.html" />
+    <link rel="prev" title="Dielectric Continuum Model" href="DC.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="elastic-continuum-model">
+<span id="ec"></span><h1>Elastic Continuum Model<a class="headerlink" href="#elastic-continuum-model" title="Permalink to this headline">¶</a></h1>
+<p>The elastic continuum model <a class="footnote-reference" href="#id2" id="id1">[1]</a> joins the continuum Newton’s law with the material stress-strain relation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  \rho \frac{\partial^2 u_i}{\partial t^2}=\frac{\partial T_{ij}}{\partial r_j}, \quad T_{ij}=c_{ijkl}\epsilon_{kl}
+\end{equation}\]</div>
+<p>where <span class="math notranslate nohighlight">\(u_i\)</span> is the local displacement, <span class="math notranslate nohighlight">\(\rho\)</span> is the density,
+<span class="math notranslate nohighlight">\(T_{ij}\)</span> is the stress tensor,
+<span class="math notranslate nohighlight">\(c_{ijkl}\)</span> is the stiffness tensor,
+and <span class="math notranslate nohighlight">\(\epsilon_{ijkl}\)</span> is the strain tensor
+<span class="math notranslate nohighlight">\(\epsilon_{ij}=\frac{1}{2}\left( \partial_{r_j} u_i + \partial_{r_i} u_j\right)\)</span>.
+In Voigt notation</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  T_{\alpha}=c_{\alpha \beta}\epsilon_\beta
+\end{equation}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha, \beta\)</span> run 1-6 and the Voigt tuples are related to the actual tensors by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  T_{1}=T_{xx}&amp;,\quad
+  \epsilon_{1}=\epsilon_{xx}\\
+  T_{2}=T_{yy}&amp;,\quad
+  \epsilon_{2}=\epsilon_{yy}\\
+  T_{3}=T_{zz}&amp;,\quad
+  \epsilon_{3}=\epsilon_{zz}\\
+  T_{4}=T_{yz}&amp;,\quad
+  \epsilon_{4}=2\epsilon_{yz}\\
+  T_{5}=T_{xz}&amp;,\quad
+  \epsilon_{5}=2\epsilon_{xz}\\
+  T_{6}=T_{xy}&amp;,\quad
+  \epsilon_{6}=2\epsilon_{xy}
+\end{align}\end{split}\]</div>
+<div class="section" id="wurtzite">
+<h2>Wurtzite<a class="headerlink" href="#wurtzite" title="Permalink to this headline">¶</a></h2>
+<p>For a wurtzite crystal, the <span class="math notranslate nohighlight">\(c_{\alpha \beta}\)</span> can be written</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{equation}
+  c=\begin{pmatrix}
+    C_{11} &amp; C_{12} &amp; C_{13} &amp;      0 &amp;      0 &amp; 0 \\
+    C_{12} &amp; C_{22} &amp; C_{13} &amp;      0 &amp;      0 &amp; 0 \\
+    C_{13} &amp; C_{13} &amp; C_{33} &amp;      0 &amp;      0 &amp; 0 \\
+    0      &amp;      0 &amp;      0 &amp; C_{44} &amp;      0 &amp; 0 \\
+    0      &amp;      0 &amp;      0 &amp;      0 &amp; C_{44} &amp; 0 \\
+    0      &amp;      0 &amp;      0 &amp;      0 &amp;      0 &amp; \frac{1}{2}\left(C_{11}-C_{12}  \right)  \end{pmatrix}
+\end{equation}\end{split}\]</div>
+<p>with in-plane wavevector <span class="math notranslate nohighlight">\(q\)</span>, the strains are given by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+  \epsilon_1&amp;=iq u_x ,&amp; \quad \epsilon_4&amp;=\partial_z u_y \\
+  \epsilon_2&amp;=0 ,&amp; \quad \epsilon_5&amp;=iqu_z+\partial_z u_x \\
+  \epsilon_3&amp;=\partial_zu_z ,&amp; \quad \epsilon_6&amp;=iqu_y
+\end{align}\end{split}\]</div>
+<p>Then the combined relation becomes</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{equation}
+  -\rho\omega^2\begin{pmatrix}
+    u_x\\
+    u_y\\
+    u_z
+  \end{pmatrix}=
+  \begin{pmatrix}
+    -C_{11}q^2u_x + iqC_{13}\partial_zu_z + \partial_zC_{44}iq u_z+\partial_zC_{44}\partial_zu_x  \\
+    -\frac{1}{2}\left( C_{11}-C_{12} \right)q^2u_y +\partial_z C_{44}\partial_z u_y\\
+  -C_{44}q^2u_z+C_{44}iq\partial_z u_x+iq\partial_zC_{13}u_x+\partial_zC_{33}\partial_zu_z
+  \end{pmatrix}
+\end{equation}\end{split}\]</div>
+<p>Or</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  \rho\omega^2u=
+  Cu, \quad C= q^2C^0 -iq C^L\partial_z -iq \partial_z C^R  - \partial_z C^2 \partial_z
+  \label{eq:split}
+\end{equation}\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{equation}
+  C^0= \begin{pmatrix}
+    C_{11} &amp;  &amp; \\
+    &amp; \frac{1}{2}\left( C_{11}-C_{12} \right) &amp; \\
+    &amp; &amp; C_{44}
+  \end{pmatrix}, \quad
+  C^2= \begin{pmatrix}
+    C_{44} &amp;  &amp; \\
+    &amp; C_{44} &amp; \\
+    &amp; &amp; C_{33}
+  \end{pmatrix}
+\end{equation}\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{equation}
+  C^L= \begin{pmatrix}
+    &amp;  &amp; C_{13}\\
+    &amp; 0&amp; \\
+    C_{44} &amp; &amp;
+  \end{pmatrix}, \quad
+  C^R= \begin{pmatrix}
+    &amp;  &amp; C_{44}\\
+    &amp; 0&amp; \\
+    C_{13} &amp; &amp;
+  \end{pmatrix}
+\end{equation}\end{split}\]</div>
+</div>
+<div class="section" id="wurtzite-piezoelectric-potential">
+<h2>Wurtzite piezoelectric potential<a class="headerlink" href="#wurtzite-piezoelectric-potential" title="Permalink to this headline">¶</a></h2>
+<p>Once the acoustic phonon modes are solved for, each mode can be considered a source of piezoelectric charge</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+\rho=-\nabla \cdot \vec P&amp;= -\nabla \cdot \left[
+\begin{pmatrix}
+  0 &amp; 0 &amp; 0 &amp; 0 &amp; e_{15} &amp; 0\\
+  0 &amp; 0 &amp; 0 &amp;  e_{15} &amp; 0 &amp; 0\\
+  e_{31} &amp; e_{31} &amp; e_{33} &amp; 0 &amp; 0 &amp; 0
+\end{pmatrix}
+\begin{pmatrix}
+  \epsilon_{xx}\\
+  \epsilon_{yy}\\
+  \epsilon_{zz}\\
+  2\epsilon_{yz}\\
+  2\epsilon_{xz}\\
+  2\epsilon_{xy}
+\end{pmatrix} \right]
+\end{align}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(e_{\alpha\beta}\)</span> are the piezoelastic moduli</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  q^2\varepsilon_\perp\phi -\partial_z\varepsilon_\parallel \partial_z \phi
+    =q^2e_{15}u_z-iqe_{15}\partial_zu_L
+    -iq \partial_z e_{31}u_L- \partial_ze_{33}\partial_zu_z
+\end{equation}\]</div>
+<p>which can be written</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  C^0\phi -\partial_z C^2\partial_z\phi = C^{0'}u_z-iC^{L'}u_x-iC^{R'}u_x-\partial_zC^{2'}\partial_zu_z
+\end{equation}\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  C_0=q^2\varepsilon_\perp, \quad C_2=\varepsilon_\parallel
+\end{equation}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+  C^{0'}=q^2e_{15},
+  C^{L'}=qe_{15},
+  C^{R'}=qe_{31},
+  C^{2'}=e_{33}
+\end{equation}\]</div>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>as discussed in Stroscio and Dutta, <em>Phonons in Nanostructures</em></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="../_static/Logo.svg" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">PyNitride</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="math_and_physics.html">    Math and Physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overall_flow.html">    Software Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../auto/modules.html">    API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="math_and_physics.html">Physics in PyNitride</a><ul>
+      <li>Previous: <a href="DC.html" title="previous chapter">Dielectric Continuum Model</a></li>
+      <li>Next: <a href="FEM.html" title="next chapter">Finite Element Method</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Samuel James Bader.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/manual/EC.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
