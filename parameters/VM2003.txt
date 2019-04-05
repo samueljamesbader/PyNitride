@@ -1,6 +1,15 @@
 Omniscient v1
-#PyNitride v2
-# Vurgaftman, I. & Meyer, J. R. Band parameters for nitrogen-containing semiconductors. J. Appl. Phys. 94, 3675–3696 (2003).
+
+######
+######
+##
+## Parameters from Vurgaftman, I. & Meyer, J. R.
+## "Band parameters for nitrogen-containing semiconductors."
+## J. Appl. Phys. 94, 3675–3696 (2003).
+## https://doi.org/10.1063/1.1600519
+##
+######
+######
 
 material=GaN
     material type: 'binary'
@@ -35,17 +44,17 @@ material=GaN
 
             DeltaCR: 10 meV
             DeltaSO: 17 meV
+    carrier=electron
+        band=
+            g: 2
+            mzs:  .2 m_e
+            mxys: .2 m_e
+            mdos: .2 m_e
 
     conditions=relaxed
         lattice
             a: 3.189 angstrom
             c: 5.185 angstrom
-        carrier=electron
-            band=
-                g: 2
-                mzs:  .2 m_e
-                mxys: .2 m_e
-                mdos: .2 m_e
         varshni
             Eg0: 3.510 eV
             alpha: .909 meV/K
@@ -82,6 +91,12 @@ material=AlN
 
             DeltaCR: -169 meV
             DeltaSO:   19 meV
+    carrier=electron
+        band=
+            g: 2
+            mzs:  .32 m_e
+            mxys: .30 m_e
+            DE: 0 eV
     conditions=relaxed
         lattice
             a: 3.112 angstrom
@@ -132,51 +147,4 @@ material=InN
             Eg0:    .78  eV
             alpha:  .245 meV/K
             beta:   624  K
-
-
-material=Sam
-    material type: 'binary'
-    conditions=
-        stiffness
-            C11: 390 GPa
-            C12: 145 GPa
-            C13: 106 GPa
-            C33: 398 GPa
-            C44: 105 GPa
-        kp
-            A1:  -7.21  hbar**2/(2*m_e)
-            A2:  -0.44  hbar**2/(2*m_e)
-            A3:   6.68  hbar**2/(2*m_e)
-            A4:  -3.46  hbar**2/(2*m_e)
-            A5:  -3.40  hbar**2/(2*m_e)
-            A6:  -4.90  hbar**2/(2*m_e)
-            A7:   93.7  meV angstrom
-
-            a1:  -4.90  eV
-            a2:  -11.3  eV
-
-            D1:  -3.7   eV
-            D2:   4.5   eV
-            D3:   8.2   eV
-            D4:  -4.1   eV
-            D5:  -4     eV
-            D6:  -5.5   eV
-
-            DeltaCR: 10 meV
-            DeltaSO: 17 meV
-
-    conditions=relaxed
-        lattice
-            a: 3.189 angstrom
-            c: 5.185 angstrom
-        carrier=electron
-            band=
-                g: 2
-                mzs:  .2 m_e
-                mxys: .2 m_e
-                mdos: .2 m_e
-        varshni
-            Eg0: 100 eV
-            alpha: .909 meV/K
-            beta: 830 K
 

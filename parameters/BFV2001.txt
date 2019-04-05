@@ -1,5 +1,17 @@
 Omniscient v1
 
+######
+######
+##
+## Parameters from
+## Accurate calculation of polarization-related quantities in semiconductors
+## https://doi.org/10.1103/PhysRevB.63.193201
+##
+## Note: these values are superseded by bader_recommended values.
+##
+######
+######
+
 material=GaN
     conditions=
         polarization

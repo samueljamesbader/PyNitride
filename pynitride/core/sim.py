@@ -10,11 +10,33 @@ class Simulation():
 
     def __init__(self,name,define_mesh,solve_flow,
                  mesh_opts={},solve_opts={},outdir=""):
+        """ Manages the running/re-loading of a simulation .
+
+        Breaks apart a simulation into the "mesh definition" which is a rapid step executed on both running and
+        re-loading of simulations and "solve flow' which is the slow actual computation.
+
+        Various `define_mesh` functions can be found under :mod:`pynitride.examples`, and various `solve_flow`
+        functions are built into this class.  `define_mesh` should place meshes and rmeshes into the
+        `dmeshes` and `rmeshes` dict, and may place other free-form information into `extras`.  `solve_flow` functions
+        specify which the necessary keys/content are for these dicts.
+
+        Args:
+            name: Name for the simulation (becomes part of the relevant filenames)
+            define_mesh: function which defines the mesh, first argument should be this `Simulation` object)
+            solve_flow: function executes the solve flow, first argument should be this `Simulation` object)
+            mesh_opts: additional arguments to be passed to `define_mesh`
+            solve_opts: additional arguments to be passed to `solve_flow`
+            outdir: directory where to save/read the results
+        """
         self.name=name
+        """ Name of the simulation. """
         self._outdir=outdir
         self.dmeshes={}
+        """ Where the (direct space) meshes are stored. """
         self.rmeshes={}
+        """ Where the reciprocal space meshes are stored. """
         self.extras ={}
+        """ Where `define_mesh` provides any further information. """
 
         self._define_mesh=define_mesh
         self._solve_flow=solve_flow
@@ -24,6 +46,18 @@ class Simulation():
 
     @staticmethod
     def flow_semiclassicalramp_schrodinger(sim,ramp_opts={},schro_opts={},loop_opts={}):
+        """ Does a ramp with semiclassical solver, then swaps in a schrodinger solver in dmeshes['schro'] region.
+
+        The main mesh should be `dmeshes['main']`, the schrodinger region should be `dmeshes['schro']`, and the
+        semiclassical region should be `dmeshes['semi']`.
+
+        Args:
+            sim: the Simulation object (ie `self`)
+            ramp_opts: passed to the :func:`~pynitride.physics.solvers.SelfConsistentLoop.ramp_epsfactor`
+            schro_opts: passed to the :class:`~pynitride.physics.carriers.Schrodinger` solver
+            loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
+
+        """
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['schro'],sim.dmeshes['semi']
 
         # General solvers
@@ -66,6 +100,25 @@ class Simulation():
 
     @staticmethod
     def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={},mbkp_loop_opts={}):
+        """ Does a ramp with semiclassical solver, then swaps in an MBKP solver in dmeshes['mbkp'] region.
+
+        The main mesh should be `dmeshes['main']`, the quantum region should be `dmeshes['mbkp']`, and the
+        semiclassical region should be `dmeshes['semi']. `extras['sourcepoint']` should be the interface or z-coordinate
+        (as specified for a :class:`~pynitride.solvers.LinearFermi` contact) of the point in the structure held to zero,
+        eg location of a source-connected carrier gas.
+
+        Args:
+            sim: the Simulation object (ie `self`)
+            T: the temperature
+            Va: the applied voltage
+            strain: passed to :class:`pynitride.physics.strain.Pseudomorphic`
+            ramp_opts: passed to the :func:`~pynitride.physics.solvers.SelfConsistentLoop.ramp_epsfactor`
+            mbkp_opts: passed to the :class:`~pynitride.physics.carriers.MultibandKP` solver
+            loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
+                when called for the ramp
+            mbkp_loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
+                when called for MBKP
+        """
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
@@ -130,6 +183,7 @@ class Simulation():
 
     @staticmethod
     def loader_standard(sim):
+        """ A simple loader for typical names, don't call directly, use :func:`Simulation.load`."""
         with sublog("Hoping to load previous run from " + os.path.join(sim._outdir,sim.name+"*")):
             try:
                 m=sim.dmeshes.get('main',False)
@@ -145,6 +199,11 @@ class Simulation():
 
 
     def load(self,force=False):
+        """ Loads the simulation or re-runs it if not able to find/load.
+
+        Args:
+            force: whether to force a fresh run even if a previous one can be found
+        """
         self._define_mesh(self,**self._mesh_opts)
         loaded=(force is False) and (self._outdir is not None) and Simulation.loader_standard(self)
         if loaded:

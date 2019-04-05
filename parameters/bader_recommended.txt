@@ -8,6 +8,8 @@ Omniscient v1
 ## of referenced works and occasionally involving some additional
 ## computation.
 ##
+## It is meant to supplement the values in VM2003.txt
+##
 ######
 ######
 
@@ -186,8 +188,13 @@ material=AlN
         g: 4
 
 ######
-## Effective masses
+## Valence band effective masses
 ######
+# Calculated from VM2003 Luttinger parameters
+# using Table I of Chuang96: https://doi.org/10.1103/PhysRevB.54.2491
+# for the large-k values, mass trends in qualitative agreement with
+# https://doi.org/10.1103/PhysRevB.52.8132 (parenthesized values)
+# <scratch/VB_masses.ipynb>
 material=GaN
     carrier=hole
         band=HH

@@ -8,6 +8,7 @@ Physics in PyNitride
 
                 Carrier Models <carriers>
                 Dielectric Continuum Model <DC>
+                Elastic Continuum Model <EC>
                 Finite Element Method <FEM>
 
 

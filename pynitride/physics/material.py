@@ -7,22 +7,46 @@ import numpy as np
 class MaterialSystem():
 
     def __init__(self):
+        """ Represents a parameterized material.
+
+        """
         self._attrs={
             'eps':      self.vergard('dielectric.eps_z'),
             'epsperp':  self.vergard('dielectric.eps_perp'),
             'DE' :      self.vergard('DE'),
-            'Eg':       self.bandedge_params,
-            'E0-Ev':    self.bandedge_params,
-            'Ec-E0':    self.bandedge_params,
+            'Eg':       self._bandedge_params,
+            'E0-Ev':    self._bandedge_params,
+            'Ec-E0':    self._bandedge_params,
         }
         self._defaults={}
         self._updates={}
 
     def surface_barrier(self,m):
+        """ Returns the surface barrier height based on the top boundary of the mesh.
+
+        Args:
+            m: the mesh, should be the global mesh so there is a top boundary
+        """
         return self.vergard('surface={}.electronbarrier'.format(m._boundary[0]))(m,None)[0]
 
     def vergard(self,lookup):
-        interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self._vergardbasis.items()}
+        """ Interpolates a parameter for the material system.
+
+        The material using this function must have a vergard basis defined, eg
+
+        .. code-block:: python
+
+            self.vergard={ 'x': 'AlN', 'y':'InN', None: 'GaN'}
+
+        where `'x', 'y'` are arbitrarily named mole-fraction variables that are defined on the mesh and the dict values
+        are strings indicating the basis material for each mole-fraction variable.  The `None` key indicates the basis
+        material for the `x=y=0` limit.  Each of the above materials must have the relevant lookup defined in the
+        parameter database.
+
+        Args:
+            lookup: the string with which to query the parameter database for each material basis
+        """
+        interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self.vergardbasis.items()}
         def prop(mesh,key):
             if len(interpdict.keys())==1:
                 val=MidFunction(mesh,value=interpdict[None])
@@ -37,12 +61,19 @@ class MaterialSystem():
         return prop
 
     def polarization(self,mesh,key):
+        """ Populates the mesh with the polarization `P` and potentially other related functions
+
+        Args:
+            mesh: the mesh
+            key: the key being sought
+
+        """
         raise NotImplementedError
 
     def append_dopants(self,dopants):
         if not hasattr(self,'_dopants'): self._dopants=[]
         for dn in dopants:
-            types=[pmdb['material='+mat+'.dopant='+dn+'.type'] for mat in self._vergardbasis.values()]
+            types=[pmdb['material='+mat+'.dopant='+dn+'.type'] for mat in self.vergardbasis.values()]
             assert len(set(types))==1,\
                 "Only one type (Donor/Acceptor) allowed for a dopant ("+dn+") in a material system."
             self._dopants+=[dn+types[0]]
@@ -103,12 +134,20 @@ class MaterialSystem():
 
 class Wurtzite(MaterialSystem):
     def __init__(self,spin_splitting=0):
+        """ Superclass for Wurtzite materials.
+
+        Args:
+            spin_splitting: an artificial splitting energy between spin-up and spin-down.  If a non-zero splitting
+                energy is provided, the small terms in the k.p Hamiltonian which couple spin-up and spin-down are zeroed
+                so that the spin_splitting will be exactly as specified.  This is convenient for scattering problems
+                whenever spin is not important, because thereafter, one can simply ignore one half of the bands.
+        """
         super().__init__()
         self._spin_splitting=spin_splitting
 
         self._updates.update({
-            'strain': [self.bandedge_params,self.polarization],
-            'temperature': [self.bandedge_params],
+            'strain': [self._bandedge_params,self.polarization],
+            'temperature': [self._bandedge_params],
         })
         self._attrs.update({
             'Psp':      self.vergard('polarization.Psp'),
@@ -122,38 +161,38 @@ class Wurtzite(MaterialSystem):
             'C44':      self.vergard('stiffness.C44'),
             'P'  :      self.polarization,
 
-            'medos':    self.smcls_band_params,
-            'mexy':     self.smcls_band_params,
-            'mez':      self.smcls_band_params,
-            'cDE':      self.smcls_band_params,
-            'eg':       self.smcls_band_params,
-            'mhdos':    self.smcls_band_params,
-            'mhxy':     self.smcls_band_params,
-            'mhz':      self.smcls_band_params,
-            'vDE':      self.smcls_band_params,
-            'hg':       self.smcls_band_params,
+            'medos':    self._smcls_band_params,
+            'mexy':     self._smcls_band_params,
+            'mez':      self._smcls_band_params,
+            'cDE':      self._smcls_band_params,
+            'eg':       self._smcls_band_params,
+            'mhdos':    self._smcls_band_params,
+            'mhxy':     self._smcls_band_params,
+            'mhz':      self._smcls_band_params,
+            'vDE':      self._smcls_band_params,
+            'hg':       self._smcls_band_params,
 
-            'EvOffset': self.bandedge_params,
-            'EcOffset': self.bandedge_params,
-            'A1':       self.kp_params,
-            'A2':       self.kp_params,
-            'A3':       self.kp_params,
-            'A4':       self.kp_params,
-            'A5':       self.kp_params,
-            'A6':       self.kp_params,
-            'D1':       self.kp_params,
-            'D2':       self.kp_params,
-            'D3':       self.kp_params,
-            'D4':       self.kp_params,
-            'D5':       self.kp_params,
-            'D6':       self.kp_params,
-            'DeltaSO':  self.kp_params,
-            'DeltaCR':  self.kp_params,
-            'Delta1':   self.kp_params,
-            'Delta2':   self.kp_params,
-            'Delta3':   self.kp_params,
-            'a1':       self.kp_params,
-            'a2':       self.kp_params,
+            'EvOffset': self._bandedge_params,
+            'EcOffset': self._bandedge_params,
+            'A1':       self._kp_params,
+            'A2':       self._kp_params,
+            'A3':       self._kp_params,
+            'A4':       self._kp_params,
+            'A5':       self._kp_params,
+            'A6':       self._kp_params,
+            'D1':       self._kp_params,
+            'D2':       self._kp_params,
+            'D3':       self._kp_params,
+            'D4':       self._kp_params,
+            'D5':       self._kp_params,
+            'D6':       self._kp_params,
+            'DeltaSO':  self._kp_params,
+            'DeltaCR':  self._kp_params,
+            'Delta1':   self._kp_params,
+            'Delta2':   self._kp_params,
+            'Delta3':   self._kp_params,
+            'a1':       self._kp_params,
+            'a2':       self._kp_params,
 
             # Note: ignores bowing  of optical frequencies,
             # eg reported by https://doi.org/10.1063/1.121095
@@ -170,7 +209,7 @@ class Wurtzite(MaterialSystem):
         m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
         return m[key]
 
-    def bandedge_params(self,m,key=None):
+    def _bandedge_params(self,m,key=None):
         Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
         alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
         beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
@@ -224,7 +263,7 @@ class Wurtzite(MaterialSystem):
         if key:
             return m[key]
 
-    def smcls_band_params(self,m,key):
+    def _smcls_band_params(self,m,key):
         log("Using explicit masses from file",'TODO')
         m['eg']=MidFunction(m,2)
         m['hg']=MidFunction(m,2)
@@ -250,7 +289,7 @@ class Wurtzite(MaterialSystem):
             self.vergard('carrier=hole.band=CH.DE')(m,None)]))
         return m[key]
 
-    def kp_params(self,m,key):
+    def _kp_params(self,m,key):
         self.vergard('kp.A1')(m,'A1')
         self.vergard('kp.A2')(m,'A2')
         self.vergard('kp.A3')(m,'A3')
@@ -272,18 +311,102 @@ class Wurtzite(MaterialSystem):
         return m[key]
 
     kp_dim={'hole':6,'electron':2}
+    """ Dimension of the kp problem, 6 for holes, 2 for electrons."""
+
     def kp_Cmats(self,m,kx,ky,carrier,kxl=None,kyl=None):
-        """
+        r""" Returns the kp matrices needed by :class:`~pynitride.carriers.MultibandKP`
 
-        The matrices match the conventions in Birner, {X^,Y^,Z^, Xv, Yv, Zv} basis.  The strain is included by means of
-        the note at the bottom of pg 2496 of C&C https://doi.org/10.1103/PhysRevB.54.2491 .
-        See examples/wzstrainterms.ipynb to show that this is consistent with C&C,
-        since C&C doesn't give the strain terms in this basis.
+        The matrices are in the bases used by
+        `Birner <https://www.nextnano.com/downloads/publications/PhD_thesis_Stefan_Birner_TUM_2011_WSIBook.pdf>`_.
+        The naming convention for the `C` matrices is given in :ref:`FEM`.
 
-        :param m:
-        :param kx:
-        :param ky:
-        :return:
+        If `kxl, kyl` are not specified, then `kx, ky` is used for both the left ket wavevector and
+        the right ket wavevector.  This is almost always the correct thing to do.
+        There are some times when one cares about the matrix element of the kp Hamiltonian between two different
+        wavevectors (such as in surface roughness scattering).  In that case, the left ket wavevector can be specified
+        separately via `kxl, kyl`.  The resulting matrices may, of course, be non-Hermitian.
+
+        If the artificial spin-splitting (see :class:`Wurtzite`) is zero, the matrices are
+
+        .. math::
+            C_{0}=C_{0L}+C_{0D}+C_{0S}
+
+        .. math::
+            \begin{equation}
+            C_{l}= I_2 \otimes \begin{pmatrix}
+                               \cdot     &             \cdot    &       k_x^lN_2^+    \\
+                               \cdot     &             \cdot    &       k_y^lN_2^+    \\
+                          k_x^lN_2^-    &        k_y^lN_2^-   &         \cdot
+            \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_{r}= I_2 \otimes \begin{pmatrix}
+                                   \cdot     &             \cdot    &       N_2^-k_x^r \\
+                                   \cdot     &             \cdot    &       N_2^-k_y^r \\
+                              N_2^+k_x^r    &        N_2^+k_y^r   &         \cdot
+            \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_{2}= I_2 \otimes \begin{pmatrix}
+                                   M_2^u   &             \cdot    &        \cdot     \\
+                                   \cdot     &           M_2^u    &        \cdot     \\
+                                   \cdot     &              \cdot   &       L_2^u    \\
+            \end{pmatrix}
+            \end{equation}
+
+        where :math:`C_{0S}` is the strain matrix from :func:`Wurtzite.kp_strain_mat` and
+
+        .. math::
+            \begin{equation}
+            C_{0L}= I_2 \otimes \begin{pmatrix}
+                k_x^lL_1^uk_x^r+k_y^lM_1^uk_y^r & k_x^lN_1^+k_y^r+k_y^lN_1^-k_x^r&         \cdot\\
+                k_y^lN_1^+k_x^r+k_x^lN_1^-k_y^r & k_x^lM_1^uk_x^r+k_y^lL_1^uk_y^r&         \cdot\\
+                           \cdot            &            \cdot           &  k_x^lM_3^uk_x^r+k_y^lM_3^uk_y^r
+                \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_{0D}=\begin{pmatrix}
+                \Delta_1 &   - i\Delta_2 &          \cdot &          \cdot &         \cdot &     \Delta_3 \\
+              i\Delta_2 &       \Delta_1 &          \cdot &          \cdot &         \cdot & - i\Delta_3 \\
+                     \cdot &            \cdot &          \cdot &    -\Delta_3 &  i\Delta_3 &          \cdot \\
+                     \cdot &            \cdot &    -\Delta_3 &     \Delta_1 &  i\Delta_2 &          \cdot \\
+                     \cdot &            \cdot & - i\Delta_3 & - i\Delta_2 &    \Delta_1 &          \cdot \\
+                \Delta_3 &     i\Delta_3 &          \cdot &          \cdot &         \cdot &          \cdot
+            \end{pmatrix}
+            \end{equation}
+
+        If the artificial spin-splitting is provided, then the off-diagonal 3x3 blocks of `C_0` are zeroed out, and
+        an additional matrix
+
+        .. math::
+            \begin{equation}
+            SS=\begin{pmatrix}
+            ss/2 & \cdot & \cdot & \cdot & \cdot  & \cdot \\
+            \cdot & ss/2 & \cdot & \cdot & \cdot  & \cdot \\
+            \cdot & \cdot & ss/2 & \cdot & \cdot & \cdot \\
+            \cdot & \cdot  & \cdot & -ss/2 & \cdot & \cdot \\
+            \cdot & \cdot  & \cdot & \cdot & -ss/2 & \cdot \\
+            \cdot & \cdot  & \cdot & \cdot & \cdot & -ss/2
+            \end{pmatrix}
+            \end{equation}
+
+        is added to :math:`C_0`
+
+        Args:
+            m: the mesh
+            kx, ky: the wavevector
+            carrier: 'electron' or 'hole'
+            kxl, kyl: the wavevector of the left ket
+
+        Returns:
+            a tuple of (C0,Cl,Cr,C2), where each is an (n mesh.Nn) x (n mesh.Nn) complex matrix,
+            `n=2,6` for electrons,holes
         """
 
         kxr=kx; kyr=ky;
@@ -300,10 +423,7 @@ class Wurtzite(MaterialSystem):
                 k2 =  kxl*kxr+kyl*kyr
                 C0 = double_mat(MidFunction(m, [[S2 * k2]]), dtype='float')+strainmat
                 C0[1, 1] += 5e-6; C0[0, 0] -= 5e-6  # Break degeneracy by 1ueV
-                #Cl = double_mat(MidFunction(m, [[O]], dtype='complex'))
-                #Cr = double_mat(MidFunction(m, [[O]], dtype='complex'))
                 C2 = double_mat(MidFunction(m, [[S1]]), dtype='float')
-                #Cmats += [[C0, Cl, Cr, C2]]
                 Cmats += [[C0, None, None, C2]]
             return Cmats
 
@@ -375,7 +495,10 @@ class Wurtzite(MaterialSystem):
             return Cmats
 
     def kp_strain_mat(self,m,carrier,**strains):
-        r"""
+        r""" Returns the strain deformation matrix
+        by the means noted on pg 2496 of `CC96 <https://doi.org/10.1103/PhysRevB.54.2491>`_.
+
+        See examples/wzstrainterms.ipynb to show that this is consistent.
 
         For conduction band
 
@@ -413,9 +536,13 @@ class Wurtzite(MaterialSystem):
             \end{gather}
 
 
-        :param m:
-        :param strains:
-        :return:
+        Args:
+            m: the mesh
+            strains: optional dictionary of strain fuctions ('exx', 'exy' etc).  If not provided, these will be taken
+                from the mesh
+
+        Returns:
+            a (n mesh.Nn) x (n mesh.Nn) complex matrix, `n=2,6` for electrons,holes
         """
         dtype='float'
         s=strains.copy()
@@ -438,6 +565,52 @@ class Wurtzite(MaterialSystem):
                 dtype='complex'))
 
     def ec_Cmats(self,m,q):
+        r""" Elastic continuum matrices.
+
+        .. math::
+            \begin{equation}
+            C_0=\begin{pmatrix}
+                C_{11}  &  \cdot & \cdot \\
+                \cdot   &  (C_{11}-C_{12})/2 & \cdot \\
+                \cdot & \cdot & C_{44}
+            \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_l=\begin{pmatrix}
+                \cdot  &  \cdot & C_{13} \\
+                \cdot   &  \cdot & \cdot \\
+                C_{44} & \cdot & \cdot
+            \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_r=\begin{pmatrix}
+                \cdot  &  \cdot & C_{44} \\
+                \cdot   &  \cdot & \cdot \\
+                C_{13} & \cdot & \cdot
+            \end{pmatrix}
+            \end{equation}
+
+        .. math::
+            \begin{equation}
+            C_2=\begin{pmatrix}
+                C_{44}  &  \cdot & \cdot \\
+                \cdot   &  C_{44} & \cdot \\
+                \cdot & \cdot & C_{33}
+            \end{pmatrix}
+            \end{equation}
+
+        Args:
+            m: the mesh
+            q: the in-plane wavevector
+
+        Returns:
+            a tuple of (C0,Cl,Cr,C2), where each is an (3 mesh.Nn) x (3 mesh.Nn) complex matrix
+
+        """
         q=np.reshape(q,(len(q),1,1,1))
         O=MidFunction(m,0)
         C0=MidFunction(m,q**2*(np.array([
@@ -459,6 +632,8 @@ class Wurtzite(MaterialSystem):
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
     def ec_CmatsXZ(self,m,q):
+        r""" Like :func:`Wurtzite.ec_Cmats` but only the 2x2 XZ matrices."""
+
         q=np.reshape(q,(len(q),1,1,1))
         O=MidFunction(m,0)
         C0=MidFunction(m,q**2*(np.array([
@@ -476,6 +651,7 @@ class Wurtzite(MaterialSystem):
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
     def ec_CmatsY(self,m,q):
+        r""" Like :func:`Wurtzite.ec_Cmats` but only the 1x1 Y (center) matrices."""
         q=np.reshape(q,(len(q),1,1,1))
         O=MidFunction(m,0)
         C0=MidFunction(m,q**2*(np.array([[(m.C11-m.C12)/2]])))
@@ -485,6 +661,22 @@ class Wurtzite(MaterialSystem):
         return [[C0[i],Cl[i],Cr[i],C2[i]] for i in range(len(q))]
 
     def strain_to(self,m,straincond={}):
+        """ Strains the material to the specified condition.
+
+        The `straincond` dict can contain a key 'a', in which case this will be the in-plane lattice constant.
+        Or the `straincond` dict can contain separate keys `ax`, `ay` for two lattice constants.
+
+        In addition to the above choice, a `zcond` entry can indicate how the stress/strain in the z-direction
+        should be handled: 'free' is the typical pseudomorphic condition (for wurtzite,
+        :math:`e_{zz}=-C_{13}/C_{33}(e_{xx}+e_{yy})`).
+
+        This function populates all the `eij` variables onto the mesh, setting zero for the shear components.
+
+        Args:
+            m: the mesh
+            straincond: see above
+
+        """
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)
 
         if 'a' in straincond:
@@ -510,6 +702,7 @@ class Wurtzite(MaterialSystem):
         m['exy']=m['eyz']=m['exz']=MidFunction(m,0)
 
     def bulk_lattice_condition(self,m):
+        """ The natural lattice constant of the bottommost point"""
         pos=-1 if (m.ztrans == -1 ) else 0
         a0=self.vergard('conditions=relaxed.lattice.a')(m,None)[pos]
         return {'a':a0}
@@ -518,7 +711,7 @@ class Wurtzite(MaterialSystem):
 
 class AlGaInN(Wurtzite):
     def __init__(self):
-        self._vergardbasis={
+        self.vergardbasis={
             'x': 'AlN',
             'y': 'InN',
             None: 'GaN',
@@ -537,7 +730,7 @@ class AlGaInN(Wurtzite):
 
 class AlGaN(Wurtzite):
     def __init__(self,spin_splitting=0):
-        self._vergardbasis={
+        self.vergardbasis={
             'x': 'AlN',
             None: 'GaN',
         }
@@ -552,15 +745,15 @@ class AlGaN(Wurtzite):
 
 class Insulator(MaterialSystem):
     def __init__(self, name):
-        self._vergardbasis={None: name}
+        self.vergardbasis={None: name}
         self.name=name
         super().__init__()
         self._updates.update({
-            'temperature': [self.bandedge_params],
+            'temperature': [self._bandedge_params],
         })
         self.append_dopants([])
 
-    def bandedge_params(self,m,key):
+    def _bandedge_params(self,m,key):
         Eg0=self.vergard('conditions=relaxed.varshni.Eg0')(m,None)
         alpha=self.vergard('conditions=relaxed.varshni.alpha')(m,None)
         beta=self.vergard('conditions=relaxed.varshni.beta')(m,None)
@@ -572,27 +765,4 @@ class Insulator(MaterialSystem):
 
         return m[key]
 
-
-class SamGaN(Wurtzite):
-    def __init__(self):
-        self._vergardbasis={
-            'x': 'Sam',
-            None: 'GaN',
-        }
-
-        super().__init__()
-
-        self._defaults.update({
-            'x': 0
-        })
-        self.append_dopants(['Si','Mg'])
-
-if __name__=="__main__":
-    GaN=AlGaN.bulk(x=0,y=0)
-    AlN=AlGaN.bulk(x=1,y=0)
-    Al5Ga5N=AlGaN.bulk(x=.5,y=0)
-    print("GaN eps: ",GaN.get("eps"))
-    print("AlN eps: ",AlN.get("eps"))
-    print("Al5Ga5N eps: ",Al5Ga5N.get("eps"))
-    print("GaN pol: ",GaN.get("P"))
 

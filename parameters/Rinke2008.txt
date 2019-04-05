@@ -1,3 +1,16 @@
+Omniscient v1
+
+######
+######
+## Parameters from
+## Consistent set of band parameters for the group-III nitrides AlN, GaN, and InN
+## https://doi.org/10.1103/PhysRevB.77.075202
+##
+## Note: these values are currently not used.
+##
+######
+######
+
 material=GaN
     material type: 'binary'
     conditions=

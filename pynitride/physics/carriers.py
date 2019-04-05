@@ -200,6 +200,7 @@ class Schrodinger(CarrierModel):
                               n=1,dirichelet1=True,dirichelet2=True)
 
     def solve(self):
+        """ Solves the Schrodinger eigenvalue problem, call before :func:`Schrodinger.repopulate`"""
         m=self.mesh
 
         for sb in self._subbands:
@@ -223,6 +224,7 @@ class Schrodinger(CarrierModel):
 
 
     def repopulate(self):
+        """ Populates the carrier densities onto the mesh, call after :func:`Schrodinger.solve`"""
         m=self.mesh
 
         for f in ['n','p','nderiv','pderiv']: m.ensure_function_exists(f)
@@ -259,8 +261,12 @@ class MultibandKP(CarrierModel):
         depending on `kmeshmethod`.  Regardless, assumes in-plane inversion symmetry (ie for 1D, only solves at
         positive kx, and for 2D only solves one quadrant of k-plane for efficiency.
 
-        :param mesh: the :py:class:`pynitride.mesh.Mesh` on which to solve
-        :param num_eigenvalues: (int) the number of eigenvalues to solve for at each k-point
+        Args:
+            mesh: the :py:class:`pynitride.mesh.Mesh` on which to solve
+            rmesh: the reciprocal mesh on which to solve (if you only want to use
+                :func:`MultibandKP.solve_one_k`, this is not needed)
+            num_eigenvalues: (int) the number of eigenvalues to solve for at each k-point
+            carriers: `['hole']` or `['electron']`, can't do both yet.
         """
         super().__init__(mesh)
         m=mesh
@@ -297,17 +303,24 @@ class MultibandKP(CarrierModel):
 
 
     @property
-    def kppsi(self): return self.rmesh['kppsi']
+    def kppsi(self):
+        """ The spinor wavefunctions, shape `(len(kt), num_eigs, matsys.kp_dim, mesh.Nn)`."""
+        return self.rmesh['kppsi']
     @property
-    def kpen(self): return self.rmesh['kpen']
+    def kpen(self):
+        """ The energies, shape `(len(kt), num_eigs, mesh.Nn)`."""
+        return self.rmesh['kpen']
     @property
-    def normsqs(self): return self.rmesh['normsqs']
+    def normsqs(self):
+        """ The norm-squareds of the wavefunction, shape `(len(kt), num_eigs, mesh.Nn)`."""
+        return self.rmesh['normsqs']
 
 
     # kpen is kt, eig, z
     # kppsi is kt, eig, comp, z
     # normsqs is kt, eig, z
     def solve(self):
+        """ Solves the MBKP eigenvalue problem, call before :func:`MultibandKP.repopulate`"""
         self._interp_ready=False
 
         def save_solve(ik,res):
@@ -319,17 +332,27 @@ class MultibandKP(CarrierModel):
         for asyn in asyncs: asyn.wait()
 
 
-    # kpen is eig, z
-    # kppsi is eig, comp, z
-    # normsqs is eig, z
     def solve_one_k(self,kx,ky,ik=None):
+        """ Solves the k.p problem for just one wavevector.
+
+        Args:
+            kx,ky: the in-plane wavevector at which to compute the k.p matrices to solve
+            ik: if specified, this index into the RMesh will be used to find the wavevector instead of the kx,ky
+            arguments.  This also allows the pre-calculated k.p matrices to be used.
+
+        Returns:
+            a tuple of
+            eigenvalues (shape `num_eigs`),
+            eigenvectors (shape `num_eigs, matsys.kp_dim, mesh.Nn`), and
+            normsqs (shape `num_eigs, mesh.Nn`)
+        """
         m=self.mesh
         if ik is not None:
             C0_kin,Cl,Cr,C2=self._Cmats[ik]
         else:
             C0_kin,Cl,Cr,C2=m._matblocks[0].matsys.kp_Cmats(m,kx=[kx],ky=[ky],carrier=self._carrier)[0]
 
-        # TODO: pot can be a property of Multiband rather than re-forming for each k
+        # Note: pot can be a property of Multiband rather than re-forming for each k
         if self._carrier=='hole':
             pot=(m.Ev+m.EvOffset)
             ascending=False
@@ -342,7 +365,7 @@ class MultibandKP(CarrierModel):
         H=assemble_stiffness_matrix(C0, Cl, Cr, C2, m.dzn, dirichelet1=True, dirichelet2=True)
         eigvals=np.empty([self._neig])
         eigvecs=NodFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
-        # Use pairwise GS to re-orthogonalize, since Laczos is bad at orthogonalizing degenerate eigenvectors
+        # Use pairwise GS to re-orthogonalize, since Lanczos is bad at orthogonalizing degenerate eigenvectors
         fem_eigsh(H,self._load_matrix,eigvals,eigvecs,self._n,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
             ascending=ascending,k=self._neig,sigma=sigma,which='LM',tol=0,ncv=self._neig*2)
 
@@ -351,6 +374,14 @@ class MultibandKP(CarrierModel):
         return eigvals,eigvecs,normsqs
 
     def solve_point_as_bulk(self,zn=None,kz=0):
+        """ Solves the transverse dispersion at a given point as if the material properties there were in bulk.
+
+        Args:
+            zn: for an actual mesh, `zn` specifies a z-coord to solve at.  Or if a :func:`Material.bulk` is used instead
+                to create the `MultibandKP`, then `zn=None` is fine.
+            kz: z-wavevector to solve at
+
+        """
         m=self.mesh
         assert self._carrier=='hole'
         if zn is not None:
@@ -364,6 +395,7 @@ class MultibandKP(CarrierModel):
 
 
     def repopulate(self):
+        """ Populates the carrier densities onto the mesh, call after :func:`MultibandKP.solve`"""
         m=self.mesh
         kT= kb * m.T
 
@@ -383,14 +415,54 @@ class MultibandKP(CarrierModel):
             self._interp_ready=True
 
     def interp_energy(self,absk,theta,eig,bounds_check=True,grid=False):
+        """ Returns spline-interpolated results for the energy
+
+        Args:
+            absk: radial coordinate
+            theta: angular coordinate
+            eig: which eigenvalue
+            bounds_check: whether to throw out-of-bounds errors
+            grid: as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        Returns:
+            return shape determined by grid as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        """
         self._get_interpolation()
         return self._enbv[eig](absk,theta,bounds_check=bounds_check,grid=grid)
 
     def interp_radial_group_velocity(self,absk,theta,eig,bounds_check=True,grid=False):
+        """ Returns spline-interpolated results for the group velocity in the radial direction
+
+        Args:
+            absk: radial coordinate
+            theta: angular coordinate
+            eig: which eigenvalue
+            bounds_check: whether to throw out-of-bounds errors
+            grid: as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        Returns:
+            return shape determined by grid as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        """
         self._get_interpolation()
         return 1/hbar*self._enbv[eig](absk,theta,dabsk=1,bounds_check=bounds_check,grid=grid)
 
     def interp_group_velocity(self,absk,theta,eig,bounds_check=True,grid=False):
+        """ Returns spline-interpolated results for the 2D-vector group velocity
+
+        Args:
+            absk: radial coordinate
+            theta: angular coordinate
+            eig: which eigenvalue
+            bounds_check: whether to throw out-of-bounds errors
+            grid: as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        Returns:
+            tuple of `(vx, vy)`, return shape of each determined by grid
+            as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        """
         self._get_interpolation()
         v_r=1/hbar*self._enbv[eig](absk,theta,dabsk=1 ,bounds_check=bounds_check,grid=grid)
         v_t=1/hbar*self._enbv[eig](absk,theta,dtheta=1,bounds_check=bounds_check,grid=grid)/self.rmesh.absk
@@ -399,6 +471,22 @@ class MultibandKP(CarrierModel):
         return v_x,v_y
 
     def interp_radial_eff_mass(self,absk,theta,eig,bounds_check=True):
+        """ Returns spline-interpolated results for the effective mass in the radial direction
+
+        ie if evaluated at theta=0, then this is inversely proportional to the second x-derivative of energy.
+        A minus sign is applied to hole effective masses to make them generically positive.
+
+        Args:
+            absk: radial coordinate
+            theta: angular coordinate
+            eig: which eigenvalue
+            bounds_check: whether to throw out-of-bounds errors
+            grid: as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        Returns:
+            return shape determined by grid as in :py:class:`scipy.interpolate.BivariateSpline`
+
+        """
         self._get_interpolation()
         sign= 1 if self._carrier=='electron' else -1
         return sign/(1/hbar**2*self._enbv[eig](absk,theta,dabsk=2,bounds_check=bounds_check))
