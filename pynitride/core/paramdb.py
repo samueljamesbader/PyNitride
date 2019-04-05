@@ -47,6 +47,5 @@ kb, hbar, pi, m_e, cm, nm, eV, meV, K, q =[parse(x) for x in\
 # Read in some parameter files
 pmdb=ParamDB(os.path.join(ROOT_DIR,"parameters"))
 pmdb.read("VM2003.txt")
-pmdb.read("BFV2001.txt")
 pmdb.read("fake.txt")
 pmdb.read("bader_recommended.txt")

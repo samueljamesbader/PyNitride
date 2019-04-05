@@ -1,7 +1,0 @@
-pynitride.examples.pchannel\_GaN\_AlN\_HFET.pFET\_POP module
-============================================================
-
-.. automodule:: pynitride.examples.pchannel_GaN_AlN_HFET.pFET_POP
-    :members:
-    :undoc-members:
-    :show-inheritance:

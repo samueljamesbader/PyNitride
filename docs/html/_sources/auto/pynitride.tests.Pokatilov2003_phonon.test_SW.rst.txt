@@ -1,7 +1,0 @@
-pynitride.tests.Pokatilov2003\_phonon.test\_SW module
-=====================================================
-
-.. automodule:: pynitride.tests.Pokatilov2003_phonon.test_SW
-    :members:
-    :undoc-members:
-    :show-inheritance:

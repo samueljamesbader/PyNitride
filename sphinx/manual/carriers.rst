@@ -107,3 +107,19 @@ and the derivatives
 
 with :math:`b` as above.
 
+Multiband k.p
+.................
+The Multiband k.p model solves for the energy eigenstates by generalizing the bulk bandstructure Hamiltonian from a
+function of wavevector to a function of spatial derivatives.  In general, this will form a matrix differential equation
+
+.. math::
+    \begin{multline}
+        \left[C^0(z,\vec k_\perp)-iC^L(z,\vec k_\perp)\partial_z
+        -i\partial_zC^R(z,\vec k_\perp)-\partial_z C^2(z,\vec k_\perp) \partial_z \right] f(z,\vec k_\perp)\\
+        = \lambda_n(\vec k_\perp) f(z,\vec k_\perp)
+    \end{multline}
+
+where the `C` matrices depend on the material system, z-dependent material properties, and in-plane wavevector.
+The `C` matrices are returned by that material system
+`kp_Cmats` function, eg the Wurtzite :func:`~pynitride.physics.material.Wurtzite.kp_Cmats`.
+

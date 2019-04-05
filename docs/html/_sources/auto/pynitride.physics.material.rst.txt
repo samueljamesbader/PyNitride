@@ -1,7 +1,0 @@
-pynitride.physics.material module
-=================================
-
-.. automodule:: pynitride.physics.material
-    :members:
-    :undoc-members:
-    :show-inheritance:

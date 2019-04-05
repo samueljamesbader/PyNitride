@@ -58,6 +58,12 @@ class RMesh:
         return self.d*np.sum(integrand.T*self.Omega,axis=-1).T
 
     def save(self,filename,keys=None):
+        """ Saves the contents of the reciprocal mesh to a Numpy .npz
+
+        Args:
+            filename: the path to save to
+            keys: if given, only saves the specified list of keys
+        """
         if keys is None:
             res=self._functions
         else:
@@ -69,6 +75,12 @@ class RMesh:
             res['theta1']=self.theta1
         np.savez(filename,**res)
     def read(self,filename,keys=None):
+        """ Reads the contents of the reciprocal mesh from a Numpy .npz
+
+        Args:
+            filename: the path to read from
+            keys: if given, only reads the specified list of keys
+        """
         with np.load(filename) as data:
             for k,v in data.items():
                 # Check grid coordinates
@@ -149,6 +161,11 @@ class RMesh1D(RMesh):
         return self._k2i[round_near(absk,self._ival)]
 
     def absk_subrmesh(self,indices):
+        """ Forms an Rmesh1D which is subset of this one, keeping only the specified indices
+
+        Args:
+            indices: list of indices into the RMesh which should be keep
+        """
         assert not isinstance(indices,slice), "indices should be a list/array"
         absk=self.absk1[indices]
         
@@ -162,6 +179,19 @@ class RMesh1D(RMesh):
         return sub
 
     def interpolator(self,func):
+        """ Returns a 1-D spline interpolation of func
+
+        The returned function is called like
+        `interp(absk, theta=0, dabsk=0, bounds_check=True)`
+        where `absk` is the radial coordinate,
+        `theta` is ignored (present for compatibility with RMesh2D code),
+        'dabsk` specifies order of radial derivative,
+        and `bounds_check` specifies whether to throw out-of-bounds errors
+
+        Args:
+            func: the function to interpolate
+
+        """
  
         # Get the spline interpolation using splrep/splev instead of
         # interp1d because it can also provide derivatives
@@ -329,11 +359,20 @@ class RMesh2D_Polar(RMesh):
         else:
             return arr
 
-    #def exact_to_index(self, absk):
-    #    """ Returns the index into the absk1 array for a given k-point"""
-    #    return self._k2i[np.round(absk,self._exactdig)]
-
     def interpolator(self,func):
+        """ Returns a 2-D spline interpolation of func
+
+        The returned function is called like
+        `interp(absk, theta, grid=False, dabsk=0, dtheta=0, bounds_check=True)`
+        where `absk`, `theta` are the coordinates,
+        `grid` is as in :py:class:`scipy.interpolate.BivariateSpline`,
+        `dabsk`, `dtheta` specify order of respective derivatives,
+        and `bounds_check` specifies whether to throw out-of-bounds errors
+
+        Args:
+            func: the function to interpolate
+
+        """
         d=self.d
         assert d==1, "Interpolation only provided for full k-space RMesh"
 
@@ -364,6 +403,14 @@ class RMesh2D_Polar(RMesh):
         return interp
 
     def absk_subrmesh(self,abskstart=1,abskstop=-1,name=None):
+        """ Produce an RMesh which is a contiguous subset of this one in absk
+
+        Args:
+            abskstart: the absk index to start on
+            abskstop: the absk index to stop before
+            name: the name for the new RMesh
+
+        """
         abskslice=slice(abskstart,abskstop)
         absk=self.absk1[abskslice]
         theta=self.theta1
@@ -379,17 +426,29 @@ class RMesh2D_Polar(RMesh):
         return sub
 
     def partial_indices_to_index(self,iabsk,itheta):
+        """ Given an index into `absk` and into `theta`, returns an index into the RMesh"""
         return self._ikit2i[itheta,iabsk]
     def index_to_partial_indices(self,i):
+        """ Given an index into the RMesh, returns indices into `absk` and into `theta`"""
         return self._i2ik[i],self._i2it[i]
 
     def ikx(self,sign=False):
+        """ Returns the indices into the RMesh corresponding to a slice along `ky=0`.
+
+        Args:
+            sign: if True, include only non-negative values of kx
+        """
         ikx=np.argsort(self.kx)
         ikx=ikx[np.isclose(self.ky[ikx],0,atol=1e-10)]
         if sign:
             ikx=ikx[sign*self.kx[ikx]>=0]
         return ikx
     def iky(self,sign=False):
+        """ Returns the indices into the RMesh corresponding to a slice along `kx=0`.
+
+        Args:
+            sign: if True, include only non-negative values of ky
+        """
         iky=np.argsort(self.ky)
         iky=iky[np.isclose(self.kx[iky],0,atol=1e-10)]
         if sign:
@@ -399,6 +458,19 @@ class RMesh2D_Polar(RMesh):
 
     def show_func(self,func,style='balanced',points=True, lines=True,
             cax=None,vmax=None,numloc=1000):
+        """ Visualize func on a rasterized 2D colormesh plot.
+
+        Args:
+            func: the function (as a 1-D array of the same shape as the RMesh variables)
+            style: 'balanced' will give a red-blue plot with the color-scale set symmetrically, while
+                'positive' will give a white-to-red plot where white is the zero
+            points: whether to plot a point marker at the center of each mesh element
+            lines: whether to plot the boundary lines of each mesh element
+            cax: optional axes for the colorscale (if not supplied, will be created)
+            vmax: for the 'positive' style, a vmax can be specified (otherwise chosen automatically)
+            numloc: number of points each along kx and ky to use when forming the colormesh
+
+        """
 
         kx=np.linspace(-self.kmax,self.kmax,numloc)
         ky=np.linspace(-self.kmax,self.kmax,numloc)

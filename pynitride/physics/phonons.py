@@ -479,6 +479,12 @@ class ElasticContinuum(AcousticPhonon):
 @glob_store_attributes('_solvmesh','_keepmesh','rmesh')
 class PiezoPotential():
     def __init__(self,pm,parallel=True):
+        """ Helper for :class:`ElasticContinuum` to calculate the piezo potential`
+
+        Args:
+            pm:  the :class:`ElasticContinuum` model this calculator will help
+            parallel: whether to spawn parallel processes
+        """
         self.pm=pm
         self.rmesh=rmesh=pm.rmesh
         self.vecform=pm.vecform
@@ -516,6 +522,17 @@ class PiezoPotential():
     def q(self): return self.rmesh.absk1
 
     def solve_one_q(self,q,iq,vec):
+        """ Solve the piezo potential at one q
+
+        Args:
+            q: the wavevector
+            iq: if supplied, use this iq to determine the q, and use precalculated FEM matrices
+            vec: the elastic continuum solution
+
+        Returns:
+            the electric potential function for this mode
+
+        """
         m=self._solvmesh
     
         # Purely transverse modes have no piezo potential
@@ -545,6 +562,7 @@ class PiezoPotential():
 
 class OpticalPhonon(PhononModel):
     def __init__(self, solvmesh, rmesh, num_eigs, keepmesh=None, first_level=0):
+        """ Superclass for all optical phonon models."""
         super().__init__(solvmesh,rmesh,num_eigs=num_eigs, keepmesh=keepmesh, first_level=first_level)
 
     def I2(self,carrier,psii,psij,iq,thetaq,l):
@@ -564,6 +582,21 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
     def __init__(self,solvmesh,rmesh,num_eigs,
             thickness,matname,
             keepmesh=None,first_level=0,vecform='XYZ',polXZ='all'):
+        """ Solves the Elastic Continuum model for the bulk phonon dispersion
+
+        Args:
+            solvmesh: mesh to solve on [ignored, but kept for compatibility with non-bulk signatures]
+            rmesh: the reciprocal mesh on which to solve
+            num_eigs: number of eigenvalues total to solve for
+            thickness: normalization thickness to use for the modes
+            matname: material name to look up for the parameters
+            keepmesh: mesh on which to produce the solution vectors
+            first_level: index of the first eigenvalue to solve for
+                (if solving with this object, must be zero, but if this is just inheriting an RMesh
+                from an already solved model, can be non-zero to pick out a different part of the spectrum)
+            vecform: see :class:`AcousticPhonon`
+            polXZ: for XZ modes, can specify whether to include only 'TA' or only 'LA' or 'all'
+        """
         super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
                 first_level=first_level,vecform=vecform,keepmesh=keepmesh)
         m=self._keepmesh
@@ -603,6 +636,14 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
     def _modetype(self): return self.rmesh['modetype']
 
     def solve(self, just_energies=False, print_count=False,mode_iqs=None):
+        """ Solve the phonon problem, populating the energies and possibly vectors.
+
+        Args:
+            just_energies: whether to only solve the energies
+            print_count: (ignored)
+            mode_iqs: can limit the indices (into the rmesh) at which to solve
+
+        """
 
         # Can only do a mode solve after an energy solve
         if 'en' not in self.rmesh:
@@ -632,7 +673,8 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
                 return (-beta**2*c44-c11*q**2+w**2*rho)/(beta*q*(c13+c44))
 
         # At each q
-        for iq in range(self.rmesh.N):
+        iqs=mode_iqs if mode_iqs is not None else range(len(self.q))
+        for iq in iqs:
             q=self.q[iq]
 
             # Make a components array for each mode
@@ -1096,7 +1138,6 @@ class DielectricContinuum_SWH(OpticalPhonon):
                               (BoA) ** 2 * (beta2_para_l * gamma2_para_l + beta2_perp_l * gamma2_perp_l)))
         B = BoA * A
 
-        #TODO: make this actually limit to keepmesh
         phi_ = NodFunction(self._solvmesh, empty=())
         phi = phi_.restrict(self._solvmesh._matblocks[0].mesh)
         if reg == 'u':
@@ -1116,6 +1157,20 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
     def __init__(self,solvmesh,rmesh,num_eigs,
             thickness,matname,
             keepmesh=None,first_level=0,pol='L'):
+        """ Solves the Dielectric Continuum model for the bulk phonon dispersion
+
+        Args:
+            solvmesh: mesh to solve on [ignored, but kept for compatibility with non-bulk signatures]
+            rmesh: the reciprocal mesh on which to solve
+            num_eigs: number of eigenvalues total to solve for
+            thickness: normalization thickness to use for the modes
+            matname: material name to look up for the parameters
+            keepmesh: mesh on which to produce the solution vectors
+            first_level: index of the first eigenvalue to solve for
+                (if solving with this object, must be zero, but if this is just inheriting an RMesh
+                from an already solved model, can be non-zero to pick out a different part of the spectrum)
+            pol: 'L' or 'T' to choose which branch to solve (nearly longitudinal or nearly transverse)
+        """
         super().__init__(solvmesh=solvmesh,rmesh=rmesh,num_eigs=num_eigs,
                 first_level=first_level,keepmesh=keepmesh)
         m=self._keepmesh

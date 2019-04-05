@@ -1,7 +1,0 @@
-pynitride.core.sim module
-=========================
-
-.. automodule:: pynitride.core.sim
-    :members:
-    :undoc-members:
-    :show-inheritance:
