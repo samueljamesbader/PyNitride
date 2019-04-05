@@ -1,6 +1,6 @@
 from pynitride import pmdb, hbar, m_e, nm
 from pynitride import MidFunction, NodFunction, Function, SubMesh
-from pynitride import log
+from pynitride import sublog, log
 from pynitride.core.maths import double_mat
 import numpy as np
 
@@ -129,6 +129,17 @@ class MaterialSystem():
                 return self.__getitem__(item)
 
         return BulkMaterial(**kwargs)
+
+    def update(self,destmesh,reason):
+        with sublog("Updating "+destmesh.name+" mesh because of change in "+reason):
+            if reason in self._updates:
+                for func in self._updates[reason]:
+                    rel_attrs=[attr for attr,cfunc in self._attrs.items() if cfunc==func]
+                    for rel_attr in rel_attrs:
+                        if rel_attr in destmesh:
+                            log("Re-calling: "+func.__name__)
+                            func(destmesh,key=rel_attr)
+                            break
 
 
 

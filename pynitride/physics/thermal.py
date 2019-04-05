@@ -12,7 +12,11 @@ class ConstantT():
     def initialize(self):
         pass
 
+    def update_temp(self,T):
+        self._T=T
+        self.solve()
+
     def solve(self):
         self._mesh['T']=MidFunction(self._mesh,value=self._T)
-        #for mb in self._mesh._matblocks:
-        #    mb.update('temperature',self._mesh)
+        for mb in self._mesh._matblocks:
+            mb.update(self._mesh,'temperature')

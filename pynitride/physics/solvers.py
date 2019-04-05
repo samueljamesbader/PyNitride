@@ -436,21 +436,21 @@ class SelfConsistentLoop():
 
                     # Shrink the activation
                     a/=dec_activation
-                    log("Retrying with Poisson activation={:g}".format(a))
+                    with sublog("Retrying with Poisson activation={:g}".format(a)):
 
-                    # Limit activation shrinking
-                    if a<min_activation:
-                        raise Exception("Couldn't reduce error in SC loop")
+                        # Limit activation shrinking
+                        if a<min_activation:
+                            raise Exception("Couldn't reduce error in SC loop")
 
-                    # Reduce the change made by the previous field solve
-                    for fs in self._fs:fs.shorten_last_step(1/dec_activation)
+                        # Reduce the change made by the previous field solve
+                        for fs in self._fs:fs.shorten_last_step(1/dec_activation)
 
-                    # Re-solve the carriers
-                    self.solve_carriers()
+                        # Re-solve the carriers
+                        self.solve_carriers()
 
-                    # Try stepping the fields from this intermediate point
-                    err=self.newton_fields(activation=a)/a
-                    log("       iter: {:3d}  err: {:.2e}".format(i,err))
+                        # Try stepping the fields from this intermediate point
+                        err=self.newton_fields(activation=a)/a
+                        log("iter: {:3d}  err: {:.2e}".format(i,err))
 
                 # By now, a step was successful, so increase activation and iteration count
                 a=min(inc_activation*a,1)
@@ -511,7 +511,7 @@ class SelfConsistentLoop():
                     # If that succeeded, we reach here, otherwise an exception was thrown
 
                     # If we're at the final epsfactor, we're done
-                    if (lef-lefstop)<1e-9:
+                    if np.abs(lef-lefstop)<1e-9:
                         break
 
                     # Otherwise, go to the next epsfactor
@@ -554,4 +554,106 @@ class SelfConsistentLoop():
                     # if we passed the end, go back
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
             log("Done eps factor ramp")
+
+    def ramp_temperature(self, temp_solver, start=300, stop=300, dlTstart=.025, dlTmax=.1,
+                       dlTmin=.005,**loop_opts):
+        """ Ramp the temperature for an easy initial condition.
+
+        Performs self-consistent loops at successive values of the `temperature`
+        from `start` until the `stop` value is
+        reached. If the loops do not converge, smaller steps of the temperature are attempted, this robustness is
+        controlled by the `dlT` arguments, which constrain `dlT` (the logarithmic change in the temperature from
+        step to step, ie `log10(temperature)` changes by `dlT`).  If the step cannot be reduced further but the loop does
+        not converge, an exception will be raised.
+
+
+        Args:
+            start: initial value of temperature
+            stop: final value of temperature
+            dlTstart: initial logarithmic delta for temperature stepping
+            dlTmax: maximum allowed logarithmic delta for temperature stepping
+            dlTmin: minimum allowed logarithmic delta for temperature stepping
+            loop_opts: passed to each `pynitride.solvers.SelfConsistentLoop.loop`
+
+        """
+        if start==stop:
+            log("Already at final temperature")
+            return
+        with sublog("Starting temperature ramp from {:g} to {:g}".format(start,stop)):
+
+            # lT will be the log of the temperature
+            lTstart=np.log10(start)
+            lTstop=np.log10(stop)
+            lT=lTstart
+
+            # dlT will be the step of the lT
+            dlTstart*=np.sign(lTstop-lTstart)
+            dlT=dlTstart
+            prevlT=None
+
+            while True:
+                T=10**lT
+                log("Temperature: {:5.2f}".format(T))
+
+                # Store the current fields
+                for fs in self._fs:
+                    fs.store_state()
+
+                # Try solving at the new epsfactor
+                try:
+
+                    # Newton step the fields for the new epsfactor
+                    temp_solver.update_temp(T)
+                    for fs in self._fs: fs.update_bands_to_potential(fs._mesh)
+
+                    # Do a SC loop
+                    self.loop(**loop_opts)
+
+                    # If that succeeded, we reach here, otherwise an exception was thrown
+
+                    # If we're at the final epsfactor, we're done
+                    if np.abs(lT-lTstop)<1e-9:
+                        break
+
+                    # Otherwise, go to the next temperature
+                    else:
+                        prevlT=lT
+
+                        # Scale dlT since solve was successful
+                        dlT=np.sign(dlT)*min(np.abs(1.3*dlT),np.abs(dlTmax))
+                        lT=lT+dlT
+
+                        # if we set dlT past the endpoint, go back
+                        if np.sign(lT-lTstop)!=np.sign(lTstart-lTstop): lT=lTstop
+
+                # If the solve failed at some temperature, try to recover
+                except Exception as e:
+                    log("Failure: {}".format(str(e)))
+
+                    # If it's the first temperature, nothing we can do
+                    if prevlT is None:
+                        raise Exception("Failed at initial temperature")
+
+                    # Otherwise, restore the previous consistent state
+                    T=10**prevlT
+                    log("Restoring at {:.2e}".format(T))
+                    for fs in self._fs:
+                        fs.restore_state()
+                        temp_solver.update_temp(T)
+                        for fs in self._fs: fs.update_bands_to_potential(fs._mesh)
+                    self.solve_carriers()
+
+                    # Halve the step
+                    dlT=dlT/2
+
+                    # Limit step shrinking
+                    if np.abs(dlT)<np.abs(dlTmin):
+                        raise Exception("Temp step size too small")
+
+                    # set the new epsfactor
+                    lT=prevlT+dlT
+
+                    # if we passed the end, go back
+                    if np.sign(lT-lTstop)!=np.sign(lTstart-lTstop): lT=lTstop
+            log("Done temperature ramp")
 

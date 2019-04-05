@@ -107,6 +107,9 @@ class MaterialBlock():
 
     def __contains__(self, item):
         return (item in self.matsys) or (item in self._mesh._functions)
+    
+    def update(self,destmesh,reason):
+        self.matsys.update(destmesh,reason)
 
 class Layer():
     def __init__(self, name, thickness):
