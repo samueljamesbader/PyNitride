@@ -27,7 +27,7 @@ be run on a laptop for simple jobs, and parallelizes well onto many-core machine
 applications such as the study of hole-phonon interaction.
 
 The software is still in the alpha phase and has not been publicly released; however, interested (and Python-equipped)
-researchers should `contact the author <sambader.net/contact>`_ directly to obtain access.
+researchers should `contact the author <https://sambader.net/links>`_ directly to obtain access.
 
 This codebase is in a continual state of work, but is steadily being refined
 with validation and unit tests and more complete documentation.
