@@ -49,7 +49,7 @@ material=GaN
             g: 2
             mzs:  .2 m_e
             mxys: .2 m_e
-            mdos: .2 m_e
+            DE: 0 eV
 
     conditions=relaxed
         lattice
