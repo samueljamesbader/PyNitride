@@ -143,13 +143,13 @@ class PhononModel():
                     "Loaded PhononModel does not match current"
             if 'vecs' in self.rmesh:
                 assert self._vecs.shape==\
-                    (self.rmesh.N,self.num_eigs,self._n,self._keepmesh.Np),\
+                    (self.rmesh.N,self.num_eigs,self._n,self._keepmesh.Nn),\
                     "Loaded PhononModel does not match current"
                 self.rmesh['vecs']=NodFunction(self._keepmesh,self._vecs,
                         dtype=self._vecs.dtype)
             if 'phi' in self.rmesh:
                 assert self._phi.shape==\
-                    (self.rmesh.N,self.num_eigs,self._keepmesh.Np),\
+                    (self.rmesh.N,self.num_eigs,self._keepmesh.Nn),\
                     "Loaded PhononModel does not match current"
                 self.rmesh['phi']=NodFunction(self._keepmesh,self._phi,
                         dtype=self._phi.dtype)
@@ -439,7 +439,7 @@ class ElasticContinuum(AcousticPhonon):
             neig_ext=self.num_eigs+6
 
         en_out=np.empty([neig_ext])
-        vec_out=np.empty([neig_ext,self._n,m.Np],dtype=complex)\
+        vec_out=np.empty([neig_ext,self._n,m.Nn],dtype=complex)\
             if not just_energies else False
 
         fem_eigsh(A,self._ec_load_matrix,en_out,vec_out,n=self._n,
@@ -537,7 +537,7 @@ class PiezoPotential():
     
         # Purely transverse modes have no piezo potential
         if self.vecform=='Y':
-            return NodFunction(m,np.zeros((self.num_eigs,m.Np),dtype='complex'))
+            return NodFunction(m,np.zeros((self.num_eigs,m.Nn),dtype='complex'))
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(

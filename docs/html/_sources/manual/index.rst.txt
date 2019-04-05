@@ -26,6 +26,9 @@ self-consistent simulations of classical, Schrodinger, and Multi-band k.p proper
 be run on a laptop for simple jobs, and parallelizes well onto many-core machines for computationally intense
 applications such as the study of hole-phonon interaction.
 
+The software is still in the alpha phase and has not been publicly released; however, interested (and Python-equipped)
+researchers should `contact the author <sambader.net/contact>`_ directly to obtain access.
+
 This codebase is in a continual state of work, but is steadily being refined
 with validation and unit tests and more complete documentation.
 I hope others might find these tools useful, either for their own calculation or for learning purposes,
