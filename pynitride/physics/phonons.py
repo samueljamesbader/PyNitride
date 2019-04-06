@@ -444,7 +444,7 @@ class ElasticContinuum(AcousticPhonon):
 
         fem_eigsh(A,self._ec_load_matrix,en_out,vec_out,n=self._n,
              dirichelet1=False,dirichelet2=self._dbot,
-             k=neig_ext,sigma=mid_eig-1e-10,which='LA',tol=0,ncv=max(neig_ext*2,neig_ext+2))
+             k=neig_ext,sigma=mid_eig-1e-8,which='LA',tol=0,ncv=max(neig_ext*2,neig_ext+2))
         en_out[:]=hbar*np.sqrt(en_out)
 
         if self.first_level!=0:
