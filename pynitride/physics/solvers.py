@@ -223,7 +223,7 @@ class PoissonSolver():
                       val_out=None,n=1,dirichelet1=True, dirichelet2=False)
         PoissonSolver.update_bands_to_potential(m,phi=m.phi+dphi,sbh=self._sbh)
 
-        return np.max(np.abs(dphi))#/activation
+        return float(np.max(np.abs(dphi)))
 
     @staticmethod
     def update_bands_to_potential(m,phi=None,sbh=None):

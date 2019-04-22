@@ -26,36 +26,6 @@ from functools import partial,wraps
 from pynitride import log
 from pynitride import config
 
-###
-# Implementing configuration of parallelism
-###
-
-# Read configuration
-try:globalthreads=config.getint("parallelism","globalthreads")
-except: globalthreads=cpu_count()
-try: globalprocesses=config.getint("parallelism","globalprocesses")
-except: globalprocesses=cpu_count()
-try: cextthread=config.getint("parallelism","cextthread")
-except: cextthread=1
-
-# Apply configuration
-if cextthread is not None:
-    os.environ["OMP_NUM_THREADS"] = str(cextthread)
-    os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
-    os.environ["MKL_NUM_THREADS"] = str(cextthread)
-    os.environ["VECLIB_MAXIMUM_THREADS"] = str(cextthread)
-    os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
-
-# Create initial pools
-if globalprocesses>1:
-    _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
-else: _procpool=_FakePool()
-if globalthreads>1:
-    _thrdpool=_ThreadPool(processes=globalprocesses)
-else: _thrdpool=_FakePool()
-
-# Start with parallelism on
-_no_parallel=False
 
 ###
 # Providing the worker pools
@@ -317,3 +287,35 @@ class Counter():
 def raiser(e):
     """ Trivial functional form of the `raise` keyword"""
     raise e
+
+
+###
+# Implementing configuration of parallelism
+###
+
+# Read configuration
+try:globalthreads=config.getint("parallelism","globalthreads")
+except: globalthreads=cpu_count()
+try: globalprocesses=config.getint("parallelism","globalprocesses")
+except: globalprocesses=cpu_count()
+try: cextthread=config.getint("parallelism","cextthread")
+except: cextthread=1
+
+# Apply configuration
+if cextthread is not None:
+    os.environ["OMP_NUM_THREADS"] = str(cextthread)
+    os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
+    os.environ["MKL_NUM_THREADS"] = str(cextthread)
+    os.environ["VECLIB_MAXIMUM_THREADS"] = str(cextthread)
+    os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
+
+# Create initial pools
+if globalprocesses>1:
+    _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
+else: _procpool=FakePool()
+if globalthreads>1:
+    _thrdpool=_ThreadPool(processes=globalprocesses)
+else: _thrdpool=FakePool()
+
+# Start with parallelism on
+_no_parallel=False
