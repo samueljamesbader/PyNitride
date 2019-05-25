@@ -1,0 +1,13 @@
+Omniscient v1
+
+material=GaN
+    conditions=
+        kp
+            A1:   -5.31   hbar**2/(2*m_e)
+            A2:   -0.59   hbar**2/(2*m_e)
+            A3:   +4.79   hbar**2/(2*m_e)
+            A4:   -1.98   hbar**2/(2*m_e)
+            A5:   -2.10   hbar**2/(2*m_e)
+            A6:   -4.90   hbar**2/(2*m_e)
+            DeltaCR:   +25.3   meV
+            DeltaSO:   +18.2   meV
