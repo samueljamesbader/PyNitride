@@ -364,7 +364,7 @@ class MultibandKP(CarrierModel):
         C0=C0_kin+np.expand_dims(np.eye(C0_kin.shape[0]),2)*pot
         H=assemble_stiffness_matrix(C0, Cl, Cr, C2, m.dzn, dirichelet1=True, dirichelet2=True)
         eigvals=np.empty([self._neig])
-        eigvecs=NodFunction(m,np.empty([self._neig,self._n,m.Np],dtype=H.dtype),dtype=H.dtype)
+        eigvecs=NodFunction(m,np.empty([self._neig,self._n,m.Nn],dtype=H.dtype),dtype=H.dtype)
         # Use pairwise GS to re-orthogonalize, since Lanczos is bad at orthogonalizing degenerate eigenvectors
         fem_eigsh(H,self._load_matrix,eigvals,eigvecs,self._n,dirichelet1=True,dirichelet2=True,pairwise_GS=True,
             ascending=ascending,k=self._neig,sigma=sigma,which='LM',tol=0,ncv=self._neig*2)
