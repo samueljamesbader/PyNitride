@@ -3,11 +3,21 @@ Omniscient v1
 material=GaN
     conditions=
         kp
-            A1:   -5.31   hbar**2/(2*m_e)
-            A2:   -0.59   hbar**2/(2*m_e)
-            A3:   +4.79   hbar**2/(2*m_e)
-            A4:   -1.98   hbar**2/(2*m_e)
-            A5:   -2.10   hbar**2/(2*m_e)
-            A6:   -4.90   hbar**2/(2*m_e)
-            DeltaCR:   +25.3   meV
-            DeltaSO:   +18.2   meV
+            #A1:   -5.09   hbar**2/(2*m_e)
+            #A2:   -0.58   hbar**2/(2*m_e)
+            #A3:   +4.58   hbar**2/(2*m_e)
+            #A4:   -1.83   hbar**2/(2*m_e)
+            #A5:   -1.90   hbar**2/(2*m_e)
+            #A6:   -4.90   hbar**2/(2*m_e)
+            #DeltaCR:   +25.1   meV
+            #DeltaSO:   +20.5   meV
+
+
+
+            ## #VM2003
+            #A1:  -7.21  hbar**2/(2*m_e)
+            #A2:  -0.44  hbar**2/(2*m_e)
+            #A3:   6.68  hbar**2/(2*m_e)
+            #A4:  -3.46  hbar**2/(2*m_e)
+            #A5:  -3.40  hbar**2/(2*m_e)
+            #A6:  -4.90  hbar**2/(2*m_e)
