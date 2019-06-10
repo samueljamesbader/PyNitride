@@ -640,6 +640,26 @@ class Mesh():
             sms+=[SubMesh(self,name,il,ir+1)]
         return sms
 
+    def get_globalmesh(self):
+        """ Returns the global mesh to which this submesh belongs directly or indirectly."""
+        if self._supermesh is None: return self
+        else: return self._supermesh.get_globalmesh()
+
+    def has_submesh(self, submesh):
+        """ Looks for submesh
+
+        If `submesh` is a direct child of this mesh, returns True.
+        If `submesh` is a child of this mesh somewhere down the line,
+            returns the direct child submesh of this mesh under which `submesh` can be found.
+        Otherwise returns False.
+        """
+        if not len(self._submeshes): return False
+        if submesh in self._submeshes: return True 
+        for sm in self._submeshes:
+            if sm.has_submesh(submesh):
+                return sm
+        return False
+
     def save(self,filename,keys=None):
         """ Saves the mesh functions to a file (a numpy .npz)
 
@@ -727,7 +747,7 @@ class SubMesh(Mesh):
         self._matblocks=list(set(l._matblock for l in self._layers))
         self.ztrans=mesh.ztrans
 
-        self.Np=len(self._zn)
+        self.Nn=len(self._zn)
         self.Nm=len(self._zm)
 
         self.zeros_nod=NodFunction(self,0)
@@ -895,13 +915,15 @@ class Function(np.ndarray):
         """
         if submesh==self.mesh:
             return self
-        assert submesh in self.mesh._submeshes,\
-            "Haven't implemented recursive submeshing, going from {} to {}"\
-                .format(self.mesh,submesh)
+        seek=self.mesh.has_submesh(submesh)
+        assert seek,\
+            "Want to restrict but {} is not a submesh of {}"\
+                .format(submesh,self.mesh)
+        if seek is not True: submesh=seek
         if self.pos=='node':
-            return type(self)(submesh, pos='node',value=self.T[submesh._slicen].T,dtype=self.dtype)
+            return (type(self)(submesh, pos='node',value=self.T[submesh._slicen].T,dtype=self.dtype)).restrict(submesh)
         if self.pos=='mid':
-            return type(self)(submesh, pos='mid',value=self.T[submesh._slicem].T,dtype=self.dtype)
+            return (type(self)(submesh, pos='mid' ,value=self.T[submesh._slicem].T,dtype=self.dtype)).restrict(submesh)
 
     def tpf(self, interp='z'):
         r""" Ensure that a Function is defined on the node mesh.

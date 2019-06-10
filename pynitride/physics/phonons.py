@@ -707,7 +707,6 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
                        * self._keepmesh.zn) * comps
 
     def _solve_energies(self):
-        print("in _solve_energies")
 
         # Make energy array if needed
         if 'en' not in self.rmesh:
@@ -819,8 +818,8 @@ class DielectricContinuum_SWH(OpticalPhonon):
         epsinf_l = lmesh.eps_inf[0]
 
         # Get the thicknesses
-        t1 = mesh._layers[0].thickness
-        t2 = mesh._layers[1].thickness
+        t1 = mesh._layers[0].thickness - max(solvmesh.zn[ 0]-    umesh.zn[ 0],0)
+        t2 = mesh._layers[1].thickness - max(   lmesh.zn[-1]-solvmesh.zn[-1],0)
 
         # Compile all the above into an array for quick reference in helper functions
         self._params = [wLO_perp_u, wLO_para_u, wLO_perp_l, wLO_para_l,
@@ -1138,7 +1137,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
                               (BoA) ** 2 * (beta2_para_l * gamma2_para_l + beta2_perp_l * gamma2_perp_l)))
         B = BoA * A
 
-        phi_ = NodFunction(self._solvmesh, empty=())
+        phi_ = NodFunction(self._solvmesh.get_globalmesh(), empty=())
         phi = phi_.restrict(self._solvmesh._matblocks[0].mesh)
         if reg == 'u':
             phi.restrict(self._umesh)[:] = A * np.sin(k_u * self._umesh.zn)
@@ -1263,7 +1262,6 @@ class DielectricContinuum_BulkWurtzite(OpticalPhonon):
         # Interpolate to get energy versus q
         for i,betai in enumerate(beta):
             qtest=alpha*np.abs(betai)
-            #print("qtest range",np.min(qtest),np.max(qtest))
             w=interp1d(qtest,wtest)(self.q)
             self._en[:,i]=hbar*w
         self._beta[:,:]=beta
