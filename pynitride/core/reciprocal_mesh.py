@@ -81,7 +81,7 @@ class RMesh:
             filename: the path to read from
             keys: if given, only reads the specified list of keys
         """
-        with np.load(filename) as data:
+        with np.load(filename,allow_pickle=True) as data:
             for k,v in data.items():
                 # Check grid coordinates
                 if k=='absk':
