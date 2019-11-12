@@ -465,7 +465,7 @@ class ElasticContinuum(AcousticPhonon):
         else:
             vec_out=(vec_out[off_slice].T*np.sqrt(hbar**2/(2*en_out))).T
 
-            if not self.piezo:
+            if (not self.piezo) or (self.piezo is True):
                 return en_out,\
                     NodFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh)
