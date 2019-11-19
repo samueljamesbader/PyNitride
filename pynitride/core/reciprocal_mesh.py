@@ -457,7 +457,7 @@ class RMesh2D_Polar(RMesh):
 
 
     def show_func(self,func,style='balanced',points=True, lines=True,
-            cax=None,vmax=None,numloc=1000):
+            cax=None,vmax=None,numloc=1000,label=None):
         """ Visualize func on a rasterized 2D colormesh plot.
 
         Args:
@@ -510,7 +510,9 @@ class RMesh2D_Polar(RMesh):
         plt.ylim(-self.kmax,self.kmax)
 
         if not dontplot:
-            plt.colorbar(cax=cax)
+            cb=plt.colorbar(cax=cax)
+            if label:
+                cb.set_label(label)
 
         if lines:
             for t in self.thetabinl:
