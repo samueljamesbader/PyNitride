@@ -537,7 +537,7 @@ class PiezoPotential():
     
         # Purely transverse modes have no piezo potential
         if self.vecform=='Y':
-            return NodFunction(m,np.zeros((self.num_eigs,m.Nn),dtype='complex'))
+            return NodFunction(m,np.zeros((self.num_eigs,m.Nn),dtype='complex'),dtype='complex')
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
