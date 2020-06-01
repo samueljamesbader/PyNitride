@@ -26,12 +26,66 @@ material=AlN
     surface=GenericMetal
         electronbarrier: 2 eV
 
+material=InN
+    dielectric
+        eps_z:    15.3 epsilon_0
+        eps_perp: 15.3 epsilon_0
+    DE: -1 eV
+
+    # PLACEHOLDER VALUES
+    conditions=
+        polarization
+            e51:    0   C/m^2
+    raman
+        wLO_para:   0     2*pi*c/cm
+        wLO_perp:   0     2*pi*c/cm
+        wTO_para:   0     2*pi*c/cm
+        wTO_perp:   0     2*pi*c/cm
+    dielectric
+        eps_inf:    0    epsilon_0
+    density: 0 g/cm^3
+    dopant=Si
+        type: 'Donor'
+        E: 0 meV
+        g: 2
+    dopant=Mg
+        type: 'Acceptor'
+        E: -1200 meV
+        g: 4
+    dopant=DeepDonor
+        type: 'Donor'
+        E: .5 eV     #fake
+        g: 2
+    dopant=DeepAcceptor
+        type: 'Acceptor'
+        E: .5 eV     #fake
+        g: 4
+
+    ### JUST COPIED FROM GAN
+    carrier=hole
+        band=HH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  2.00 m_e
+            DE: 0 eV
+        band=LH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  0.14 m_e
+            DE: 5 meV
+        band=CH
+            g: 2
+            mzs:   0.14 m_e
+            mxys:  2.27 m_e
+            DE: 21 meV
+
 # MOST VALUES COPIED FROM GAN DO NOT TRUST
 material=SiO2
     material type: 'binary'
     DE: .4   eV
     dielectric
-        eps: 3.9 epsilon_0
+        eps_z: 3.9 epsilon_0
+        eps_perp: 3.9 epsilon_0
     surface=GenericMetal
         electronbarrier: 2 eV
     conditions=relaxed

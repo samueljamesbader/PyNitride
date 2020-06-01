@@ -144,7 +144,7 @@ class MaterialSystem():
 
 
 class Wurtzite(MaterialSystem):
-    def __init__(self,spin_splitting=0):
+    def __init__(self,spin_splitting=0,orientation=1):
         """ Superclass for Wurtzite materials.
 
         Args:
@@ -155,6 +155,7 @@ class Wurtzite(MaterialSystem):
         """
         super().__init__()
         self._spin_splitting=spin_splitting
+        self._orientation=orientation
 
         self._updates.update({
             'strain': [self._bandedge_params,self.polarization],
@@ -217,7 +218,7 @@ class Wurtzite(MaterialSystem):
         })
 
     def polarization(self,m,key):
-        m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)
+        m['P']=m.ztrans*(m.Psp+m.e31*(m.exx+m.eyy)+m.e33*m.ezz)*self._orientation
         return m[key]
 
     def _bandedge_params(self,m,key=None):
@@ -720,34 +721,33 @@ class Wurtzite(MaterialSystem):
 
 
 
-class AlGaInN(Wurtzite):
-    def __init__(self):
+class AlInGaN(Wurtzite):
+    def __init__(self,spin_splitting=0):
         self.vergardbasis={
             'x': 'AlN',
             'y': 'InN',
             None: 'GaN',
         }
+        self.name="AlInGaN"
 
-        super().__init__()
+        super().__init__(spin_splitting=spin_splitting)
 
         self._defaults.update({
             'x': 0,
             'y': 0,
-            'gotz': True
         })
-        self.append_dopants(['Si','Mg','Deep'])
+        self.append_dopants(['Si','Mg','DeepDonor','DeepAcceptor'])
 
-        self._attrs['MgAcceptorE']
 
 class AlGaN(Wurtzite):
-    def __init__(self,spin_splitting=0):
+    def __init__(self,spin_splitting=0,polarity='metal'):
         self.vergardbasis={
             'x': 'AlN',
             None: 'GaN',
         }
         self.name="AlGaN"
 
-        super().__init__(spin_splitting=spin_splitting)
+        super().__init__(spin_splitting=spin_splitting,orientation={'metal':1,'nitrogen':-1}[polarity])
 
         self._defaults.update({
             'x': 0
@@ -775,5 +775,8 @@ class Insulator(MaterialSystem):
         m['Ec-E0']=Eg_re/2
 
         return m[key]
+
+    def strain_to(self,m,straincond={}):
+        pass
 
 

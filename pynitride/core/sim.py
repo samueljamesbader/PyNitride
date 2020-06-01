@@ -5,11 +5,12 @@ from pynitride import ConstantT, Pseudomorphic
 from inspect import signature
 from time import time
 import os.path
+import pickle
 
 class Simulation():
 
     def __init__(self,name,define_mesh,solve_flow,
-                 mesh_opts={},solve_opts={},outdir=""):
+                 mesh_opts={},solve_opts={},extras=[],outdir=""):
         """ Manages the running/re-loading of a simulation .
 
         Breaks apart a simulation into the "mesh definition" which is a rapid step executed on both running and
@@ -26,6 +27,7 @@ class Simulation():
             solve_flow: function executes the solve flow, first argument should be this `Simulation` object)
             mesh_opts: additional arguments to be passed to `define_mesh`
             solve_opts: additional arguments to be passed to `solve_flow`
+            extras: name of extra objects saved by the `solve_flow` which should be loaded
             outdir: directory where to save/read the results
         """
         self.name=name
@@ -38,12 +40,39 @@ class Simulation():
         self.extras ={}
         """ Where `define_mesh` provides any further information. """
 
+        self._extras =extras
+
         self._define_mesh=define_mesh
         self._solve_flow=solve_flow
 
         self._mesh_opts=mesh_opts
         self._solve_opts=solve_opts
 
+    @staticmethod
+    def flow_semiclassicalramp(sim,ramp_opts={}):
+        """ Does a ramp with semiclassical solver.
+
+        The main mesh should be `dmeshes['main']`.
+
+        Args:
+            sim: the Simulation object (ie `self`)
+            ramp_opts: passed to the :func:`~pynitride.physics.solvers.SelfConsistentLoop.ramp_epsfactor`
+
+        """
+        m=sim.dmeshes['main']
+
+        # General solvers
+        Equilibrium(m)
+        ConstantT(m).solve()
+        Pseudomorphic(m).solve()
+        ps=PoissonSolver(m)
+        semi_solver=Semiclassical(m)
+
+        # Initial ramp
+        scl=SelfConsistentLoop(
+            fieldsolvers=[PoissonSolver(m)],
+            carriermodels=[semi_solver])
+        scl.ramp_epsfactor(**ramp_opts)
     @staticmethod
     def flow_semiclassicalramp_schrodinger(sim,ramp_opts={},schro_opts={},loop_opts={}):
         """ Does a ramp with semiclassical solver, then swaps in a schrodinger solver in dmeshes['schro'] region.
@@ -189,9 +218,12 @@ class Simulation():
                 m=sim.dmeshes.get('main',False)
                 if m:
                     m.read(os.path.join(sim._outdir, sim.name+"_direct.npz"))
-                rmesh=sim.rmeshes.get('mbkp_out',False) or sim.rmeshes.get('mbkp',False)
+                rmesh=sim.rmeshes.get('mbkp_out',False) or sim.rmeshes.get('mbkp',False) or sim.rmeshes.get('mbkp_solve',False)
                 if rmesh:
                     rmesh.read(os.path.join(sim._outdir, sim.name+"_reciprocal.npz"))
+                for extra in sim._extras:
+                    with open(os.path.join(sim._outdir, sim.name+"_"+extra+".pkl"),'rb') as f:
+                        sim.extras[extra]=pickle.load(f)
             except Exception as e:
                 log("But "+str(e))
                 return False
