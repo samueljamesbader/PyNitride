@@ -947,11 +947,11 @@ class Function(np.ndarray):
                     axis=-1))#.view(Function)
         if self.pos=="mid":
             if definite:
-                return np.sum(self * self.mesh._dzn, axis=-1)
+                return np.sum(self * self.mesh.dzn, axis=-1)
             else:
                 output = Function(self.mesh,pos='node', value=0.0)
                 np.cumsum(
-                    self * self.mesh._dz if not flipped else np.flipud(-self * self.mesh._dz),
+                    self * self.mesh.dzn if not flipped else np.flipud(-self * self.mesh.dzn),
                     out=(output[1:] if not flipped else np.flipud(output[:-1])), axis=-1)
                 return output
 

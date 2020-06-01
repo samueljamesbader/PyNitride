@@ -465,7 +465,7 @@ class ElasticContinuum(AcousticPhonon):
         else:
             vec_out=(vec_out[off_slice].T*np.sqrt(hbar**2/(2*en_out))).T
 
-            if not self.piezo:
+            if (not self.piezo) or (self.piezo is True):
                 return en_out,\
                     NodFunction(m,vec_out,dtype='complex')\
                         .restrict(self._keepmesh)
@@ -537,7 +537,7 @@ class PiezoPotential():
     
         # Purely transverse modes have no piezo potential
         if self.vecform=='Y':
-            return NodFunction(m,np.zeros((self.num_eigs,m.Nn),dtype='complex'))
+            return NodFunction(m,np.zeros((self.num_eigs,m.Nn),dtype='complex'),dtype='complex')
 
         if iq is None:
             A_pz =assemble_stiffness_matrix(
