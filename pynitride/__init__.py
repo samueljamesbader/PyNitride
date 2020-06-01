@@ -2,7 +2,7 @@ import os.path
 from configparser import ConfigParser
 
 # Needed for reading configuration
-ROOT_DIR= os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
+ROOT_DIR= os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'..'))
 config=ConfigParser()
 config.read(os.path.join(ROOT_DIR,"config.ini"))
 """ The directory of the PyNitride project"""
@@ -18,7 +18,7 @@ import pynitride.core.machine
 
 # Common core components
 from pynitride.core.paramdb import pmdb, parse, to_unit, kb, hbar, pi, m_e, cm, nm, eV, meV, K, q
-from pynitride.core.mesh import Mesh, SubMesh, UniformLayer, MaterialBlock
+from pynitride.core.mesh import Mesh, SubMesh, UniformLayer, GradedLayer, MaterialBlock
 from pynitride.core.mesh import NodFunction, MidFunction, MaterialFunction, Function
 from pynitride.core.reciprocal_mesh import RMesh1D, RMesh2D_Polar
 

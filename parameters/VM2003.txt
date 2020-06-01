@@ -139,6 +139,12 @@ material=InN
 
             DeltaCR:  .04  meV
             DeltaSO:  .005 meV
+    carrier=electron
+        band=
+            g: 2
+            mzs:  .07 m_e
+            mxys: .07 m_e
+            DE: 0 eV
     conditions=relaxed
         lattice
             a:  3.545 angstrom

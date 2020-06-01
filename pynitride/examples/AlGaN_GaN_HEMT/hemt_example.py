@@ -37,7 +37,7 @@ if __name__=="__main__":
     # Check normalization
     wf0=ss._epsi[0,0,:]
     wf1=ss._epsi[0,1,:]
-    from pynitride.mesh import inner_product
+    from pynitride.core.mesh import inner_product
     assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
     print("Total electrons: {:.2g} x10^13/cm^2".format(to_unit(float(m.n.integrate(definite=True)),"1e13/cm^2")))

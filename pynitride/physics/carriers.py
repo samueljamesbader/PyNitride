@@ -236,12 +236,13 @@ class Schrodinger(CarrierModel):
         for sb in self._subbands:
             elec,l=(sb['carrier']=='electron'), sb['subband']
             b,mxy,g,dens,deriv= (-1,m.mexy[l],m.eg[l],m.n,m.nderiv) if elec else (1,m.mhxy[l],m.hg[l],m.p,m.pderiv)
-            en=np.expand_dims(sb['energies'][l,:],2)
+            en=np.expand_dims(sb['energies'][l,:],1)
             psi=sb['psi'][l,:,:]
 
             eta=b*(en-m.EF).tmf()/(kb * m.T)
             psisq=abs(psi.tmf())**2
             mmean=np.atleast_2d((mxy*psisq).integrate(definite=True)).T
+            #import pdb; pdb.set_trace()
             dens+= np.sum((g * mmean * kb * m.T) / (2 * pi * hbar ** 2) * psisq * np.log(1 + np.exp(eta)), axis=0).tpf()
             deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tpf()
 

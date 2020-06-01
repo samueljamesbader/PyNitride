@@ -10,6 +10,7 @@ from functools import reduce
 from pynitride import log
 from scipy.special import lambertw as W
 from pynitride.core.fem import assemble_load_matrix
+from copy import deepcopy
 
 class MaterialBlock():
     def __init__(self,name,matsys,layers):
@@ -164,6 +165,38 @@ class UniformLayer(Layer):
                 dtype='float'
             mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
 
+class GradedLayer(Layer):
+    def __init__(self, name, thickness, **kwargs):
+        """ A uniform chunk of simulation domain which will be guaranteed to end on node-points
+
+        That is to say, the properties specified by kwargs will be uniform
+
+        Args:
+            name: an arbitrary name for the layer
+            thickness: the thickness of the layer
+            kwargs: any other properties specified uniformly in the region
+        """
+        super().__init__(name,thickness)
+        self._setproperties=kwargs
+
+    def place(self,mesh):
+        """ Places the layer onto the mesh (called by :class:`MaterialBlock.place`, filling in uniform values."""
+        super().place(mesh)
+        for k,v in self._setproperties.items():
+            if k[:6]=="start_":
+                k=k[6:]
+                vstart=v
+                vstop=self._setproperties["stop_"+k]
+                mesh[k]=LinearFunction(mesh,vstart,vstop,pos='node').tmf()
+            elif "stop_" in k:
+                continue
+            else:
+                if type(v) is bool:
+                    dtype='bool'
+                else:
+                    dtype='float'
+                mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
+
 
 class Mesh():
 
@@ -213,12 +246,13 @@ class Mesh():
         for r in refinements:
             zr=r[0]
             if isinstance(zr,str):
-                l1,l2=zr.split("/")
+                l1n,l2n=zr.split("/")
                 try:
-                    l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1)
-                    l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2)
+                    print("Layers are \""+"\", \"".join([l.name for l in layers])+"\"")
+                    l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1n)
+                    l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2n)
                 except:
-                    raise Exception("A layer ({} or {}) was not found for refinement.".format(l1,l2))
+                    raise Exception("A layer ({} or {}) was not found for refinement.".format(l1n,l2n))
                 if (l2-l1)>1: raise Exception("Interface {} not found".format(zr))
                 r[0]=np.cumsum([l.thickness for l in layers])[min(l1,l2)]
 
@@ -349,8 +383,9 @@ class Mesh():
             ilr=ill+len(mb.layers)-1
             ml=leftindices[ill]
             mr=rightindices[ilr]
-            mb.place(SubMesh(self, '', ml, mr+1),interface_indices=
-                [0]+list(interface_indices[ill:(ill+len(mb.layers)+1)])+[len(self.zn)-1])
+            mbii=leftindices[ill:(ill+len(mb.layers))]+[mr]
+            sm=SubMesh(self, '', ml, mr+1)
+            mb.place(sm,interface_indices=list(np.array(mbii)-ml))
 
         self.Nn=len(self._zn)
         """ Number of node points"""
@@ -551,6 +586,7 @@ class Mesh():
         you can call py:func:`pynitride.mesh.globalize` to bring it onto the global mesh.
 
         """
+        #print("in get",key)
         if key in self._functions:
             return self._functions[key]
         elif sum(key in mb for mb in self._matblocks):
@@ -575,6 +611,13 @@ class Mesh():
 
     def __getattr__(self,item):
         return self.__getitem__(item)
+
+    def __setattr__(self,key,value):
+        #print('in setattr',key)
+        if ('_functions' in self.__dict__) and (key in self._functions):
+            self.__setitem__(key,value)
+        else:
+            super().__setattr__(key,value)
 
     @property
     def zn(self):
@@ -635,6 +678,7 @@ class Mesh():
 
         """
         inds=[0]+self.indexn(znoints).tolist() + [len(self.zn) - 1]
+        assert np.all(np.diff(inds)>0), "Zero-size or overlapping submeshes in cover"
         sms=[]
         for il,ir,name in zip(inds[:-1],inds[1:],names):
             sms+=[SubMesh(self,name,il,ir+1)]
@@ -671,7 +715,10 @@ class Mesh():
             res=self._functions
         else:
             res={k:self[k] for k in keys}
-        np.savez_compressed(filename,**res)
+        if filename:
+            np.savez_compressed(filename,**res)
+        else: return deepcopy(res)
+
     def read(self,filename):
         """ Reads the mesh functions from a file (a numpy .npz)
 
@@ -681,13 +728,16 @@ class Mesh():
             filename: path at which to save
         """
         with np.load(filename) as data:
-            for k,v in data.items():
-                if v.shape[-1]==len(self._zn):
-                    self[k]=NodFunction(self,v)
-                elif v.shape[-1]==len(self._zm):
-                    self[k]=MidFunction(self,v)
-                else:
-                    raise Exception(k+" has the wrong shape "+str(v.shape)+" for this mesh.")
+            self.restore(data)
+
+    def restore(self,data):
+        for k,v in data.items():
+            if v.shape[-1]==len(self._zn):
+                self[k]=NodFunction(self,v)
+            elif v.shape[-1]==len(self._zm):
+                self[k]=MidFunction(self,v)
+            else:
+                raise Exception(k+" has the wrong shape "+str(v.shape)+" for this mesh.")
 
 class SubMesh(Mesh):
 
@@ -1023,6 +1073,22 @@ def MaterialFunction(mesh, prop, default=None,dtype='float',pos='mid'):
     else:
         return func.tpf()
 
+def LinearFunction(mesh, vstart, vstop, pos='node'):
+    r""" A function which is only non-zero at a single location
+
+    Args:
+        mesh: the mesh on which this function is defined
+        vstart: the value at the start (first z) of the function
+        vstop: the value at the end (last z) of the function
+        pos: build on a node mesh or mid mesh
+    Returns:
+        a linear function from ``vstart`` to ``vstop`` as a :py:class:`Function`
+    """
+    z={'node': mesh.zn, 'mid': mesh.zm}[pos]
+    func={'node': NodFunction, 'mid': MidFunction}[pos](mesh,
+        (vstop-vstart)*(z-z[0])/(z[-1]-z[0])+vstart)
+    return func
+
 def DeltaFunction(mesh, z, integral=1, i=None, pos='node'):
     r""" A function which is only non-zero at a single location
 
@@ -1036,8 +1102,8 @@ def DeltaFunction(mesh, z, integral=1, i=None, pos='node'):
         the delta function as a :py:class:`Function`
     """
     func={'node': NodFunction, 'mid': MidFunction}[pos](mesh,0.0)
-    i={'node': mesh.indexn, 'mid': mesh.indexn}[pos](z) if i is None else i
-    func[i]= integral / {'node':mesh._dzn[i], 'mid':mesh.dzm[i]}[pos]
+    i={'node': mesh.indexn, 'mid': mesh.indexm}[pos](z) if i is None else i
+    func[i]= integral / {'node':mesh.dzm[i], 'mid':mesh.dzn[i]}[pos]
     return func
 
 def inner_product(a,b):
