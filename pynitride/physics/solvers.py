@@ -388,7 +388,7 @@ class SelfConsistentLoop():
         [cs.solve_and_repopulate() for cs in self._cs]
 
     def loop(self, tol=1e-5, max_iter=100, min_activation=.05,
-             init_activation=1,dec_activation=2,inc_activation=1.1):
+             init_activation=1,dec_activation=2,inc_activation=1.1,max_activation=1):
         """ Loops the Newton field solution and carrier models until they agree
 
         If the error increases during a step, the step will be retried with a smaller `activation`
@@ -453,7 +453,7 @@ class SelfConsistentLoop():
                         log("iter: {:3d}  err: {:.2e}".format(i,err))
 
                 # By now, a step was successful, so increase activation and iteration count
-                a=min(inc_activation*a,1)
+                a=min(inc_activation*a,max_activation)
                 i+=1
             log("Loop finished in {:2d} iterations with err={:g}".format(i,err))
 
