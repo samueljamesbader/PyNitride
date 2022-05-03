@@ -15,7 +15,9 @@ Install the various Python dependencies of this project.  If you have `miniconda
 
     conda install numpy scipy cython anaconda matplotlib pytest
 
-    conda install --channel https://conda.anaconda.org/acellera pint
+    conda install -c conda-forge pint
+    
+    conda install -c samjbader omniscient
 
 Then download this project via `github`
 
@@ -27,4 +29,4 @@ And build it
     cd PyNitride
     python setup.py build_ext -i
     
-Make sure this directory is on your Python path, and you should be good to go.
+Make sure this directory is on your Python path (eg by running `python setup.py develop`), and you should be good to go.
