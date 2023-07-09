@@ -1,7 +1,7 @@
 from pynitride import ROOT_DIR
 import os.path
 import pint
-from omniscient import Brain
+from pynitride.core.omniscient import Brain
 
 # Configures Pint to use "nanoelectronic units"
 Brain._ureg=pint.UnitRegistry(system='neu')
