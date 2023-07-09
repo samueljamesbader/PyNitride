@@ -2,6 +2,6 @@ pynitride.physics.carriers module
 =================================
 
 .. automodule:: pynitride.physics.carriers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

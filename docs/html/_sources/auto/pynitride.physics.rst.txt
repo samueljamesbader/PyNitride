@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.physics.carriers
    pynitride.physics.material
@@ -17,6 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.physics
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

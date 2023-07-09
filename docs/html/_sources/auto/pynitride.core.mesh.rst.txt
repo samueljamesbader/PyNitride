@@ -2,6 +2,6 @@ pynitride.core.mesh module
 ==========================
 
 .. automodule:: pynitride.core.mesh
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

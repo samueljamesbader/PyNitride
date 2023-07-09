@@ -1,19 +1,17 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.tests.Analytical_POP.SWH_checks module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.tests.Li1992_SQW package" href="pynitride.tests.Li1992_SQW.html" />
@@ -34,41 +32,37 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.tests.Analytical_POP.SWH_checks">
-<span id="pynitride-tests-analytical-pop-swh-checks-module"></span><h1>pynitride.tests.Analytical_POP.SWH_checks module<a class="headerlink" href="#module-pynitride.tests.Analytical_POP.SWH_checks" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="pynitride.tests.Analytical_POP.SWH_checks.check_POP_interface">
-<code class="descclassname">pynitride.tests.Analytical_POP.SWH_checks.</code><code class="descname">check_POP_interface</code><span class="sig-paren">(</span><em>phi</em>, <em>q</em>, <em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.tests.Analytical_POP.SWH_checks.check_POP_interface" title="Permalink to this definition">¶</a></dt>
+  <section id="module-pynitride.tests.Analytical_POP.SWH_checks">
+<span id="pynitride-tests-analytical-pop-swh-checks-module"></span><h1>pynitride.tests.Analytical_POP.SWH_checks module<a class="headerlink" href="#module-pynitride.tests.Analytical_POP.SWH_checks" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.tests.Analytical_POP.SWH_checks.check_POP_interface">
+<span class="sig-prename descclassname"><span class="pre">pynitride.tests.Analytical_POP.SWH_checks.</span></span><span class="sig-name descname"><span class="pre">check_POP_interface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.tests.Analytical_POP.SWH_checks.check_POP_interface" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the continuity of the potential and displacement field for a POP phonon.</p>
 <p>Checks the continuity of <span class="math notranslate nohighlight">\(\phi\)</span> and  <span class="math notranslate nohighlight">\(\varepsilon_\parallel \frac{\partial phi}{\partial z}\)</span>
 at the interface.  These should be satisfied elsewhere automatically since the solutions are analytic.</p>
 <p>The absolute tolerance for <span class="math notranslate nohighlight">\(D\)</span> discontinuity is set by the maximum value of <span class="math notranslate nohighlight">\(D\)</span>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>phi</strong> – the hopefully normalized potential, should of course be provided on the full mesh that
-it’s solved on, not just on some submesh where it interacts with carriers.</li>
-<li><strong>q</strong> – the in-plane wavevector for the mode</li>
-<li><strong>w</strong> – the angular frequency for the mode</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phi</strong> – the hopefully normalized potential, should of course be provided on the full mesh that
+it’s solved on, not just on some submesh where it interacts with carriers.</p></li>
+<li><p><strong>q</strong> – the in-plane wavevector for the mode</p></li>
+<li><p><strong>w</strong> – the angular frequency for the mode</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Exceptions:</dt>
-<dd>AssertionError if the mode fails interface conditions</dd>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Exceptions:</dt><dd><p>AssertionError if the mode fails interface conditions</p>
+</dd>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.tests.Analytical_POP.SWH_checks.check_POP_normalization">
-<code class="descclassname">pynitride.tests.Analytical_POP.SWH_checks.</code><code class="descname">check_POP_normalization</code><span class="sig-paren">(</span><em>phi</em>, <em>q</em>, <em>w</em>, <em>overrides={}</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.tests.Analytical_POP.SWH_checks.check_POP_normalization" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.tests.Analytical_POP.SWH_checks.check_POP_normalization">
+<span class="sig-prename descclassname"><span class="pre">pynitride.tests.Analytical_POP.SWH_checks.</span></span><span class="sig-name descname"><span class="pre">check_POP_normalization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overrides</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.tests.Analytical_POP.SWH_checks.check_POP_normalization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks the normalization of a POP potential.</p>
 <p>The normalization is given as</p>
 <div class="math notranslate nohighlight">
@@ -78,30 +72,26 @@ it’s solved on, not just on some submesh where it interacts with carriers.</li
       \left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
 \end{align}\]</div>
 <p>for the given POP potential <cite>phi</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>phi</strong> – the hopefully normalized potential, should of course be provided on the full mesh that
-it’s solved on, not just on some submesh where it interacts with carriers.</li>
-<li><strong>q</strong> – the in-plane wavevector for the mode</li>
-<li><strong>w</strong> – the angular frequency for the mode</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phi</strong> – the hopefully normalized potential, should of course be provided on the full mesh that
+it’s solved on, not just on some submesh where it interacts with carriers.</p></li>
+<li><p><strong>q</strong> – the in-plane wavevector for the mode</p></li>
+<li><p><strong>w</strong> – the angular frequency for the mode</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="docutils">
-<dt>Exceptions:</dt>
-<dd>AssertionError if the mode is not normalized</dd>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Exceptions:</dt><dd><p>AssertionError if the mode is not normalized</p>
+</dd>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -147,17 +137,15 @@ it’s solved on, not just on some submesh where it interacts with carriers.</li
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -174,8 +162,8 @@ it’s solved on, not just on some submesh where it interacts with carriers.</li
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.tests.Analytical_POP.SWH_checks.rst.txt"

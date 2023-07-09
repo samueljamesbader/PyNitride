@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.tests.Li1992_SQW.test_SQW
    pynitride.tests.Li1992_SQW.test_SQW_convergence
@@ -13,6 +14,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.tests.Li1992_SQW
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

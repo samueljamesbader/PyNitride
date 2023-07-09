@@ -2,6 +2,6 @@ pynitride.tests.Pokatilov2003\_phonon.test\_GaN\_slab module
 ============================================================
 
 .. automodule:: pynitride.tests.Pokatilov2003_phonon.test_GaN_slab
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

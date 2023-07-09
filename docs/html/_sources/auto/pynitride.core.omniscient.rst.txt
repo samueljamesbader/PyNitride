@@ -1,0 +1,7 @@
+pynitride.core.omniscient module
+================================
+
+.. automodule:: pynitride.core.omniscient
+   :members:
+   :undoc-members:
+   :show-inheritance:

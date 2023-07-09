@@ -1,19 +1,16 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.core.maths module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.core.mesh module" href="pynitride.core.mesh.html" />
@@ -34,76 +31,68 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.core.maths">
-<span id="pynitride-core-maths-module"></span><h1>pynitride.core.maths module<a class="headerlink" href="#module-pynitride.core.maths" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="pynitride.core.maths.cart2polar">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">cart2polar</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.cart2polar" title="Permalink to this definition">¶</a></dt>
+  <section id="module-pynitride.core.maths">
+<span id="pynitride-core-maths-module"></span><h1>pynitride.core.maths module<a class="headerlink" href="#module-pynitride.core.maths" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.cart2polar">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">cart2polar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.cart2polar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a Cartesian x,y coordinate to a polar rho,theta coordinate.</p>
 <p>Arguments x and y can be scalars/arrays/anything that numpy accepts.
 Normal broadcasting rules apply.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – x coordinate</li>
-<li><strong>y</strong> – y coordinate</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – x coordinate</p></li>
+<li><p><strong>y</strong> – y coordinate</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of (rho, theta)</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple of (rho, theta)</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.maths.chunks">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">chunks</code><span class="sig-paren">(</span><em>lst</em>, <em>n</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.chunks" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.chunks">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">chunks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.chunks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yield successive n-sized chunks from lst.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.maths.dephase">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">dephase</code><span class="sig-paren">(</span><em>vec</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.dephase" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.dephase">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">dephase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.dephase" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.maths.double_mat">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">double_mat</code><span class="sig-paren">(</span><em>arr</em>, <em>dtype='complex'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.double_mat" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.double_mat">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">double_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.double_mat" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.maths.polar2cart">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">polar2cart</code><span class="sig-paren">(</span><em>rho</em>, <em>theta</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.polar2cart" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.polar2cart">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">polar2cart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.polar2cart" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts a polar rho,theta coordinate to a Cartesian x,y coordinate.</p>
 <p>Arguments rho and theta can be scalars/arrays/anything that numpy accepts.
 Normal broadcasting rules apply.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>rho</strong> – radial coordinate</li>
-<li><strong>theta</strong> – angular coordinate in radians</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rho</strong> – radial coordinate</p></li>
+<li><p><strong>theta</strong> – angular coordinate in radians</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of (x, y)</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple of (x, y)</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.maths.round_near">
-<code class="descclassname">pynitride.core.maths.</code><code class="descname">round_near</code><span class="sig-paren">(</span><em>arr</em>, <em>ival</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.round_near" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.maths.round_near">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.maths.</span></span><span class="sig-name descname"><span class="pre">round_near</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ival</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.maths.round_near" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -147,17 +136,15 @@ Normal broadcasting rules apply.</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -174,8 +161,8 @@ Normal broadcasting rules apply.</p>
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.core.maths.rst.txt"

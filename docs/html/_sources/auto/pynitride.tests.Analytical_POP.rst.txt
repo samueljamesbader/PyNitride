@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.tests.Analytical_POP.SWH_checks
 
@@ -12,6 +13,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.tests.Analytical_POP
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

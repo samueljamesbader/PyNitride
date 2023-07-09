@@ -2,6 +2,6 @@ pynitride.core.fem module
 =========================
 
 .. automodule:: pynitride.core.fem
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

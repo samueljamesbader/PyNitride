@@ -1,19 +1,16 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.core.machine module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.core.maths module" href="pynitride.core.maths.html" />
@@ -34,8 +31,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.core.machine">
-<span id="pynitride-core-machine-module"></span><h1>pynitride.core.machine module<a class="headerlink" href="#module-pynitride.core.machine" title="Permalink to this headline">¶</a></h1>
+  <section id="module-pynitride.core.machine">
+<span id="pynitride-core-machine-module"></span><h1>pynitride.core.machine module<a class="headerlink" href="#module-pynitride.core.machine" title="Permalink to this heading">¶</a></h1>
 <p>Utilities to manage parallelism via multiprocessing.</p>
 <p>Importing this module (as is done automatically by importing <cite>pynitride</cite>, configures the environment in accordance
 with <cite>config.py</cite> (by default, this enables PyNitride to parallelize with as many processes as CPUs, and prevents numpy/
@@ -48,130 +45,120 @@ functions use <cite>FakePools</cite> instead of real pools.</p>
 when spawning new processes.  This utility is further enhanced by the <a class="reference internal" href="#pynitride.core.machine.glob_store_attributes" title="pynitride.core.machine.glob_store_attributes"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store_attributes()</span></code></a> wrapper which can
 automatically employ the <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a> functions behind the scenes for specified large attributes so that the
 object can be safely pickled.</p>
-<dl class="class">
-<dt id="pynitride.core.machine.Counter">
-<em class="property">class </em><code class="descclassname">pynitride.core.machine.</code><code class="descname">Counter</code><span class="sig-paren">(</span><em>print_every=10</em>, <em>print_message='Count: {}'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.Counter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.core.machine.Counter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">Counter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">print_every</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Count:</span> <span class="pre">{}'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.Counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Provides a thread-safe counter.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>print_every</strong> – every time this many increments has been met or passed, log a message</li>
-<li><strong>print_message</strong> – the message to log</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>print_every</strong> – every time this many increments has been met or passed, log a message</p></li>
+<li><p><strong>print_message</strong> – the message to log</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="pynitride.core.machine.Counter.increment">
-<code class="descname">increment</code><span class="sig-paren">(</span><em>inc=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.Counter.increment" title="Permalink to this definition">¶</a></dt>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.Counter.increment">
+<span class="sig-name descname"><span class="pre">increment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.Counter.increment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Increments the counter by <cite>inc</cite>.</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="pynitride.core.machine.FakePool">
-<em class="property">class </em><code class="descclassname">pynitride.core.machine.</code><code class="descname">FakePool</code><a class="headerlink" href="#pynitride.core.machine.FakePool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Same API as <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.pool.Pool</span></code></a> but actually applies serially, no processes/threads.</p>
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>func</em>, <em>args=()</em>, <em>kwds={}</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.apply" title="Permalink to this definition">¶</a></dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">FakePool</span></span><a class="headerlink" href="#pynitride.core.machine.FakePool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Same API as <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.pool.Pool</span></code></a> but actually applies serially, no processes/threads.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.apply">
+<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.apply" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.apply_async">
-<code class="descname">apply_async</code><span class="sig-paren">(</span><em>func</em>, <em>args=()</em>, <em>kwds={}</em>, <em>callback=None</em>, <em>error_callback=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.apply_async" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.apply_async">
+<span class="sig-name descname"><span class="pre">apply_async</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.apply_async" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.close">
-<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.close" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.close" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.join">
-<code class="descname">join</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.join" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.join">
+<span class="sig-name descname"><span class="pre">join</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.join" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.map">
-<code class="descname">map</code><span class="sig-paren">(</span><em>func</em>, <em>iterable</em>, <em>chunksize=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.map" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.map">
+<span class="sig-name descname"><span class="pre">map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.map" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.core.machine.FakePool.starmap">
-<code class="descname">starmap</code><span class="sig-paren">(</span><em>func</em>, <em>iterable</em>, <em>chunksize=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.starmap" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.core.machine.FakePool.starmap">
+<span class="sig-name descname"><span class="pre">starmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunksize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.FakePool.starmap" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.glob_read">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">glob_read</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_read" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.glob_read">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">glob_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an object from the global storage.</p>
 <p>Note: when multiprocessing, be aware that changes made in one process
 do not affect a previously spawned worker process.
 Use <cite>new=True</cite> with <a class="reference internal" href="#pynitride.core.machine.process_pool" title="pynitride.core.machine.process_pool"><code class="xref py py-func docutils literal notranslate"><span class="pre">process_pool()</span></code></a> in the parent process to incorporate recent updates.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the stored object</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the stored object</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.glob_remove">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">glob_remove</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_remove" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.glob_remove">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">glob_remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_remove" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove an object from the global storage.</p>
 <p>Note: if called a child process other than the one which placed this object on the store,
 this method will not even attempt removal.</p>
 <p>Note: when multiprocessing, be aware that changes made in one process
 do not affect a previously spawned worker process.
 Use <cite>new=True</cite> with <a class="reference internal" href="#pynitride.core.machine.process_pool" title="pynitride.core.machine.process_pool"><code class="xref py py-func docutils literal notranslate"><span class="pre">process_pool()</span></code></a> in the parent process to incorporate recent updates.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.glob_store">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">glob_store</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_store" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.glob_store">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">glob_store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_store" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add <cite>obj</cite> to the global storage.</p>
 <p>Note: when multiprocessing, be aware that changes made in one process
 do not affect a previously spawned worker process.
 Use <cite>new=True</cite> with <a class="reference internal" href="#pynitride.core.machine.process_pool" title="pynitride.core.machine.process_pool"><code class="xref py py-func docutils literal notranslate"><span class="pre">process_pool()</span></code></a> in the parent process to incorporate recent updates.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj</strong> – anything.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a key which can be used in <a class="reference internal" href="#pynitride.core.machine.glob_read" title="pynitride.core.machine.glob_read"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_read()</span></code></a> or <code class="xref py py-func docutils literal notranslate"><span class="pre">glob_write()</span></code> or <a class="reference internal" href="#pynitride.core.machine.glob_remove" title="pynitride.core.machine.glob_remove"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_remove()</span></code></a>.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> – anything.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a key which can be used in <a class="reference internal" href="#pynitride.core.machine.glob_read" title="pynitride.core.machine.glob_read"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_read()</span></code></a> or <code class="xref py py-func docutils literal notranslate"><span class="pre">glob_write()</span></code> or <a class="reference internal" href="#pynitride.core.machine.glob_remove" title="pynitride.core.machine.glob_remove"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_remove()</span></code></a>.</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.glob_store_attributes">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">glob_store_attributes</code><span class="sig-paren">(</span><em>*attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_store_attributes" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.glob_store_attributes">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">glob_store_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_store_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class decorator to automatically store certain attributes in the glob_store system.</p>
 <p>For example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@globstore_attributes</span><span class="p">(</span><span class="n">big_obj</span><span class="p">)</span>
@@ -188,83 +175,74 @@ pickled, <cite>big_obj</cite> will not be shared through the pickling but instea
 <cite>__del__</cite> function, these implementations call the superclass <cite>__init__</cite> or <cite>__del__</cite> functions.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.glob_update">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">glob_update</code><span class="sig-paren">(</span><em>key</em>, <em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_update" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.glob_update">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">glob_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.glob_update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates an object in the global storage.</p>
 <p>Note: when multiprocessing, be aware that changes made in one process
 do not affect a previously spawned worker process.
 Use <cite>new=True</cite> with <a class="reference internal" href="#pynitride.core.machine.process_pool" title="pynitride.core.machine.process_pool"><code class="xref py py-func docutils literal notranslate"><span class="pre">process_pool()</span></code></a> in the parent process to incorporate recent updates.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></li>
-<li><strong>obj</strong> – the new value</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – returned from <a class="reference internal" href="#pynitride.core.machine.glob_store" title="pynitride.core.machine.glob_store"><code class="xref py py-func docutils literal notranslate"><span class="pre">glob_store()</span></code></a></p></li>
+<li><p><strong>obj</strong> – the new value</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.no_parallel">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">no_parallel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.no_parallel" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.no_parallel">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">no_parallel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.no_parallel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Context manager to temporarily disable PyNitride-based parallelism.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.parallel_enabled">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">parallel_enabled</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.parallel_enabled" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.parallel_enabled">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">parallel_enabled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.parallel_enabled" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns whether parallelism is enabled in this context, see <a class="reference internal" href="#pynitride.core.machine.no_parallel" title="pynitride.core.machine.no_parallel"><code class="xref py py-func docutils literal notranslate"><span class="pre">no_parallel()</span></code></a></p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.process_pool">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">process_pool</code><span class="sig-paren">(</span><em>new=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.process_pool" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.process_pool">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">process_pool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.process_pool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a pool of worker processes.</p>
-<p>If parallelism is enabled in this context, this will be a <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.pool.Pool</span></code></a>.
+<p>If parallelism is enabled in this context, this will be a <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.pool.Pool</span></code></a>.
 Otherwise, it will be an object which superficially implements the same methods, but runs tasks serially.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new</strong> – if returning a real <cite>Pool</cite>, then refresh it first</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an object at least superficially resembling <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new</strong> – if returning a real <cite>Pool</cite>, then refresh it first</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an object at least superficially resembling <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.raiser">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">raiser</code><span class="sig-paren">(</span><em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.raiser" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.raiser">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">raiser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.raiser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Trivial functional form of the <cite>raise</cite> keyword</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.machine.thread_pool">
-<code class="descclassname">pynitride.core.machine.</code><code class="descname">thread_pool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.thread_pool" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.machine.thread_pool">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.machine.</span></span><span class="sig-name descname"><span class="pre">thread_pool</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.machine.thread_pool" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a pool of worker threads.</p>
 <p>If parallelism is enabled in this context, this will be a <code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code>.
 Otherwise, it will be an object which superficially implements the same methods, but runs tasks serially.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">an object at least superficially resembling <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code></a></td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>an object at least superficially resembling <a class="reference external" href="https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pool</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -308,17 +286,15 @@ Otherwise, it will be an object which superficially implements the same methods,
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -335,8 +311,8 @@ Otherwise, it will be an object which superficially implements the same methods,
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.core.machine.rst.txt"

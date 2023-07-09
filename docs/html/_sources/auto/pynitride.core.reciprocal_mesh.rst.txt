@@ -2,6 +2,6 @@ pynitride.core.reciprocal\_mesh module
 ======================================
 
 .. automodule:: pynitride.core.reciprocal_mesh
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

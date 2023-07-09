@@ -2,6 +2,6 @@ pynitride.examples.AlGaN\_GaN\_HEMT.hemt\_fullspace\_example module
 ===================================================================
 
 .. automodule:: pynitride.examples.AlGaN_GaN_HEMT.hemt_fullspace_example
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

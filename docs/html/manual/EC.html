@@ -1,19 +1,17 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Elastic Continuum Model &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Finite Element Method" href="FEM.html" />
@@ -34,9 +32,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="elastic-continuum-model">
-<span id="ec"></span><h1>Elastic Continuum Model<a class="headerlink" href="#elastic-continuum-model" title="Permalink to this headline">¶</a></h1>
-<p>The elastic continuum model <a class="footnote-reference" href="#id2" id="id1">[1]</a> joins the continuum Newton’s law with the material stress-strain relation:</p>
+  <section id="elastic-continuum-model">
+<span id="ec"></span><h1>Elastic Continuum Model<a class="headerlink" href="#elastic-continuum-model" title="Permalink to this heading">¶</a></h1>
+<p>The elastic continuum model <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> joins the continuum Newton’s law with the material stress-strain relation:</p>
 <div class="math notranslate nohighlight">
 \[\begin{equation}
   \rho \frac{\partial^2 u_i}{\partial t^2}=\frac{\partial T_{ij}}{\partial r_j}, \quad T_{ij}=c_{ijkl}\epsilon_{kl}
@@ -67,8 +65,8 @@ In Voigt notation</p>
   T_{6}=T_{xy}&amp;,\quad
   \epsilon_{6}=2\epsilon_{xy}
 \end{align}\end{split}\]</div>
-<div class="section" id="wurtzite">
-<h2>Wurtzite<a class="headerlink" href="#wurtzite" title="Permalink to this headline">¶</a></h2>
+<section id="wurtzite">
+<h2>Wurtzite<a class="headerlink" href="#wurtzite" title="Permalink to this heading">¶</a></h2>
 <p>For a wurtzite crystal, the <span class="math notranslate nohighlight">\(c_{\alpha \beta}\)</span> can be written</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{equation}
@@ -135,9 +133,9 @@ In Voigt notation</p>
     C_{13} &amp; &amp;
   \end{pmatrix}
 \end{equation}\end{split}\]</div>
-</div>
-<div class="section" id="wurtzite-piezoelectric-potential">
-<h2>Wurtzite piezoelectric potential<a class="headerlink" href="#wurtzite-piezoelectric-potential" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="wurtzite-piezoelectric-potential">
+<h2>Wurtzite piezoelectric potential<a class="headerlink" href="#wurtzite-piezoelectric-potential" title="Permalink to this heading">¶</a></h2>
 <p>Once the acoustic phonon modes are solved for, each mode can be considered a source of piezoelectric charge</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
@@ -180,14 +178,14 @@ In Voigt notation</p>
   C^{R'}=qe_{31},
   C^{2'}=e_{33}
 \end{equation}\]</div>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>as discussed in Stroscio and Dutta, <em>Phonons in Nanostructures</em></td></tr>
-</tbody>
-</table>
-</div>
-</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>as discussed in Stroscio and Dutta, <em>Phonons in Nanostructures</em></p>
+</aside>
+</aside>
+</section>
+</section>
 
 
           </div>
@@ -227,17 +225,15 @@ In Voigt notation</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -254,8 +250,8 @@ In Voigt notation</p>
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/manual/EC.rst.txt"

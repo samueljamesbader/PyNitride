@@ -180,7 +180,10 @@ def fem_eigsh(stiffness_matrix,load_matrix,
             Gram-Schmidt to ensure the nearly-degenerate eigenvectors are orthogonal.
         ascending (bool): by default, energies are sorted from min to max, but for valence band problems,
             you want the highest absolute energies first, so set `ascending=False`
-        *args,**kwargs: passed onto
+        *args: passed onto
+            `scipy.sparse.eigsh <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
+            along with the main arguments `A` (stiffness) and `M` (load)
+        **kwargs: passed onto
             `scipy.sparse.eigsh <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.eigsh.html>`_
             along with the main arguments `A` (stiffness) and `M` (load)
 
@@ -245,7 +248,10 @@ def fem_solve(stiffness_matrix,load_matrix,load_vec,val_out,n,
         val_out: an array into which to fill the solution, should be shape (len(zn))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
-        *args,**kwargs: passed onto
+        *args: passed onto
+            `scipy.sparse.spsolve <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html>`_
+            along with the main arguments `A` (stiffness) and `M@b` (load)
+        **kwargs: passed onto
             `scipy.sparse.spsolve <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html>`_
             along with the main arguments `A` (stiffness) and `M@b` (load)
 
@@ -283,7 +289,10 @@ def fem_get_error(stiffness_matrix,load_matrix,load_vec,test,err_out,n,
         err_out: an array into which to fill the error, should be shape (len(zn))
         n: dimension of the differential equation
         dirichelet1,dirichelet2 (bool): whether to treat boundary 1, 2 as Dirichelet (True, default) or Neumann.
-        *args,**kwargs: passed onto
+        *args: passed onto
+            `scipy.sparse.spsolve <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html>`_
+            along with the main arguments `M` and `A@x`
+        **kwargs: passed onto
             `scipy.sparse.spsolve <https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.linalg.spsolve.html>`_
             along with the main arguments `M` and `A@x`
 

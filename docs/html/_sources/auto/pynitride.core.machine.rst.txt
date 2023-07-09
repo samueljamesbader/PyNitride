@@ -2,6 +2,6 @@ pynitride.core.machine module
 =============================
 
 .. automodule:: pynitride.core.machine
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

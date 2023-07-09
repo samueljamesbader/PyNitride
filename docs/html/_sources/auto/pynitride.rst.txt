@@ -5,17 +5,18 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pynitride.core
-    pynitride.examples
-    pynitride.physics
-    pynitride.tests
-    pynitride.visual
+   pynitride.core
+   pynitride.examples
+   pynitride.physics
+   pynitride.tests
+   pynitride.visual
 
 Module contents
 ---------------
 
 .. automodule:: pynitride
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

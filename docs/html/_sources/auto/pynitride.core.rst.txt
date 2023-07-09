@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.core.cython_maths
    pynitride.core.fem
@@ -12,6 +13,7 @@ Submodules
    pynitride.core.machine
    pynitride.core.maths
    pynitride.core.mesh
+   pynitride.core.omniscient
    pynitride.core.paramdb
    pynitride.core.reciprocal_mesh
    pynitride.core.sim
@@ -20,6 +22,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.core
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

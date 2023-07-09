@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.examples.pchannel_GaN_AlN_HFET.pFET_POP
    pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example
@@ -14,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.examples.pchannel_GaN_AlN_HFET
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

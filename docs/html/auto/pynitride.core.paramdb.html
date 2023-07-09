@@ -1,23 +1,20 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.core.paramdb module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.core.reciprocal_mesh module" href="pynitride.core.reciprocal_mesh.html" />
-    <link rel="prev" title="pynitride.core.mesh module" href="pynitride.core.mesh.html" />
+    <link rel="prev" title="pynitride.core.omniscient module" href="pynitride.core.omniscient.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -34,23 +31,23 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.core.paramdb">
-<span id="pynitride-core-paramdb-module"></span><h1>pynitride.core.paramdb module<a class="headerlink" href="#module-pynitride.core.paramdb" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="pynitride.core.paramdb.ParamDB">
-<em class="property">class </em><code class="descclassname">pynitride.core.paramdb.</code><code class="descname">ParamDB</code><span class="sig-paren">(</span><em>folder</em>, <em>dictionary=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.ParamDB" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">omniscient.omniscient.Brain</span></code></p>
+  <section id="module-pynitride.core.paramdb">
+<span id="pynitride-core-paramdb-module"></span><h1>pynitride.core.paramdb module<a class="headerlink" href="#module-pynitride.core.paramdb" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.core.paramdb.ParamDB">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.core.paramdb.</span></span><span class="sig-name descname"><span class="pre">ParamDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dictionary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.ParamDB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pynitride.core.omniscient.html#pynitride.core.omniscient.Brain" title="pynitride.core.omniscient.Brain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Brain</span></code></a></p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.paramdb.parse">
-<code class="descclassname">pynitride.core.paramdb.</code><code class="descname">parse</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.parse" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.paramdb.parse">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.paramdb.</span></span><span class="sig-name descname"><span class="pre">parse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.parse" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the value in as a string and returns a number in nanoelectronic units</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.paramdb.to_unit">
-<code class="descclassname">pynitride.core.paramdb.</code><code class="descname">to_unit</code><span class="sig-paren">(</span><em>val</em>, <em>unit</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.to_unit" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.paramdb.to_unit">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.paramdb.</span></span><span class="sig-name descname"><span class="pre">to_unit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.paramdb.to_unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a number from PyNitride’s internal units to any other units.</p>
 <p>Any number used in PyNitride or pulled from the parameter database is assumed to be in “nanoelectronic units”, and
 this function provides conversion to other units for outputing readable results to a user.
@@ -60,24 +57,20 @@ and requesting sensible output dimensions.  The output dimensions are interprete
 values (including units such as <code class="docutils literal notranslate"><span class="pre">meter</span></code>, prefixed units such as <code class="docutils literal notranslate"><span class="pre">meV</span></code>, more complex units like <code class="docutils literal notranslate"><span class="pre">cm**-2</span></code> and
 constants such as <code class="docutils literal notranslate"><span class="pre">hbar</span></code>) is provided in the
 <a class="reference external" href="https://github.com/hgrecco/pint/blob/master/pint/default_en.txt">Pint docs</a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>val</strong> – A numerical quantity which is in the internal unit system of PyNitride</li>
-<li><strong>unit</strong> – The desired units for the result as a string (eg “cm**-2”)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> – A numerical quantity which is in the internal unit system of PyNitride</p></li>
+<li><p><strong>unit</strong> – The desired units for the result as a string (eg “cm**-2”)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the number representing that quantity in the desired units.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the number representing that quantity in the desired units.</p>
+</dd>
+</dl>
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -112,7 +105,7 @@ constants such as <code class="docutils literal notranslate"><span class="pre">h
   <li><a href="modules.html">PyNitride</a><ul>
   <li><a href="pynitride.html">pynitride package</a><ul>
   <li><a href="pynitride.core.html">pynitride.core package</a><ul>
-      <li>Previous: <a href="pynitride.core.mesh.html" title="previous chapter">pynitride.core.mesh module</a></li>
+      <li>Previous: <a href="pynitride.core.omniscient.html" title="previous chapter">pynitride.core.omniscient module</a></li>
       <li>Next: <a href="pynitride.core.reciprocal_mesh.html" title="next chapter">pynitride.core.reciprocal_mesh module</a></li>
   </ul></li>
   </ul></li>
@@ -121,17 +114,15 @@ constants such as <code class="docutils literal notranslate"><span class="pre">h
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -148,8 +139,8 @@ constants such as <code class="docutils literal notranslate"><span class="pre">h
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.core.paramdb.rst.txt"

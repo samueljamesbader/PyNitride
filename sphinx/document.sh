@@ -1,0 +1,47 @@
+#!/bin/bash
+# Warning: This script may be out of date because I currently use the document.py instead
+# This file will likely be removed
+
+
+if [[ "$PWD" = *docs ]]; then
+    echo "Run this script from main PyNitride directory"
+    exit
+fi
+
+runapidoc=true
+runlatex=false
+for key in "$@"
+do
+    case $key in
+        --static)
+        runapidoc=false
+        shift
+        ;;
+        --latex)
+        runlatex=true
+        shift
+        ;;
+        *)
+
+        ;;
+    esac
+shift
+done
+cd sphinx
+if $runapidoc ; then
+    sphinx-apidoc -o auto ../ ../setup.py  ../pynitride/tests/old -f -e
+fi
+
+make html
+cat > ../docs/index.html <<EOM
+<html>
+    <head>
+        <meta http-equiv="refresh" content="0; url=./html/manual/index.html" />
+    </head>
+</html>
+EOM
+cp ../docs/html/.nojekyll ../docs/
+
+if $runlatex ; then
+    make latexpdf
+fi

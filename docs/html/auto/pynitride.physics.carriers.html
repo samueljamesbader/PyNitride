@@ -1,19 +1,17 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.physics.carriers module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.physics.material module" href="pynitride.physics.material.html" />
@@ -34,18 +32,18 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.physics.carriers">
-<span id="pynitride-physics-carriers-module"></span><h1>pynitride.physics.carriers module<a class="headerlink" href="#module-pynitride.physics.carriers" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="pynitride.physics.carriers.CarrierModel">
-<em class="property">class </em><code class="descclassname">pynitride.physics.carriers.</code><code class="descname">CarrierModel</code><span class="sig-paren">(</span><em>mesh</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+  <section id="module-pynitride.physics.carriers">
+<span id="pynitride-physics-carriers-module"></span><h1>pynitride.physics.carriers module<a class="headerlink" href="#module-pynitride.physics.carriers" title="Permalink to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.CarrierModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.physics.carriers.</span></span><span class="sig-name descname"><span class="pre">CarrierModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Superclass for all carrier models.</p>
 <p>A carrier model implements a <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.solve" title="pynitride.physics.carriers.CarrierModel.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> function and a <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.repopulate" title="pynitride.physics.carriers.CarrierModel.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a> function, which together define how
 to get from previously-solved bands to the induced carrier densities.</p>
-<dl class="method">
-<dt id="pynitride.physics.carriers.CarrierModel.repopulate">
-<code class="descname">repopulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.repopulate" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.CarrierModel.repopulate">
+<span class="sig-name descname"><span class="pre">repopulate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.repopulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populates the mesh with carriers.</p>
 <p>This method should be quick because <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.solve" title="pynitride.physics.carriers.CarrierModel.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> has already done the heavy lifting.
 So this can be called inside tighter loops where the Fermi level changes but bands do not.</p>
@@ -56,9 +54,9 @@ as well as their approximate functional derivatives “nderiv” and “pderiv�
 (ie <span class="math notranslate nohighlight">\(n' = \delta n / \delta [-q \phi],\ p' = \delta p / \delta [-q \phi]\)</span>)</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.CarrierModel.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.solve" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.CarrierModel.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs any prep work needed (e.g. solving for wavefunctions) before the mesh can be populated.</p>
 <p>This method generally does the expensive eigenvalue calculations, whereas <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.repopulate" title="pynitride.physics.carriers.CarrierModel.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a> simply takes these
 results and fills in the levels.</p>
@@ -66,281 +64,252 @@ results and fills in the levels.</p>
 <p>Post-condition: One can now call repopulate()</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.CarrierModel.solve_and_repopulate">
-<code class="descname">solve_and_repopulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.solve_and_repopulate" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.CarrierModel.solve_and_repopulate">
+<span class="sig-name descname"><span class="pre">solve_and_repopulate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.CarrierModel.solve_and_repopulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.solve" title="pynitride.physics.carriers.CarrierModel.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> and <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.repopulate" title="pynitride.physics.carriers.CarrierModel.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a></p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="pynitride.physics.carriers.MultibandKP">
-<em class="property">class </em><code class="descclassname">pynitride.physics.carriers.</code><code class="descname">MultibandKP</code><span class="sig-paren">(</span><em>mesh, rmesh=None, num_eigenvalues=20, carriers=['hole']</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.physics.carriers.CarrierModel</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.physics.carriers.</span></span><span class="sig-name descname"><span class="pre">MultibandKP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rmesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eigenvalues</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['hole']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a></p>
 <p>Solves the multiband k.p problem for the valence bands.</p>
 <p>Can use either a 1D line of k-points or a rectangular ‘xy’ grid of k-points or a polar grid of k-points
 depending on <cite>kmeshmethod</cite>.  Regardless, assumes in-plane inversion symmetry (ie for 1D, only solves at
 positive kx, and for 2D only solves one quadrant of k-plane for efficiency.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mesh</strong> – the <code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.mesh.Mesh</span></code> on which to solve</li>
-<li><strong>rmesh</strong> – the reciprocal mesh on which to solve (if you only want to use
-<a class="reference internal" href="#pynitride.physics.carriers.MultibandKP.solve_one_k" title="pynitride.physics.carriers.MultibandKP.solve_one_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">MultibandKP.solve_one_k()</span></code></a>, this is not needed)</li>
-<li><strong>num_eigenvalues</strong> – (int) the number of eigenvalues to solve for at each k-point</li>
-<li><strong>carriers</strong> – <cite>[‘hole’]</cite> or <cite>[‘electron’]</cite>, can’t do both yet.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> – the <code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.mesh.Mesh</span></code> on which to solve</p></li>
+<li><p><strong>rmesh</strong> – the reciprocal mesh on which to solve (if you only want to use
+<a class="reference internal" href="#pynitride.physics.carriers.MultibandKP.solve_one_k" title="pynitride.physics.carriers.MultibandKP.solve_one_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">MultibandKP.solve_one_k()</span></code></a>, this is not needed)</p></li>
+<li><p><strong>num_eigenvalues</strong> – (int) the number of eigenvalues to solve for at each k-point</p></li>
+<li><p><strong>carriers</strong> – <cite>[‘hole’]</cite> or <cite>[‘electron’]</cite>, can’t do both yet.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.interp_energy">
-<code class="descname">interp_energy</code><span class="sig-paren">(</span><em>absk</em>, <em>theta</em>, <em>eig</em>, <em>bounds_check=True</em>, <em>grid=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_energy" title="Permalink to this definition">¶</a></dt>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.interp_energy">
+<span class="sig-name descname"><span class="pre">interp_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns spline-interpolated results for the energy</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>absk</strong> – radial coordinate</li>
-<li><strong>theta</strong> – angular coordinate</li>
-<li><strong>eig</strong> – which eigenvalue</li>
-<li><strong>bounds_check</strong> – whether to throw out-of-bounds errors</li>
-<li><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>absk</strong> – radial coordinate</p></li>
+<li><p><strong>theta</strong> – angular coordinate</p></li>
+<li><p><strong>eig</strong> – which eigenvalue</p></li>
+<li><p><strong>bounds_check</strong> – whether to throw out-of-bounds errors</p></li>
+<li><p><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.interp_group_velocity">
-<code class="descname">interp_group_velocity</code><span class="sig-paren">(</span><em>absk</em>, <em>theta</em>, <em>eig</em>, <em>bounds_check=True</em>, <em>grid=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_group_velocity" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.interp_group_velocity">
+<span class="sig-name descname"><span class="pre">interp_group_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_group_velocity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns spline-interpolated results for the 2D-vector group velocity</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>absk</strong> – radial coordinate</li>
-<li><strong>theta</strong> – angular coordinate</li>
-<li><strong>eig</strong> – which eigenvalue</li>
-<li><strong>bounds_check</strong> – whether to throw out-of-bounds errors</li>
-<li><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>absk</strong> – radial coordinate</p></li>
+<li><p><strong>theta</strong> – angular coordinate</p></li>
+<li><p><strong>eig</strong> – which eigenvalue</p></li>
+<li><p><strong>bounds_check</strong> – whether to throw out-of-bounds errors</p></li>
+<li><p><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">tuple of <cite>(vx, vy)</cite>, return shape of each determined by grid
-as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple of <cite>(vx, vy)</cite>, return shape of each determined by grid
+as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.interp_radial_eff_mass">
-<code class="descname">interp_radial_eff_mass</code><span class="sig-paren">(</span><em>absk</em>, <em>theta</em>, <em>eig</em>, <em>bounds_check=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_radial_eff_mass" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.interp_radial_eff_mass">
+<span class="sig-name descname"><span class="pre">interp_radial_eff_mass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_radial_eff_mass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns spline-interpolated results for the effective mass in the radial direction</p>
 <p>ie if evaluated at theta=0, then this is inversely proportional to the second x-derivative of energy.
 A minus sign is applied to hole effective masses to make them generically positive.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>absk</strong> – radial coordinate</li>
-<li><strong>theta</strong> – angular coordinate</li>
-<li><strong>eig</strong> – which eigenvalue</li>
-<li><strong>bounds_check</strong> – whether to throw out-of-bounds errors</li>
-<li><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>absk</strong> – radial coordinate</p></li>
+<li><p><strong>theta</strong> – angular coordinate</p></li>
+<li><p><strong>eig</strong> – which eigenvalue</p></li>
+<li><p><strong>bounds_check</strong> – whether to throw out-of-bounds errors</p></li>
+<li><p><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.interp_radial_group_velocity">
-<code class="descname">interp_radial_group_velocity</code><span class="sig-paren">(</span><em>absk</em>, <em>theta</em>, <em>eig</em>, <em>bounds_check=True</em>, <em>grid=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_radial_group_velocity" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.interp_radial_group_velocity">
+<span class="sig-name descname"><span class="pre">interp_radial_group_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.interp_radial_group_velocity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns spline-interpolated results for the group velocity in the radial direction</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>absk</strong> – radial coordinate</li>
-<li><strong>theta</strong> – angular coordinate</li>
-<li><strong>eig</strong> – which eigenvalue</li>
-<li><strong>bounds_check</strong> – whether to throw out-of-bounds errors</li>
-<li><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>absk</strong> – radial coordinate</p></li>
+<li><p><strong>theta</strong> – angular coordinate</p></li>
+<li><p><strong>eig</strong> – which eigenvalue</p></li>
+<li><p><strong>bounds_check</strong> – whether to throw out-of-bounds errors</p></li>
+<li><p><strong>grid</strong> – as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.2.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>return shape determined by grid as in <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BivariateSpline.html#scipy.interpolate.BivariateSpline" title="(in SciPy v1.11.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.interpolate.BivariateSpline</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pynitride.physics.carriers.MultibandKP.kpen">
-<code class="descname">kpen</code><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.kpen" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.kpen">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kpen</span></span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.kpen" title="Permalink to this definition">¶</a></dt>
 <dd><p>The energies, shape <cite>(len(kt), num_eigs, mesh.Nn)</cite>.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pynitride.physics.carriers.MultibandKP.kppsi">
-<code class="descname">kppsi</code><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.kppsi" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.kppsi">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kppsi</span></span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.kppsi" title="Permalink to this definition">¶</a></dt>
 <dd><p>The spinor wavefunctions, shape <cite>(len(kt), num_eigs, matsys.kp_dim, mesh.Nn)</cite>.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pynitride.physics.carriers.MultibandKP.mesh">
-<code class="descname">mesh</code><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.mesh" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.mesh">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mesh</span></span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.mesh" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="pynitride.physics.carriers.MultibandKP.normsqs">
-<code class="descname">normsqs</code><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.normsqs" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.normsqs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normsqs</span></span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.normsqs" title="Permalink to this definition">¶</a></dt>
 <dd><p>The norm-squareds of the wavefunction, shape <cite>(len(kt), num_eigs, mesh.Nn)</cite>.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.repopulate">
-<code class="descname">repopulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.repopulate" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.repopulate">
+<span class="sig-name descname"><span class="pre">repopulate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.repopulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populates the carrier densities onto the mesh, call after <a class="reference internal" href="#pynitride.physics.carriers.MultibandKP.solve" title="pynitride.physics.carriers.MultibandKP.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">MultibandKP.solve()</span></code></a></p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pynitride.physics.carriers.MultibandKP.rmesh">
-<code class="descname">rmesh</code><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.rmesh" title="Permalink to this definition">¶</a></dt>
+<dl class="py property">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.rmesh">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rmesh</span></span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.rmesh" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the MBKP eigenvalue problem, call before <a class="reference internal" href="#pynitride.physics.carriers.MultibandKP.repopulate" title="pynitride.physics.carriers.MultibandKP.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">MultibandKP.repopulate()</span></code></a></p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.solve_one_k">
-<code class="descname">solve_one_k</code><span class="sig-paren">(</span><em>kx</em>, <em>ky</em>, <em>ik=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve_one_k" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.solve_one_k">
+<span class="sig-name descname"><span class="pre">solve_one_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ky</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ik</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve_one_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the k.p problem for just one wavevector.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>kx</strong><strong>,</strong><strong>ky</strong> – the in-plane wavevector at which to compute the k.p matrices to solve</li>
-<li><strong>ik</strong> – if specified, this index into the RMesh will be used to find the wavevector instead of the kx,ky</li>
-<li><strong>This also allows the pre-calculated k.p matrices to be used.</strong> (<em>arguments.</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kx</strong> – the in-plane wavevector at which to compute the k.p matrices to solve</p></li>
+<li><p><strong>ky</strong> – the in-plane wavevector at which to compute the k.p matrices to solve</p></li>
+<li><p><strong>ik</strong> – if specified, this index into the RMesh will be used to find the wavevector instead of the kx,ky</p></li>
+<li><p><strong>used.</strong> (<em>arguments.  This also allows the pre-calculated k.p matrices to be</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tuple of
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of
 eigenvalues (shape <cite>num_eigs</cite>),
 eigenvectors (shape <cite>num_eigs, matsys.kp_dim, mesh.Nn</cite>), and
 normsqs (shape <cite>num_eigs, mesh.Nn</cite>)</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.MultibandKP.solve_point_as_bulk">
-<code class="descname">solve_point_as_bulk</code><span class="sig-paren">(</span><em>zn=None</em>, <em>kz=0</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve_point_as_bulk" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.MultibandKP.solve_point_as_bulk">
+<span class="sig-name descname"><span class="pre">solve_point_as_bulk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.MultibandKP.solve_point_as_bulk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the transverse dispersion at a given point as if the material properties there were in bulk.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>zn</strong> – for an actual mesh, <cite>zn</cite> specifies a z-coord to solve at.  Or if a <code class="xref py py-func docutils literal notranslate"><span class="pre">Material.bulk()</span></code> is used instead
-to create the <cite>MultibandKP</cite>, then <cite>zn=None</cite> is fine.</li>
-<li><strong>kz</strong> – z-wavevector to solve at</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zn</strong> – for an actual mesh, <cite>zn</cite> specifies a z-coord to solve at.  Or if a <code class="xref py py-func docutils literal notranslate"><span class="pre">Material.bulk()</span></code> is used instead
+to create the <cite>MultibandKP</cite>, then <cite>zn=None</cite> is fine.</p></li>
+<li><p><strong>kz</strong> – z-wavevector to solve at</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="pynitride.physics.carriers.Schrodinger">
-<em class="property">class </em><code class="descclassname">pynitride.physics.carriers.</code><code class="descname">Schrodinger</code><span class="sig-paren">(</span><em>mesh, carriers=['electron', 'hole'], num_eigenvalues=8, blend=True, transverse='parabolic', boundary=['Dirichlet', 'Dirichlet']</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.physics.carriers.CarrierModel</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Schrodinger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.physics.carriers.</span></span><span class="sig-name descname"><span class="pre">Schrodinger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['electron',</span> <span class="pre">'hole']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eigenvalues</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'parabolic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Dirichlet',</span> <span class="pre">'Dirichlet']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a></p>
 <p>Implements a Schrodinger envelope function carrier model.</p>
 <p>Carriers at each point are populated according to band alignment as if that point was the bulk.
 See <a class="reference internal" href="#pynitride.physics.carriers.Schrodinger.solve" title="pynitride.physics.carriers.Schrodinger.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> for details and see <a class="reference internal" href="../manual/carriers.html#carriers"><span class="std std-ref">Carrier Models</span></a> for the physics.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mesh</strong> (<a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Mesh" title="pynitride.core.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Mesh</span></code></a>) – the Mesh to populate</li>
-<li><strong>carriers</strong> (<em>list of strings</em>) – which carriers to populate, eg <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[&quot;hole&quot;]</span></code>, or <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;,&quot;hole&quot;]</span></code></li>
-<li><strong>num_eigenvalues</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – how many eigenvalues to solve for and occupy quantum mechanically. [Default = 8]</li>
-<li><strong>blend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – whether to add in semiclassically-occupied carriers at energies beyond the solved for levels. [Default = True]</li>
-<li><strong>transverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – “parabolic” [Default] or “full k-space”, see physics section for details</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Mesh" title="pynitride.core.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Mesh</span></code></a>) – the Mesh to populate</p></li>
+<li><p><strong>carriers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><em>strings</em>) – which carriers to populate, eg <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[&quot;hole&quot;]</span></code>, or <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;,&quot;hole&quot;]</span></code></p></li>
+<li><p><strong>num_eigenvalues</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – how many eigenvalues to solve for and occupy quantum mechanically. [Default = 8]</p></li>
+<li><p><strong>blend</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – whether to add in semiclassically-occupied carriers at energies beyond the solved for levels. [Default = True]</p></li>
+<li><p><strong>transverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – “parabolic” [Default] or “full k-space”, see physics section for details</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="pynitride.physics.carriers.Schrodinger.repopulate">
-<code class="descname">repopulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger.repopulate" title="Permalink to this definition">¶</a></dt>
+</dd>
+</dl>
+<p>Superclass for all carrier models.</p>
+<p>A carrier model implements a <a class="reference internal" href="#pynitride.physics.carriers.Schrodinger.solve" title="pynitride.physics.carriers.Schrodinger.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> function and a <a class="reference internal" href="#pynitride.physics.carriers.Schrodinger.repopulate" title="pynitride.physics.carriers.Schrodinger.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a> function, which together define how
+to get from previously-solved bands to the induced carrier densities.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Schrodinger.repopulate">
+<span class="sig-name descname"><span class="pre">repopulate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger.repopulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populates the carrier densities onto the mesh, call after <a class="reference internal" href="#pynitride.physics.carriers.Schrodinger.solve" title="pynitride.physics.carriers.Schrodinger.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">Schrodinger.solve()</span></code></a></p>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.Schrodinger.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger.solve" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Schrodinger.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Schrodinger.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the Schrodinger eigenvalue problem, call before <a class="reference internal" href="#pynitride.physics.carriers.Schrodinger.repopulate" title="pynitride.physics.carriers.Schrodinger.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">Schrodinger.repopulate()</span></code></a></p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="pynitride.physics.carriers.Semiclassical">
-<em class="property">class </em><code class="descclassname">pynitride.physics.carriers.</code><code class="descname">Semiclassical</code><span class="sig-paren">(</span><em>mesh, carriers=['electron', 'hole']</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">pynitride.physics.carriers.CarrierModel</span></code></a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Semiclassical">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynitride.physics.carriers.</span></span><span class="sig-name descname"><span class="pre">Semiclassical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">carriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['electron',</span> <span class="pre">'hole']</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel" title="pynitride.physics.carriers.CarrierModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">CarrierModel</span></code></a></p>
 <p>Implements a semiclassical carrier model.</p>
 <p>Carriers at each point are populated locally according to band alignment as if that point was the bulk.
 See <a class="reference internal" href="#pynitride.physics.carriers.Semiclassical.solve" title="pynitride.physics.carriers.Semiclassical.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> for details and see <a class="reference internal" href="../manual/carriers.html#carriers-semiclassical"><span class="std std-ref">Carrier Models</span></a> for the physics.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mesh</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code>) – the Mesh to populate</li>
-<li><strong>carriers</strong> (<em>list of strings</em>) – which carriers to populate,
-eg <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[&quot;hole&quot;]</span></code>, or <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;,&quot;hole&quot;]</span></code></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code>) – the Mesh to populate</p></li>
+<li><p><strong>carriers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><em>strings</em>) – which carriers to populate,
+eg <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">[&quot;hole&quot;]</span></code>, or <code class="docutils literal notranslate"><span class="pre">[&quot;electron&quot;,&quot;hole&quot;]</span></code></p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="pynitride.physics.carriers.Semiclassical.repopulate">
-<code class="descname">repopulate</code><span class="sig-paren">(</span><em>Ec_eff=None</em>, <em>Ev_eff=None</em>, <em>addon=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical.repopulate" title="Permalink to this definition">¶</a></dt>
+</dd>
+</dl>
+<p>Superclass for all carrier models.</p>
+<p>A carrier model implements a <a class="reference internal" href="#pynitride.physics.carriers.Semiclassical.solve" title="pynitride.physics.carriers.Semiclassical.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">solve()</span></code></a> function and a <a class="reference internal" href="#pynitride.physics.carriers.Semiclassical.repopulate" title="pynitride.physics.carriers.Semiclassical.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a> function, which together define how
+to get from previously-solved bands to the induced carrier densities.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Semiclassical.repopulate">
+<span class="sig-name descname"><span class="pre">repopulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Ec_eff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Ev_eff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical.repopulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Populate carriers semi-classically into the mesh.  See <a class="reference internal" href="#pynitride.physics.carriers.CarrierModel.solve" title="pynitride.physics.carriers.CarrierModel.solve"><code class="xref py py-func docutils literal notranslate"><span class="pre">CarrierModel.solve()</span></code></a> for conditions,
 and see <a class="reference internal" href="../manual/carriers.html#carriers-semiclassical"><span class="std std-ref">Carrier Models</span></a> for the physics.</p>
 <p>Accepts effective conduction and valence bands as optional arguments to use in place of the mesh <cite>Ec</cite> and <cite>Ev</cite>.
@@ -348,25 +317,21 @@ For use as a stand-alone model, these should not be supplied, but they are conve
 by other models which may populate some levels quantum mechanically and then use this function to fill in the
 rest of the band semiclassically.  In this case, the addon option, which adds the computed density to whatever
 is on the mesh, rather than replacing it, may also come in handy.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>Ec_eff</strong> (Node <a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Function</span></code></a>) – Effective conduction band level, optional.</li>
-<li><strong>Ev_eff</strong> (Node <a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Function</span></code></a>) – Effective valence band level, optional.</li>
-<li><strong>addon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to add (True) the computed density to current mesh values or simply replace the</li>
-<li><strong>values</strong> (<em>current</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Ec_eff</strong> (Node <a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Function</span></code></a>) – Effective conduction band level, optional.</p></li>
+<li><p><strong>Ev_eff</strong> (Node <a class="reference internal" href="pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">mesh.Function</span></code></a>) – Effective valence band level, optional.</p></li>
+<li><p><strong>addon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – Whether to add (True) the computed density to current mesh values or simply replace the</p></li>
+<li><p><strong>values</strong> (<em>current</em>) – </p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
-<dt id="pynitride.physics.carriers.Semiclassical.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical.solve" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynitride.physics.carriers.Semiclassical.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.physics.carriers.Semiclassical.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does nothing.</p>
 <p>For Semiclassical, since there are no expensive eigenvalue calculations, all the work is done in
 <a class="reference internal" href="#pynitride.physics.carriers.Semiclassical.repopulate" title="pynitride.physics.carriers.Semiclassical.repopulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">repopulate()</span></code></a>.</p>
@@ -374,7 +339,7 @@ is on the mesh, rather than replacing it, may also come in handy.</p>
 
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -418,17 +383,15 @@ is on the mesh, rather than replacing it, may also come in handy.</p>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -445,8 +408,8 @@ is on the mesh, rather than replacing it, may also come in handy.</p>
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.physics.carriers.rst.txt"

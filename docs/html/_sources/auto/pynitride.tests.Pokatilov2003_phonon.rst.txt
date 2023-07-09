@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.tests.Pokatilov2003_phonon.phonon_analysis
    pynitride.tests.Pokatilov2003_phonon.test_GaN_slab
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.tests.Pokatilov2003_phonon
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

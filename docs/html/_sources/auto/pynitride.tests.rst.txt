@@ -5,16 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pynitride.tests.Analytical_POP
-    pynitride.tests.Li1992_SQW
-    pynitride.tests.Pokatilov2003_phonon
-    pynitride.tests.core
+   pynitride.tests.Analytical_POP
+   pynitride.tests.Li1992_SQW
+   pynitride.tests.Pokatilov2003_phonon
+   pynitride.tests.core
 
 Module contents
 ---------------
 
 .. automodule:: pynitride.tests
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -2,6 +2,6 @@ pynitride.core.cython\_maths module
 ===================================
 
 .. automodule:: pynitride.core.cython_maths
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

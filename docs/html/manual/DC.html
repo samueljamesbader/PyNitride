@@ -1,19 +1,17 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Dielectric Continuum Model &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Elastic Continuum Model" href="EC.html" />
@@ -34,15 +32,15 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="dielectric-continuum-model">
-<span id="dc"></span><h1>Dielectric Continuum Model<a class="headerlink" href="#dielectric-continuum-model" title="Permalink to this headline">¶</a></h1>
-<p>The Dielectric Continuum model <a class="footnote-reference" href="#id2" id="id1">[1]</a>, describes optical phonons in bulk materials or heterostructures.  As presented
+  <section id="dielectric-continuum-model">
+<span id="dc"></span><h1>Dielectric Continuum Model<a class="headerlink" href="#dielectric-continuum-model" title="Permalink to this heading">¶</a></h1>
+<p>The Dielectric Continuum model <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, describes optical phonons in bulk materials or heterostructures.  As presented
 below, by solving for the associated phonon potential, it will find only modes which produce a potential, ie modes which
 are <em>purely</em> transverse will not be identified.  In wurtzite materials, “ordinary” modes are purely transverse, but the
 “extraordinary” modes, even those known as transverse optical (TO), do have some non-vanishing longitudinal component and
 will appear from the following math.</p>
-<div class="section" id="equations-of-motion">
-<h2>Equations of Motion<a class="headerlink" href="#equations-of-motion" title="Permalink to this headline">¶</a></h2>
+<section id="equations-of-motion">
+<h2>Equations of Motion<a class="headerlink" href="#equations-of-motion" title="Permalink to this heading">¶</a></h2>
 <p>If the system is described by a driven oscillator equation</p>
 <div class="math notranslate nohighlight">
 \[\newcommand{\abs}[1]{\left|#1\right|}
@@ -72,9 +70,9 @@ The phonons are found by solving</p>
 \[\begin{equation}
   \partial_z\epsilon_\parallel\partial_z\phi=q^2\epsilon_\perp\phi
 \end{equation}\]</div>
-</div>
-<div class="section" id="normalization">
-<h2>Normalization<a class="headerlink" href="#normalization" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="normalization">
+<h2>Normalization<a class="headerlink" href="#normalization" title="Permalink to this heading">¶</a></h2>
 <p>The <span class="math notranslate nohighlight">\(\phi\)</span> must then be normalized by the prescription <span class="math notranslate nohighlight">\(\int dz\frac{\mu}{V_u}\abs{\vec u}^2=\frac{\hbar}{2\omega}\)</span>.  To do this, we’ll need to extract <span class="math notranslate nohighlight">\(\vec u\)</span> from the <span class="math notranslate nohighlight">\(\phi\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\begin{align}
@@ -103,9 +101,9 @@ Thus the normalization condition is written in terms of the potential as</p>
 \[\begin{align}
   \frac{\hbar}{2\omega} = \int dz \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
 \end{align}\]</div>
-</div>
-<div class="section" id="binary-wurtzite-heterojunction">
-<span id="bwh"></span><h2>Binary Wurtzite Heterojunction<a class="headerlink" href="#binary-wurtzite-heterojunction" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="binary-wurtzite-heterojunction">
+<span id="bwh"></span><h2>Binary Wurtzite Heterojunction<a class="headerlink" href="#binary-wurtzite-heterojunction" title="Permalink to this heading">¶</a></h2>
 <p>Following the quantum well example of <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.59.5013">Komirenko1999</a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">DielectricContinuum_SWH</span></code> solves a
 single heterojunction structure with uniform <code class="xref py py-class docutils literal notranslate"><span class="pre">Wurtzite</span></code> regions 1/2, assuming the bottom region is semi-infinite.
 The top surface at <span class="math notranslate nohighlight">\(z=0\)</span> is assumed Dirichelet.
@@ -152,8 +150,8 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
   \gamma_{\parallel i}^2=\int_{i} dz \left(\frac{\partial_z \phi}{A k_i}\right)^2, \quad
   \gamma_{\perp i}^2=\int_{i} dz \left(\frac{\phi}{B}\right)^2
 \end{equation}\]</div>
-<div class="section" id="confined-to-region-1">
-<h3>Confined to Region 1<a class="headerlink" href="#confined-to-region-1" title="Permalink to this headline">¶</a></h3>
+<section id="confined-to-region-1">
+<h3>Confined to Region 1<a class="headerlink" href="#confined-to-region-1" title="Permalink to this heading">¶</a></h3>
 <p>If the solution is oscillating in Region 1 and decaying in Region 2, we can write</p>
 <div class="math notranslate nohighlight">
 \[\begin{align}
@@ -176,9 +174,9 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
   \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
 \end{equation}\]</div>
 <p>Note that if the energy region adjoins <span class="math notranslate nohighlight">\(\omega_{LO\perp 1}\)</span>, the above does admit one peculiar <span class="math notranslate nohighlight">\(n=0\)</span> mode which has a very small <span class="math notranslate nohighlight">\(q\)</span> for all <span class="math notranslate nohighlight">\(\omega\)</span>.  This mode thus does not contribute to in-plane scattering, but is terrible for the math, so I’d filter it out.</p>
-</div>
-<div class="section" id="confined-to-interface">
-<h3>Confined to Interface<a class="headerlink" href="#confined-to-interface" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="confined-to-interface">
+<h3>Confined to Interface<a class="headerlink" href="#confined-to-interface" title="Permalink to this heading">¶</a></h3>
 <p>If the solution is decaying in both regions, we can write</p>
 <div class="math notranslate nohighlight">
 \[\begin{align}
@@ -201,9 +199,9 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
   \gamma_{\perp     2}=\frac{1}{2k_2}e^{-2k_2t_1}
 \end{equation}\]</div>
 <p>For large <span class="math notranslate nohighlight">\(q\)</span> mode approaches an resonant energy of <span class="math notranslate nohighlight">\(\omega_{IF}\)</span> defined by <span class="math notranslate nohighlight">\(\xi_1=\xi_2\)</span>.</p>
-</div>
-<div class="section" id="confined-to-region-2">
-<h3>Confined to Region 2<a class="headerlink" href="#confined-to-region-2" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="confined-to-region-2">
+<h3>Confined to Region 2<a class="headerlink" href="#confined-to-region-2" title="Permalink to this heading">¶</a></h3>
 <p>If the solution is decaying in Region 1 and oscillating in Region 2, we can write</p>
 <div class="math notranslate nohighlight">
 \[\begin{align}
@@ -230,15 +228,15 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
   \gamma_{\parallel 2}=\frac{t_2}{2}, \quad
   \gamma_{\perp     2}=\frac{t_2}{2}
 \end{equation}\]</div>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>as discussed in Stroscio and Dutta, <em>Phonons in Nanostructures</em></td></tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>as discussed in Stroscio and Dutta, <em>Phonons in Nanostructures</em></p>
+</aside>
+</aside>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -278,17 +276,15 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -305,8 +301,8 @@ but for a factor of two in <span class="math notranslate nohighlight">\(\alpha\)
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/manual/DC.rst.txt"

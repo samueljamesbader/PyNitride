@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.examples.AlGaN_GaN_HEMT.hemt_POP
    pynitride.examples.AlGaN_GaN_HEMT.hemt_example
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.examples.AlGaN_GaN_HEMT
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

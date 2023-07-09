@@ -2,6 +2,6 @@ pynitride.examples.pchannel\_GaN\_AlN\_HFET.pFET\_example module
 ================================================================
 
 .. automodule:: pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

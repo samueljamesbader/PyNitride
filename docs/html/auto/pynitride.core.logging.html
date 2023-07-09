@@ -1,19 +1,16 @@
+<!DOCTYPE html>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>pynitride.core.logging module &#8212; PyNitride 2.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pynitride.core.machine module" href="pynitride.core.machine.html" />
@@ -34,88 +31,73 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="module-pynitride.core.logging">
-<span id="pynitride-core-logging-module"></span><h1>pynitride.core.logging module<a class="headerlink" href="#module-pynitride.core.logging" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="pynitride.core.logging.log">
-<code class="descclassname">pynitride.core.logging.</code><code class="descname">log</code><span class="sig-paren">(</span><em>msg</em>, <em>level='info'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log" title="Permalink to this definition">¶</a></dt>
+  <section id="module-pynitride.core.logging">
+<span id="pynitride-core-logging-module"></span><h1>pynitride.core.logging module<a class="headerlink" href="#module-pynitride.core.logging" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.logging.log">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.logging.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'info'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Logs a message if it is severe enough.</p>
 <p>For info on the severity setting, see <a class="reference internal" href="#pynitride.core.logging.set_level" title="pynitride.core.logging.set_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_level()</span></code></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>msg</strong> – the string to log</li>
-<li><strong>level</strong> – the severity of the message, one of
-“error”, “warning”, “info”, “debug”, “TODO”</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>msg</strong> – the string to log</p></li>
+<li><p><strong>level</strong> – the severity of the message, one of
+“error”, “warning”, “info”, “debug”, “TODO”</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.logging.log_fail">
-<code class="descclassname">pynitride.core.logging.</code><code class="descname">log_fail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log_fail" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.logging.log_fail">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.logging.</span></span><span class="sig-name descname"><span class="pre">log_fail</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.log_fail" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience function which logs the most recent traceback.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.logging.set_level">
-<code class="descclassname">pynitride.core.logging.</code><code class="descname">set_level</code><span class="sig-paren">(</span><em>level=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.set_level" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.logging.set_level">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.logging.</span></span><span class="sig-name descname"><span class="pre">set_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.set_level" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the minimum severity for a message to be printed.</p>
 <p>The <a class="reference internal" href="#pynitride.core.logging.log" title="pynitride.core.logging.log"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a> function will ignore messages below the set level.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>level</strong> – the severity of the message, one of
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>level</strong> – the severity of the message, one of
 “error”, “warning”, “info”, “debug”, “TODO”.
-Or <cite>None</cite>, to use the default from <cite>config.ini</cite></td>
-</tr>
-</tbody>
-</table>
+Or <cite>None</cite>, to use the default from <cite>config.ini</cite></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.logging.start_log_file">
-<code class="descclassname">pynitride.core.logging.</code><code class="descname">start_log_file</code><span class="sig-paren">(</span><em>filename</em>, <em>overwrite=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.start_log_file" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.logging.start_log_file">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.logging.</span></span><span class="sig-name descname"><span class="pre">start_log_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.start_log_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Establishes a log file to direct subsequent messages</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>filename</strong> – path of the log file</li>
-<li><strong>overwrite</strong> – whether to overwrite or append</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> – path of the log file</p></li>
+<li><p><strong>overwrite</strong> – whether to overwrite or append</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="pynitride.core.logging.sublog">
-<code class="descclassname">pynitride.core.logging.</code><code class="descname">sublog</code><span class="sig-paren">(</span><em>msg</em>, <em>level='info'</em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.sublog" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynitride.core.logging.sublog">
+<span class="sig-prename descclassname"><span class="pre">pynitride.core.logging.</span></span><span class="sig-name descname"><span class="pre">sublog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'info'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynitride.core.logging.sublog" title="Permalink to this definition">¶</a></dt>
 <dd><p>Context manager to log a message and temporarily indent further messages</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>msg</strong> – the “heading” message</li>
-<li><strong>level</strong> – the severity, see <a class="reference internal" href="#pynitride.core.logging.log" title="pynitride.core.logging.log"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>msg</strong> – the “heading” message</p></li>
+<li><p><strong>level</strong> – the severity, see <a class="reference internal" href="#pynitride.core.logging.log" title="pynitride.core.logging.log"><code class="xref py py-func docutils literal notranslate"><span class="pre">log()</span></code></a></p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -159,17 +141,15 @@ Or <cite>None</cite>, to use the default from <cite>config.ini</cite></td>
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -186,8 +166,8 @@ Or <cite>None</cite>, to use the default from <cite>config.ini</cite></td>
       &copy;2017, Samuel James Bader.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/auto/pynitride.core.logging.rst.txt"

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pynitride.tests.core.test_cython_maths
    pynitride.tests.core.test_machine
@@ -13,6 +14,6 @@ Module contents
 ---------------
 
 .. automodule:: pynitride.tests.core
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
