@@ -11,6 +11,7 @@ from pynitride import log
 from scipy.special import lambertw as W
 from pynitride.core.fem import assemble_load_matrix
 from copy import deepcopy
+import warnings
 
 class MaterialBlock():
     def __init__(self,name,matsys,layers):
@@ -976,6 +977,10 @@ class Function(np.ndarray):
             return (type(self)(submesh, pos='mid' ,value=self.T[submesh._slicem].T,dtype=self.dtype)).restrict(submesh)
 
     def tpf(self, interp='z'):
+        warnings.warn("Function.tpf() is deprecated, use Function.tnf().",DeprecationWarning)
+        return self.tnf(interp=interp)
+
+    def tnf(self, interp='z'):
         r""" Ensure that a Function is defined on the node mesh.
 
         Args:

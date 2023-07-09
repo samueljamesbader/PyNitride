@@ -50,21 +50,22 @@ Find out more about the :ref:`math_and_physics` or skip into the :doc:`API refer
 
 Authors
 =========
-.. image:: Authors.jpeg
-    :alt: Sam Bader and Martin Schubert
-    :scale: 85%
+.. image:: SamBader.jpg
+    :alt: Sam Bader
+    :scale: 30%
     :align: right
 
-`Sam Bader <http://sambader.net>`_ is an Applied Physics PhD student with
+`Sam Bader <http://sambader.net>`_ developed this package during his PhD working with
 `Prof Jena <https://djena.engineering.cornell.edu/>`_ and `Prof Xing <http://grace.engineering.cornell.edu/>`_
-at Cornell University, working on p-channel III-Nitride devices.
-
-And `Martin Schubert <https://www.linkedin.com/in/mfschubert/>`_ works on early-stage projects at Google X.
+at Cornell University on p-channel III-Nitride devices.
 
 If you find this useful let me know! And show some love by citing the project!
 
 Acknowledgements
 ==================
+Thanks to `Martin Schubert <https://www.linkedin.com/in/mfschubert/>`_ for extremely helpful exchanges and code-sharing
+regarding multi-band k.p analysis!
+
 These tools owe a great deal to many other wonderful projects from the Python community,
 including `Scipy <https://www.scipy.org/>`_,
 `Cython <http://cython.org/>`_,
@@ -73,6 +74,7 @@ and `Anaconda <https://www.continuum.io/>`_.
 
 Thanks also to `1DPoisson <http://www3.nd.edu/~gsnider/>`_, the fast and convenient standalone 1D Schrodinger Poisson
 solver from Greg Snider which inspired this toolset.
+
 
 And finally, Sam thanks his advisors
 `Debdeep Jena <https://djena.engineering.cornell.edu/>`_ and `Grace Xing <http://grace.engineering.cornell.edu/>`_

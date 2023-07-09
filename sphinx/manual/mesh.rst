@@ -2,27 +2,42 @@
 
 Meshing Scheme
 =====================================
-This page describes the properties of the mesh scheme implemented in :py:mod:`~pynitride.poissolve.mesh`.
+This page describes the properties of the mesh scheme implemented in the :py:mod:`~pynitride.core.mesh` module
+and how variables are defined on the mesh through :py:class:`~pynitride.core.mesh.Function`.
 
 Dual mesh
 -----------------------------
-The "main" meshes in PyNitride are referred to as *node meshes*.  But for every node mesh, there is a dual *mid mesh*
-whose points are simply the midpoints between the node mesh locations.  In general solution variables and all other
-continuous functions are defined on the node mesh.  There is guaranteed to be aligned to all interfaces; conversely,
-the mid mesh will never contain a point at an interface; all points of the mid mesh are specifically in one layer.  This
-makes the mid mesh the correct place to put material properties which are intrinsically discontinuous at interfaces.
+A spatial mesh in PyNitride actually denotes two lists of points: the *node* points and the *mid* points.
+Node points are the "main" mesh defined by the structure, and every layer interface is aligned on a node point.
+Many direct solution variables, such as the electric potential, are defined as functions over the node points.
+Mid points, conversely, are defined as the points halfway between each node point.
+Because interfaces/ discontinuities align to node points, every mid point is within a well-defined layer.
+So variables that depend on material properties, or are intrinsically discontinuous at interfaces,
+are defined as functions over the mid points.
 
-Differentiating or integrating a function on one mesh "naturally" produces a function defined on the dual mesh, but any
-function can be re-interpolated between the two using the :py:func:`~pynitride.mesh.Function.tpf` and
-:py:func:`~pynitride.mesh.Function.tmf` functions.
+A mesh is represented by :py:class:`~pynitride.core.mesh.Mesh`, and the functions are
+instances of :py:class:`~pynitride.core.mesh.Function` whose `pos` variable indicates whether
+it is a node function or mid function.  Functions defined on a mesh can be retrieved like instance variables
+(eg `mesh.Ec` to get the conduction band edge).
+`Function` subclasses Numpy arrays, so that array operations work as they normally would.
 
+If there are `n` node points, node functions act like a Numpy array whose last dimension is of length `n`.
+Mid functions act as Numpy arrays whose last dimension is length `n-1`.
+`Function` includes methods :py:func:`~pynitride.mesh.Function.tnf` ("to node function") and
+:py:func:`~pynitride.mesh.Function.tmf` ("to mid function") which interpolate between the two possibilities.
+(Note: `tnf` will do nothing on a node-function, so these can be used liberally, eg if you want the conduction band edge as
+an array of length `n`, you can use `mesh.Ec.tnf()` without having to remember what `Ec` is actually defined on).
 
-Li_1994_ discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) the
-preferred method to address the ambiguity of of the material property :math:`a` at an interface and the effect of that
-choice on the convergence of the solution.
-But in this formalism, there is no ambiguity, because :math:`a` is only ever defined and requested on the mid mesh.
-Note that the :py:mod:`~pynitride.tests.Li1992_SQW.test_SQW_convergence` test shows that, empirically, this
-discretization appears to work similarly to their recommendation.
+Functions have convenience methods, eg for calculus.  Differentiating or integrating a function on one pointset
+naturally produces a function defined on the dual pointset
+(eg since potential is a node function, electric field becomes a mid-function).
+
+Li_1994_ discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) how
+different ways of discretizing a material property discontinuity at an interface can affect the convergence
+of the solution.  In a traditional single-mesh scheme, there's some ambiguity about how the equations are discretized
+at interfaces, but this dual mesh setup ensures that material properties are well-defined where they are stored
+and any interpolations are explicit. Note that the :py:mod:`~pynitride.tests.Li1992_SQW.test_SQW_convergence` test shows that, empirically, this
+discretization appears to work similarly to Li et al's recommendation.
 
 Shared values on the mesh
 -----------------------------
