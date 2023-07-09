@@ -38,10 +38,11 @@ setup(
 def make_default_config():
     with open("config.ini",'w') as f:
         cp=ConfigParser()
+        parallel=('fork' in get_all_start_methods())
         cp.add_section("parallelism")
         cp.set("parallelism","globalthreads","cpu_count")
-        cp.set("parallelism","globalprocesses","cpu_count" if 'fork' in get_all_start_methods() else '1')
-        cp.set("parallelism","cextthread","1")
+        cp.set("parallelism","globalprocesses",("cpu_count" if parallel else '1'))
+        cp.set("parallelism","cextthread",("1" if parallel else "DEFAULT"))
         cp.add_section("logging")
         cp.set("logging","level","info")
         cp.write(f)
