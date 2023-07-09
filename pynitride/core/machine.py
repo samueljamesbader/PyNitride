@@ -299,7 +299,7 @@ except: globalthreads=cpu_count()
 try: globalprocesses=config.getint("parallelism","globalprocesses")
 except: globalprocesses=cpu_count()
 try: cextthread=config.getint("parallelism","cextthread")
-except: cextthread=1
+except: cextthread=None
 
 # Apply configuration
 if cextthread is not None:

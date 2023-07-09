@@ -248,7 +248,7 @@ class Mesh():
             if isinstance(zr,str):
                 l1n,l2n=zr.split("/")
                 try:
-                    print("Layers are \""+"\", \"".join([l.name for l in layers])+"\"")
+                    #print("Layers are \""+"\", \"".join([l.name for l in layers])+"\"")
                     l1,_=next((i,l) for i,l in enumerate(layers) if l.name==l1n)
                     l2,_=next((i,l) for i,l in enumerate(layers) if l.name==l2n)
                 except:
