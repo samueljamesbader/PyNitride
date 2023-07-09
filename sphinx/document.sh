@@ -1,4 +1,8 @@
 #!/bin/bash
+# Warning: This script may be out of date because I currently use the document.py instead
+# This file will likely be removed
+
+
 if [[ "$PWD" = *docs ]]; then
     echo "Run this script from main PyNitride directory"
     exit

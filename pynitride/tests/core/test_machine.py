@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r""" Tests the high-performance mathematical methods in :py:mod:`~pynitride.core.cython_maths`."""
+r""" Tests the global storage """
 from pynitride.core.machine import glob_store_attributes, _storage
 import pytest
 if __name__=="__main__": pytest.main(args=[__file__,'-s'])
