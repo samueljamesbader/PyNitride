@@ -6,6 +6,7 @@ from inspect import signature
 from time import time
 import os.path
 import pickle
+from pathlib import Path
 
 class Simulation():
 
@@ -32,11 +33,17 @@ class Simulation():
         """
         self.name=name
         """ Name of the simulation. """
+
         self._outdir=outdir
+        """ Where to put the output"""
+        if outdir and len(outdir): Path(outdir).mkdir(parents=True,exist_ok=True)
+
         self.dmeshes={}
         """ Where the (direct space) meshes are stored. """
+
         self.rmeshes={}
         """ Where the reciprocal space meshes are stored. """
+
         self.extras ={}
         """ Where `define_mesh` provides any further information. """
 

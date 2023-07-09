@@ -318,4 +318,4 @@ if globalthreads>1:
 else: _thrdpool=FakePool()
 
 # Start with parallelism on
-_no_parallel=False
+_no_parallel=False if globalprocesses>1 else True

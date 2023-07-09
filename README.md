@@ -1,32 +1,49 @@
 # PyNitride
 
-## Requirements
+## System requirements
+For typical usage, PyNitride just requires any system with Python >=3.8,
+and a few standard packages which are installed implicitly
+by following the [Installation instructions](#Installation).
 
-For now, the parallelized Python code only works on *nix systems, so Windows users will have to set the configuration
-limit parallelization to C extensions only.
+
+*The following note is for developers building demanding numerical codes on top of PyNitride,
+not really relevant to typical band-diagram generating users*: On *nix systems, PyNitride can be used with the `multiprocessing` fork-based parallelization.
+Many classes will, behind the scenes, store their large data in a global structure
+to avoid pickling it for each new forked process the class is passed to.
+`multiprocessing` does not support forking on Windows, so on Windows this parallelization is turned off
+in the config.ini file
+(though C extensions such as Numpy may still be internally parallelized).
 
 ## Installation
+### From Source
 
-If you don't have Python 3, I recommend you install the `miniconda` distribution for Python 3 from  [Continuum](<https://conda.io/miniconda.html>) following their instructions.
+Since this project is still in pre-release and contains a few random chunks of my PhD work,
+this is the only way to install.  After some cleaning up, I may put it on Pypi for easier access!
 
-*Hopefully, the next steps I will replace with a conda package... but I still have to figure that out*, so for now:
-
-Install the various Python dependencies of this project.  If you have `miniconda` or `anaconda`, then this is easy.  Open up a terminal and type:
-
-    conda install numpy scipy cython anaconda matplotlib pytest
-
-    conda install -c conda-forge pint
-    
-    conda install -c samjbader omniscient
-
-Then download this project via `github`
+Download this project via GitHub
 
     cd DIRECTORY_WHERE_I_WANT_TO_INSTALL
-    git clone https://github.com/samueljamesbader/PyNitride.git
+    git clone https://github.com/samueljamesbader/PyNitride
     
-And build it
+If you want to have an isolated virtual environment[^1], might as well make it here and activate it.
 
     cd PyNitride
-    python setup.py build_ext -i
+    python -m venv venv
     
-Make sure this directory is on your Python path (eg by running `python setup.py develop`), and you should be good to go.
+    # Windows:
+    venv\Scripts\activate.bat
+    # *nix
+    source venv/bin/activate
+
+Now do a local editable install:
+
+    pip install -e .
+
+[^1]: Note to less-experienced Python users:
+this is optional but having a virtual environment for each project is nice practice
+so that you don't  mess up one project's Python when installing packages for another project.
+Much cleaner than installing all python packages into your global system python
+which will get cluttered real quick!
+If you want to know more, search "python venv".
+The catch is to make sure you activate the venv whenever you want to use it from a new terminal,
+eg before opening a Jupyter notebook!  Running from an IDE like PyCharm will often take care of this all for you.) 

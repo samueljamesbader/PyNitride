@@ -52,7 +52,7 @@ if __name__=="__main__":
 
 
     print("Holes: {:.2f} x10^13/cm^2".format(to_unit(float(m.p.integrate(definite=True)),"1e13/cm^2")))
-    print("EV-EF [meV]: {:.2f} meV",to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV"))
+    print("EV-EF [meV]: {:.2f} meV".format(to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV")))
 
     # Check normalization
     if 'kppsi' in rmesh:
