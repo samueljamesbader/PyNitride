@@ -11,7 +11,6 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Units in PyNitride" href="units.html" />
@@ -34,23 +33,37 @@
             
   <section id="meshing-scheme">
 <span id="mesh"></span><h1>Meshing Scheme<a class="headerlink" href="#meshing-scheme" title="Permalink to this heading">¶</a></h1>
-<p>This page describes the properties of the mesh scheme implemented in <code class="xref py py-mod docutils literal notranslate"><span class="pre">mesh</span></code>.</p>
+<p>This page describes the properties of the mesh scheme implemented in the <a class="reference internal" href="../auto/pynitride.core.mesh.html#module-pynitride.core.mesh" title="pynitride.core.mesh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mesh</span></code></a> module
+and how variables are defined on the mesh through <a class="reference internal" href="../auto/pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a>.</p>
 <section id="dual-mesh">
 <h2>Dual mesh<a class="headerlink" href="#dual-mesh" title="Permalink to this heading">¶</a></h2>
-<p>The “main” meshes in PyNitride are referred to as <em>node meshes</em>.  But for every node mesh, there is a dual <em>mid mesh</em>
-whose points are simply the midpoints between the node mesh locations.  In general solution variables and all other
-continuous functions are defined on the node mesh.  There is guaranteed to be aligned to all interfaces; conversely,
-the mid mesh will never contain a point at an interface; all points of the mid mesh are specifically in one layer.  This
-makes the mid mesh the correct place to put material properties which are intrinsically discontinuous at interfaces.</p>
-<p>Differentiating or integrating a function on one mesh “naturally” produces a function defined on the dual mesh, but any
-function can be re-interpolated between the two using the <code class="xref py py-func docutils literal notranslate"><span class="pre">tpf()</span></code> and
-<code class="xref py py-func docutils literal notranslate"><span class="pre">tmf()</span></code> functions.</p>
-<p><a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0021999184710266">Li_1994</a> discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) the
-preferred method to address the ambiguity of of the material property <span class="math notranslate nohighlight">\(a\)</span> at an interface and the effect of that
-choice on the convergence of the solution.
-But in this formalism, there is no ambiguity, because <span class="math notranslate nohighlight">\(a\)</span> is only ever defined and requested on the mid mesh.
-Note that the <a class="reference internal" href="../auto/pynitride.tests.Li1992_SQW.test_SQW_convergence.html#module-pynitride.tests.Li1992_SQW.test_SQW_convergence" title="pynitride.tests.Li1992_SQW.test_SQW_convergence"><code class="xref py py-mod docutils literal notranslate"><span class="pre">test_SQW_convergence</span></code></a> test shows that, empirically, this
-discretization appears to work similarly to their recommendation.</p>
+<p>A spatial mesh in PyNitride actually denotes two lists of points: the <em>node</em> points and the <em>mid</em> points.
+Node points are the “main” mesh defined by the structure, and every layer interface is aligned on a node point.
+Many direct solution variables, such as the electric potential, are defined as functions over the node points.
+Mid points, conversely, are defined as the points halfway between each node point.
+Because interfaces/ discontinuities align to node points, every mid point is within a well-defined layer.
+So variables that depend on material properties, or are intrinsically discontinuous at interfaces,
+are defined as functions over the mid points.</p>
+<p>A mesh is represented by <a class="reference internal" href="../auto/pynitride.core.mesh.html#pynitride.core.mesh.Mesh" title="pynitride.core.mesh.Mesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></a>, and the functions are
+instances of <a class="reference internal" href="../auto/pynitride.core.mesh.html#pynitride.core.mesh.Function" title="pynitride.core.mesh.Function"><code class="xref py py-class docutils literal notranslate"><span class="pre">Function</span></code></a> whose <cite>pos</cite> variable indicates whether
+it is a node function or mid function.  Functions defined on a mesh can be retrieved like instance variables
+(eg <cite>mesh.Ec</cite> to get the conduction band edge).
+<cite>Function</cite> subclasses Numpy arrays, so that array operations work as they normally would.</p>
+<p>If there are <cite>n</cite> node points, node functions act like a Numpy array whose last dimension is of length <cite>n</cite>.
+Mid functions act as Numpy arrays whose last dimension is length <cite>n-1</cite>.
+<cite>Function</cite> includes methods <code class="xref py py-func docutils literal notranslate"><span class="pre">tnf()</span></code> (“to node function”) and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">tmf()</span></code> (“to mid function”) which interpolate between the two possibilities.
+(Note: <cite>tnf</cite> will do nothing on a node-function, so these can be used liberally, eg if you want the conduction band edge as
+an array of length <cite>n</cite>, you can use <cite>mesh.Ec.tnf()</cite> without having to remember what <cite>Ec</cite> is actually defined on).</p>
+<p>Functions have convenience methods, eg for calculus.  Differentiating or integrating a function on one pointset
+naturally produces a function defined on the dual pointset
+(eg since potential is a node function, electric field becomes a mid-function).</p>
+<p><a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0021999184710266">Li_1994</a> discusses empirically (in the context of effective mass discontinuities in the Schrodinger equation) how
+different ways of discretizing a material property discontinuity at an interface can affect the convergence
+of the solution.  In a traditional single-mesh scheme, there’s some ambiguity about how the equations are discretized
+at interfaces, but this dual mesh setup ensures that material properties are well-defined where they are stored
+and any interpolations are explicit. Note that the <a class="reference internal" href="../auto/pynitride.tests.Li1992_SQW.test_SQW_convergence.html#module-pynitride.tests.Li1992_SQW.test_SQW_convergence" title="pynitride.tests.Li1992_SQW.test_SQW_convergence"><code class="xref py py-mod docutils literal notranslate"><span class="pre">test_SQW_convergence</span></code></a> test shows that, empirically, this
+discretization appears to work similarly to Li et al’s recommendation.</p>
 </section>
 <section id="shared-values-on-the-mesh">
 <h2>Shared values on the mesh<a class="headerlink" href="#shared-values-on-the-mesh" title="Permalink to this heading">¶</a></h2>
