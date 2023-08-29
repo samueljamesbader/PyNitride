@@ -175,14 +175,21 @@ class Schrodinger(CarrierModel):
         self._zkinetic=[]
         self._lkineticfactor=[]
         if 'electron' in self._carriers:
+            assert 'schro_e_psi' not in m, "This mesh already has an electron Schrodinger"
+            m.designate_non_mesh_item('schro_e_en')
+
             self._nebands=m.mez.shape[0]
-            self._een=np.empty([self._nebands, self._neig+self._blend])
-            self._epsi=NodFunction(m, empty=(self._nebands, self._neig+self._blend),dtype=float)
+            m['schro_e_en']=self._een=np.empty([self._nebands, self._neig+self._blend])
+            m['schro_e_psi']=self._epsi=NodFunction(m, empty=(self._nebands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'electron','subband':l} for l in range(self._nebands)]
+
         if 'hole' in self._carriers:
+            assert 'schro_h_psi' not in m, "This mesh already has an hole Schrodinger"
+            m.designate_non_mesh_item('schro_h_en')
+
             self._nhbands=m.mhz.shape[0]
-            self._hen=np.empty([self._nhbands, self._neig+self._blend])
-            self._hpsi=NodFunction(m, empty=(self._nhbands, self._neig+self._blend),dtype=float)
+            m['schro_h_en']=self._hen=np.empty([self._nhbands, self._neig+self._blend])
+            m['schro_h_psi']=self._hpsi=NodFunction(m, empty=(self._nhbands, self._neig+self._blend),dtype=float)
             self._subbands+=[{'carrier':'hole','subband':l} for l in range(self._nhbands)]
 
         for sb in self._subbands:

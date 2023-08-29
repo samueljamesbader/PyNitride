@@ -368,6 +368,9 @@ class Mesh():
         self._requested_functions = {}
         self._submeshes= []
 
+        # And non-mesh items
+        self._non_mesh_items = {}
+
         self._global_slicen=slice(0,len(self._zn))
         self._global_slicem=slice(0,len(self._zm))
 
@@ -588,7 +591,9 @@ class Mesh():
 
         """
         #print("in get",key)
-        if key in self._functions:
+        if key in self._non_mesh_items:
+            return self._non_mesh_items[key]
+        elif key in self._functions:
             return self._functions[key]
         elif sum(key in mb for mb in self._matblocks):
             return self._fill_from_matblocks(key)
@@ -597,7 +602,9 @@ class Mesh():
 
     def __setitem__(self, key, value):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
-        if key in self._functions:
+        if key in self._non_mesh_items:
+            self._non_mesh_items[key] = value
+        elif key in self._functions:
             self._functions[key][:] = value
         else:
             assert isinstance(value,Function), "Must be a mesh.functions.Function"
@@ -619,6 +626,15 @@ class Mesh():
             self.__setitem__(key,value)
         else:
             super().__setattr__(key,value)
+
+    def designate_non_mesh_item(self, key):
+        """Indicates that key should not be treated as a mesh function (ie it may have whatever dimensionality).
+
+        For instance, some models may want to store scalar values (eg eigenenergies) on the mesh so the user can
+        easily save/reload them, but don't want these to be expanded to functions over the whole mesh, propagated
+        to submeshes, etc.
+        """
+        self._non_mesh_items[key]=None
 
     @property
     def zn(self):
@@ -786,6 +802,7 @@ class SubMesh(Mesh):
             self._layers=[next(ll for i,ll,lr in (mesh.interfaces_node+[[start+1,mesh._layers[-1],None]]) if i > start)]
 
         self._functions = { k: f.restrict(self) for k, f in mesh._functions.items()}
+        self._non_mesh_items = {}
         self._requested_functions = {}
 
 

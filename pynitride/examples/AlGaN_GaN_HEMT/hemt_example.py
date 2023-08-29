@@ -29,14 +29,13 @@ if __name__=="__main__":
     sim.load(force=True)
 
     m,schro=sim.dmeshes['main'],sim.dmeshes['schro']
-    ss=sim.extras['schro']
     m.plot_mesh()
     plt.tight_layout()
 
 
     # Check normalization
-    wf0=ss._epsi[0,0,:]
-    wf1=ss._epsi[0,1,:]
+    wf0=schro.schro_e_psi[0,0,:]
+    wf1=schro.schro_e_psi[0,1,:]
     from pynitride.core.mesh import inner_product
     assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
@@ -47,9 +46,9 @@ if __name__=="__main__":
         plt.plot(m.zm,m.Ec,'b')
         plt.plot(m.zm,m.Ev,'g')
         plt.plot(m.zn, m.EF, 'r')
-        plt.plot(schro.zn, dephase(ss._epsi[0, 0, :]) + ss._een[0, 0], 'purple')
-        plt.plot(schro.zn, dephase(ss._epsi[0, 1, :]) + ss._een[0, 1], 'pink')
-        plt.plot(schro.zn, dephase(ss._epsi[0, 2, :]) + ss._een[0, 2], 'black')
+        plt.plot(schro.zn, dephase(schro.schro_e_psi[0, 0, :]) + schro.schro_e_en[0, 0], 'purple')
+        plt.plot(schro.zn, dephase(schro.schro_e_psi[0, 1, :]) + schro.schro_e_en[0, 1], 'pink')
+        plt.plot(schro.zn, dephase(schro.schro_e_psi[0, 2, :]) + schro.schro_e_en[0, 2], 'black')
         plt.ylabel("Energy [eV]")
         plt.xlabel("Depth [nm]")
         plt.twinx()

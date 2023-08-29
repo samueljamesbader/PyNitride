@@ -130,6 +130,10 @@ class Simulation():
             log("Schrodinger loop took {:.1f} sec".format(endtime-starttime))
         #log("Saving output to "+sim._outdir)
 
+        # Save output
+        log("Saving to: " + os.path.join(sim._outdir,sim.name+"*"))
+        m.save(os.path.join(sim._outdir, sim.name + "_direct"), )
+
     @staticmethod
     def flow_fixedschrodinger(sim):
         pass
@@ -221,10 +225,14 @@ class Simulation():
     def loader_standard(sim):
         """ A simple loader for typical names, don't call directly, use :func:`Simulation.load`."""
         with sublog("Hoping to load previous run from " + os.path.join(sim._outdir,sim.name+"*")):
+            import pdb; pdb.set_trace()
             try:
                 m=sim.dmeshes.get('main',False)
                 if m:
                     m.read(os.path.join(sim._outdir, sim.name+"_direct.npz"))
+                    ss=sim.dmeshes.get('schro',False)
+                    if ss:
+                        sim.dmeshes['schro']=next(sm for sm in m._submeshes if sm.name=='schro')
                 rmesh=sim.rmeshes.get('mbkp_out',False) or sim.rmeshes.get('mbkp',False) or sim.rmeshes.get('mbkp_solve',False)
                 if rmesh:
                     rmesh.read(os.path.join(sim._outdir, sim.name+"_reciprocal.npz"))
@@ -233,6 +241,7 @@ class Simulation():
                         sim.extras[extra]=pickle.load(f)
             except Exception as e:
                 log("But "+str(e))
+                raise
                 return False
             return True
 
