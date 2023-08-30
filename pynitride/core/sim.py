@@ -135,7 +135,8 @@ class Simulation():
         pass
 
     @staticmethod
-    def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={},mbkp_loop_opts={}):
+    def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={},
+                                    mbkp_loop_opts={}, ramp_T=None, Tramp_loop_opts={}):
         """ Does a ramp with semiclassical solver, then swaps in an MBKP solver in dmeshes['mbkp'] region.
 
         The main mesh should be `dmeshes['main']`, the quantum region should be `dmeshes['mbkp']`, and the
@@ -145,7 +146,7 @@ class Simulation():
 
         Args:
             sim: the Simulation object (ie `self`)
-            T: the temperature
+            T: the initial temperature to solve at [if there's no temperature ramp requested, this is also the final T]
             Va: the applied voltage
             strain: passed to :class:`pynitride.physics.strain.Pseudomorphic`
             ramp_opts: passed to the :func:`~pynitride.physics.solvers.SelfConsistentLoop.ramp_epsfactor`
@@ -154,13 +155,17 @@ class Simulation():
                 when called for the ramp
             mbkp_loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
                 when called for MBKP
+            ramp_T: final temperature to ramp to, None for no temperature ramp
+            Tramp_loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
+                when called for ramping temperature.
         """
         m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
 
         # General solvers
         lf=Linear_Fermi(m,dict(gate=0,hg=sim.extras['sourcepoint'],subs=-1))
         lf.solve(gate=Va)
-        ConstantT(m,T).solve()
+        ts=ConstantT(m,T)
+        ts.solve()
         Pseudomorphic(m,straincond=strain).solve()
         ps=PoissonSolver(m)
 
@@ -192,6 +197,10 @@ class Simulation():
 
             endtime=time()
             log("MBKP loop took {:.1f} sec".format(endtime-starttime))
+
+        if ramp_T is not None and ramp_T!=T:
+            with sublog("Temperature loop"):
+                scl.ramp_temperature(temp_solver=ts,stop=ramp_T,**Tramp_loop_opts)
 
         # Refinement
         if 'mbkp_out' in sim.rmeshes:

@@ -405,7 +405,7 @@ class MultibandKP(CarrierModel):
         m[c]=(1/(4*pi**2))*self.rmesh.integrate(
             np.sum(self.rmesh['normsqs']/(1+np.exp(eta)),axis=1))
         m[cderiv]=(1/(4*pi**2))*self.rmesh.integrate(
-            sign*np.sum(self.rmesh['normsqs']*(np.exp(eta))/(1+np.exp(eta))**2/kT.tpf(),axis=1))
+            sign*np.sum(self.rmesh['normsqs']/(2+2*np.cosh(eta))/kT.tpf(),axis=1))
 
         log("not blending",level="TODO")
 
