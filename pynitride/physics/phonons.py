@@ -747,8 +747,8 @@ class ElasticContinuum_BulkWurtzite(AcousticPhonon):
                           np.arange(1,int(self.num_eigs/2)+1)])      
         beta=2*pi*n/self._thickness
         doY =('Y' in self.vecform)
-        doLA=('X' in self.vecform and self._pol is not 'TA')
-        doTA=('X' in self.vecform and self._pol is not 'LA')
+        doLA=('X' in self.vecform and self._pol!='TA')
+        doTA=('X' in self.vecform and self._pol!='LA')
         w=np.concatenate([w_Y( q,beta)  if doY else [],
                           w_TA(q,beta)  if doTA else [],
                           w_LA(q,beta)  if doLA else []])

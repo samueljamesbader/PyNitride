@@ -198,7 +198,11 @@ class RMesh1D(RMesh):
         tck, fp, ier, msg=splrep(self.absk1,func,full_output=True)
         assert ier<=0, msg
 
-        def interp(absk, theta=0, dabsk=0, bounds_check=True):
+        def interp(absk, theta=0, grid=False, dabsk=0, bounds_check=True):
+            if grid:
+                raise NotImplementedError("The grid argument to RMesh1D.interpolator.interp() was added only to match"\
+                        " the signature of the similar function for RMesh2D, and hasn't been implemented yet,"\
+                        " so please only supply grid=False")
             # for out of bounds, ext=0 extrapolates, ext=2 raises an error
             return splev(absk,tck,der=dabsk,ext=bounds_check*2)
         return interp
