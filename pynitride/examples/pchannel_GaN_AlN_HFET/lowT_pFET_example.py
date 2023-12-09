@@ -14,7 +14,7 @@ from pynitride import Simulation
 from pynitride import log
 
 
-def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV, kmesh='2D'):
+def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV, kmesh='1D'):
 
     # Set up the main mesh
     m=sim.dmeshes['main']=Mesh([

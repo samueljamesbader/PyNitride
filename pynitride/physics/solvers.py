@@ -555,7 +555,7 @@ class SelfConsistentLoop():
                     if np.sign(lef-lefstop)!=np.sign(lefstart-lefstop): lef=lefstop
             log("Done eps factor ramp")
 
-    def ramp_temperature(self, temp_solver, start=300, stop=300, dlTstart=.025, dlTmax=.1,
+    def ramp_temperature(self, temp_solver, start=None, stop=300, dlTstart=.025, dlTmax=.1,
                        dlTmin=.005,**loop_opts):
         """ Ramp the temperature for an easy initial condition.
 
@@ -568,7 +568,7 @@ class SelfConsistentLoop():
 
 
         Args:
-            start: initial value of temperature
+            start: initial value of temperature, if None, will ask temp solver
             stop: final value of temperature
             dlTstart: initial logarithmic delta for temperature stepping
             dlTmax: maximum allowed logarithmic delta for temperature stepping
@@ -576,8 +576,10 @@ class SelfConsistentLoop():
             loop_opts: passed to each `pynitride.solvers.SelfConsistentLoop.loop`
 
         """
+        if start is None:
+            start=temp_solver.current_temp()
         if start==stop:
-            log("Already at final temperature")
+            log("Already at temperature")
             return
         with sublog("Starting temperature ramp from {:g} to {:g}".format(start,stop)):
 
@@ -656,4 +658,3 @@ class SelfConsistentLoop():
                     # if we passed the end, go back
                     if np.sign(lT-lTstop)!=np.sign(lTstart-lTstop): lT=lTstop
             log("Done temperature ramp")
-

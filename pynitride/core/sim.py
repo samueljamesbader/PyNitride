@@ -136,7 +136,7 @@ class Simulation():
 
     @staticmethod
     def flow_semiclassicalramp_mbkp(sim,T=300,Va=0,strain=None,ramp_opts={},mbkp_opts={},loop_opts={},
-                                    mbkp_loop_opts={}, ramp_T=None, Tramp_loop_opts={}):
+                                mbkp_loop_opts={}, ramp_T=None, Tramp_loop_opts={}):
         """ Does a ramp with semiclassical solver, then swaps in an MBKP solver in dmeshes['mbkp'] region.
 
         The main mesh should be `dmeshes['main']`, the quantum region should be `dmeshes['mbkp']`, and the
@@ -186,45 +186,60 @@ class Simulation():
         scl.ramp_epsfactor(**ramp_opts)
 
         # MBKP loop
-        rmesh=sim.rmeshes['mbkp_solve'] if 'mbkp_solve' in sim.rmeshes else sim.rmeshes['mbkp']
         with sublog("MBKP loop"):
             starttime=time()
 
             # Put in MBKP and loop again
-            sim.extras['mbkp']=mbkp=MultibandKP(quantum,rmesh=rmesh,**mbkp_opts)
-            scl.swap_carrier_model(remove=semi_solver,add=mbkp)
+            rmesh=sim.rmeshes['mbkp_solve'] if 'mbkp_solve' in sim.rmeshes else sim.rmeshes['mbkp']
+            sim.extras['mbkp']=MultibandKP(quantum,rmesh=rmesh,**mbkp_opts)
+            scl.swap_carrier_model(remove=semi_solver,add=sim.extras['mbkp'])
             scl.loop(**mbkp_loop_opts)
 
             endtime=time()
             log("MBKP loop took {:.1f} sec".format(endtime-starttime))
 
-        if ramp_T is not None and ramp_T!=T:
-            with sublog("Temperature loop"):
-                scl.ramp_temperature(temp_solver=ts,stop=ramp_T,**Tramp_loop_opts)
-
         # Refinement
-        if 'mbkp_out' in sim.rmeshes:
-            starttime=time()
-            log("Refining MBKP")
+        def do_refinement():
+            if 'mbkp_out' in sim.rmeshes:
+                starttime=time()
+                log("Refining MBKP")
 
-            # Refine k-space
-            rmesh=sim.rmeshes['mbkp_out']
-            sim.extras['mbkp'] =mbkp= MultibandKP(quantum, num_eigenvalues=6, rmesh=rmesh)
-            mbkp.solve()
+                # Refine k-space
+                sim.extras['mbkp'] = MultibandKP(quantum, num_eigenvalues=6, rmesh=sim.rmeshes['mbkp_out'])
+                sim.extras['mbkp'].solve()
 
-            endtime=time()
-            log("MBKP refinement took {:.1f} sec".format(endtime-starttime))
-
-        # Useful checks
-        log("Holes: {:.2f} x10^13/cm^2".format(
-            to_unit(float(m.p.integrate(definite=True)), "1e13/cm^2")))
-        log("EV-EF [meV]: {:.2f} meV".format(
-            to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV")))
+                endtime=time()
+                log("MBKP refinement took {:.1f} sec".format(endtime-starttime))
 
         # Save output
-        log("Saving to: " + sim._outdir)
-        m.save(os.path.join(sim._outdir, sim.name + "_direct"), )
-        rmesh.save(os.path.join(sim._outdir, sim.name + "_reciprocal"), ['kpen'])
+        def do_save(at=""):
+            log("Saving to: " + sim._outdir)
+            m.save(os.path.join(sim._outdir, sim.name + f"{at}_direct"), )
+            sim.extras['mbkp'].rmesh.save(os.path.join(sim._outdir, sim.name + f"{at}_reciprocal"), ['kpen'])
+
+        # If ramp_T is not a list (eg it's just a single number or None), convert it to a list
+        try: ramp_T=list(ramp_T)
+        except: ramp_T=[ramp_T] if (ramp_T is not None) else []
+
+        # For each temperature, including start
+        for next_T in [T]+ramp_T:
+
+            # Ramp
+            with sublog(f"Temperature loop to {next_T}"):
+                scl.ramp_temperature(temp_solver=ts,stop=next_T,**Tramp_loop_opts)
+
+            # Refine
+            do_refinement()
+            log("Holes: {:.2f} x10^13/cm^2".format(
+                to_unit(float(m.p.integrate(definite=True)), "1e13/cm^2")))
+            log("EV-EF [meV]: {:.2f} meV".format(
+                to_unit(float((m.Ev-m.EF.tmf())[m.indexm(sim.extras['well_t'])]),"meV")))
+
+            # Save with a temperature in the file name
+            do_save(at=f"_{round(next_T,3):g}")
+
+        # Save to the actual given name
+        do_save()
 
     @staticmethod
     def loader_standard(sim):
