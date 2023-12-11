@@ -21,9 +21,12 @@ class MaterialBlock():
             name: arbitrary name for this region
             matsys: the :class:`~pynitride.physics.material.MaterialSystem`
             layers: a list of layers inside this block
+                As a convenience for supplying stacks, layers of thickness=0 can be supplied without causing issues;
+                they will just be silently filtered out on initialization.
         """
         self.name=name
         self.matsys=matsys
+        layers=[l for l in layers if l.thickness>0]
         self.layers=layers
         for l in layers:
             l._matblock=self

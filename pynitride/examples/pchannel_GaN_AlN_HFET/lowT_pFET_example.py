@@ -13,33 +13,7 @@ from pynitride import RMesh2D_Polar, RMesh1D
 from pynitride import Simulation
 from pynitride import log
 
-
-def define_mesh(sim,well_t=15*nm,buff_t=200*nm,Ndd=5e16/cm**3,max_dz=5*nm,sbh=1.4*eV,ss=0*meV, kmesh='1D'):
-
-    # Set up the main mesh
-    m=sim.dmeshes['main']=Mesh([
-        MaterialBlock("epi",AlGaN(spin_splitting=ss),[
-            UniformLayer("well"  ,  well_t, x=0, DeepDonorDonorConc=Ndd),
-            UniformLayer("buffer",  buff_t, x=1, DeepDonorDonorConc=Ndd),
-        ])],
-        max_dz=max_dz,
-        refinements=[[0,.03*nm,2],['well/buffer',.01*nm,1.5]],
-        uniform=False,boundary=[sbh,"thick"])
-    log("Mesh points " + str(m.Nn))
-
-    # Set up a quantum mesh
-    sim.dmeshes['mbkp'],sim.dmeshes['semi']=m.submesh_cover([well_t+5*nm],['mbkp','semi'])
-
-    # Set up the reciprocal space mesh for MBKP
-    if kmesh=='2D':
-        sim.rmeshes['mbkp_solve']=RMesh2D_Polar.regular(kmax=2.5/nm,numabsk=24,numtheta=4,align_theta=True,d=1)
-        sim.rmeshes['mbkp_out'  ]=RMesh2D_Polar.regular(kmax=4.8/nm,numabsk=48,numtheta=4,align_theta=True,d=1)
-    if kmesh=='1D':
-        sim.rmeshes['mbkp_solve']=RMesh1D.regular(kmax=2.5/nm,numabsk=24)
-        sim.rmeshes['mbkp_out'  ]=RMesh1D.regular(kmax=4.8/nm,numabsk=48)
-
-    sim.extras['well_t']=well_t
-    sim.extras['sourcepoint']=float(well_t-2.5)
+from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh
 
 if __name__=="__main__":
 
