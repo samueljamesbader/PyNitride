@@ -159,7 +159,8 @@ class Simulation():
             Tramp_loop_opts: passed to the self-consistent :func:`~pynitride.physics.solvers.SelfConsistentLoop.loop`
                 when called for ramping temperature.
         """
-        m,quantum,semi=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.dmeshes['semi']
+        m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
+        semis=[v for k,v in sim.dmeshes.items() if k.startswith('semi')]
 
         # General solvers
         lf=Linear_Fermi(m,dict(gate=0,hg=sim.extras['sourcepoint'],subs=-1))
@@ -175,14 +176,14 @@ class Simulation():
         non_mbkp_carriers=list(set(['electron','hole'])-set(mbkp_carriers))
 
         # Semiclassical to do at first what MBKP will do later
-        semi_solver=Semiclassical(quantum,carriers=mbkp_carriers)
+        semi_solver_to_replace=Semiclassical(quantum,carriers=mbkp_carriers)
 
         # Initial ramp
         scl=SelfConsistentLoop(
             fieldsolvers= [PoissonSolver(m)],
-            carriermodels=[semi_solver,
+            carriermodels=[semi_solver_to_replace,
                            Semiclassical(quantum,carriers=non_mbkp_carriers),
-                           Semiclassical(semi)])
+                           *[Semiclassical(semi) for semi in semis]])
         scl.ramp_epsfactor(**ramp_opts)
 
         # MBKP loop
@@ -192,7 +193,7 @@ class Simulation():
             # Put in MBKP and loop again
             rmesh=sim.rmeshes['mbkp_solve'] if 'mbkp_solve' in sim.rmeshes else sim.rmeshes['mbkp']
             sim.extras['mbkp']=MultibandKP(quantum,rmesh=rmesh,**mbkp_opts)
-            scl.swap_carrier_model(remove=semi_solver,add=sim.extras['mbkp'])
+            scl.swap_carrier_model(remove=semi_solver_to_replace,add=sim.extras['mbkp'])
             scl.loop(**mbkp_loop_opts)
 
             endtime=time()

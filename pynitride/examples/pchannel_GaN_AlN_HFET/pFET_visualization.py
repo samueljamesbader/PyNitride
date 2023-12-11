@@ -50,7 +50,8 @@ def valence_band_panels(m,mbkp,bdopts={},bsopts={}):
         DOS = hist * dkx * dky / (4 * np.pi ** 2) / np.diff(bin_e)
         E = (bin_e[1:] + bin_e[:-1]) / 2
         plt.plot(DOS, E * 1e3, c)
-        plt.fill_betweenx(E * 1e3, DOS * 1 / (1 + np.exp(-E / kT)), color=c, alpha=1)
+        with np.errstate(over='ignore'):
+            plt.fill_betweenx(E * 1e3, DOS * 1 / (1 + np.exp(-E / kT)), color=c, alpha=1)
     plt.xlim(0, 6)
     #plt.yticks([25, 0, -25, -50, -75])
     plt.ylabel("Energy [meV]")
@@ -71,7 +72,7 @@ def valence_band_panels(m,mbkp,bdopts={},bsopts={}):
     plt.plot(m.Ec, m.zm, 'g')
     plt.plot(m.Ev, m.zm, 'b')
     plt.plot(m.EF, m.zn, 'k--')
-    plt.ylim(m._layers[0].thickness+5*nm, 0)
+    plt.ylim(mbkp.mesh.zn[-1], 0)
     plt.ylabel("Depth [nm]")
     plt.xticks([])
     plt.text(.65, .1, "$E_C$", transform=axbd.transAxes, color='g')
@@ -113,10 +114,12 @@ def valence_band_panels(m,mbkp,bdopts={},bsopts={}):
     absk=np.linspace(0,rmesh.kmax,100)
     for i, c in zip(range(6), ['b', 'b', 'r', 'r', 'g', 'g']):
         en = mbkp.interp_energy(absk,theta=0,eig=i)
-        plt.fill_between( absk, 1 / (1 + np.exp(-en / kT)), color=c)
+        with np.errstate(over='ignore'):
+            plt.fill_between( absk, 1 / (1 + np.exp(-en / kT)), color=c)
 
         en = mbkp.interp_energy(absk,theta=pi/2,eig=i)
-        plt.fill_between(-absk, 1 / (1 + np.exp(-en / kT)), color=c)
+        with np.errstate(over='ignore'):
+            plt.fill_between(-absk, 1 / (1 + np.exp(-en / kT)), color=c)
 
     plt.text(.98, .98, "$f(k_x)$", transform=plt.gca().transAxes, va='top', ha='right', color='k')
     plt.text(.02, .98, "$f(k_y)$", transform=plt.gca().transAxes, va='top', ha='left', color='k')
