@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.sparse import dok_matrix
+
 pi=np.pi
 from pynitride.core.machine import glob_store_attributes
 from pynitride.core.maths import polar2cart, cart2polar, round_near
@@ -458,6 +460,39 @@ class RMesh2D_Polar(RMesh):
         if sign:
             iky=iky[sign*self.ky[iky]>=0]
         return iky
+
+    def theta_diff_mat(self, for_pre_integrated_values=False):
+        """ Returns a finite-differences matrix for differentiating a function in the theta direction.
+
+        Note: the thing that's differentiated is df/k*dtheta, not d[f*Omega]/k*dtheta
+        If you want a matrix that applies to f*Omega but still returns df/dtheta, supply for_pre_integrated_values=True
+        :return: a (sparse) matrix M such that df/k*dtheta is approximated by M*f
+        """
+        # There's probably a clever vectorized way to do this, but this function is so far
+        # only used in the final solve_BTE, not inside any important loops so...
+        tdiff_mat = dok_matrix((self.N, self.N))
+        fdt = np.mod(np.roll(self.theta1, -1) - self.theta1, 2 * np.pi)
+        rdt = np.mod(self.theta1 - np.roll(self.theta1, +1), 2 * np.pi)
+        for ik in range(self.numabsk):
+            if self.absk[self.partial_indices_to_index(ik, 0)] != 0:
+                for it in range(self.numtheta):
+                    i_this = self.partial_indices_to_index(ik, it)
+                    i_next = self.partial_indices_to_index(ik, (it + 1) % self.numtheta)
+                    i_prev = self.partial_indices_to_index(ik, (it - 1) % self.numtheta)
+                    # If the array this matrix will get multiplied by is f*Omega
+                    if for_pre_integrated_values:
+                        tdiff_mat[i_this, i_next] = +self.Omega[i_this] / self.Omega[i_next] / (
+                                   2 * self.absk[i_this] * fdt[it])
+                        tdiff_mat[i_this, i_prev] = -self.Omega[i_this] / self.Omega[i_prev] / (
+                                   2 * self.absk[i_this] * rdt[it])
+                    else:
+                    # If the array this matrix will get multiplied by is f
+                        tdiff_mat[i_this, i_next] = + 2 * self.absk[i_this] * fdt[it]
+                        tdiff_mat[i_this, i_prev] = - 2 * self.absk[i_this] * rdt[it]
+        return tdiff_mat
+
+    def absk_diff_mat(self):
+        raise NotImplementedError("Haven't implemented finite difference matrix in absk direction")
 
 
     def show_func(self,func,style='balanced',points=True, lines=True,
