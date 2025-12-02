@@ -524,7 +524,7 @@ class RMesh2D_Polar(RMesh):
         
         i=self.partial_indices_to_index(iabsk,itheta)
         F=func[i]
-        F[~valid]=np.NaN
+        F[~valid]=np.nan
         
         if style=='balanced':
             vmin=np.nanmin(F)

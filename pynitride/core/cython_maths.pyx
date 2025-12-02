@@ -177,7 +177,7 @@ cdef cnp.ndarray map1(  cnp.ndarray inarr,
     cdef int j
     cdef cnp.ndarray[double] subinarr, suboutarr
 
-    assert inarr.dtype==np.float_
+    assert inarr.dtype==np.float64
     if outarr is None:
         outarr=np.empty_like(inarr)
 
@@ -207,8 +207,8 @@ cdef cnp.ndarray map2(  cnp.ndarray inarr1,
     cdef int j
     cdef cnp.ndarray[double] subinarr1, subinarr2, suboutarr
 
-    assert inarr1.dtype==np.float_
-    assert inarr2.dtype==np.float_
+    assert inarr1.dtype==np.float64
+    assert inarr2.dtype==np.float64
     if outarr is None:
         outarr=np.empty_like(inarr1)
 
