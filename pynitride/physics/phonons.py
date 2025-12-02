@@ -1054,7 +1054,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
 
         eps_perp_u, eps_para_u, eps_perp_l, eps_para_l, xi_u, xi_l, alpha_u, alpha_l = self._common(wtest)
         qtest = 1 / (2 * alpha_u * t1) * np.log((xi_l + xi_u) / (xi_l - xi_u))
-        w = np.expand_dims(interp1d(qtest, wtest, fill_value=(np.NaN, wres), bounds_error=False)(q), -1)
+        w = np.expand_dims(interp1d(qtest, wtest, fill_value=(np.nan, wres), bounds_error=False)(q), -1)
         return w
 
     def _reg_l(self, q, pol='T', num=100):

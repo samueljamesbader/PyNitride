@@ -87,11 +87,11 @@ def conduction_band_panels(m,mbkp):
     absk=np.linspace(0,rmesh.kmax,100)
     for i, c in zip([0, 2, 4], ['b', 'r', 'g']):
         ms=mbkp.interp_radial_eff_mass(absk,theta=0,eig=i)
-        ms[(ms/m_e<0)|(ms/m_e>10)]=np.NaN
+        ms[(ms/m_e<0)|(ms/m_e>10)]=np.nan
         plt.plot(absk,ms/m_e,c)
 
         ms=mbkp.interp_radial_eff_mass(absk,theta=pi/2,eig=i)
-        ms[(ms/m_e<0)|(ms/m_e>10)]=np.NaN
+        ms[(ms/m_e<0)|(ms/m_e>10)]=np.nan
         plt.plot(-absk,ms/m_e,c)
 
     plt.ylim(0,.4)

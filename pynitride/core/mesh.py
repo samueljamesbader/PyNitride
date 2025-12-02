@@ -542,7 +542,7 @@ class Mesh():
                 sm[func]=self[func].restrict(sm)
         return self[func]
 
-    def ensure_function_exists(self,func,value=np.NaN,dim=(),pos='node',dtype='float'):
+    def ensure_function_exists(self,func,value=np.nan,dim=(),pos='node',dtype='float'):
         """ If it doesn't exist, make it in the global mesh, if it does, check the dim/pos.
 
         Propagates the function upward to supermeshes.
@@ -838,12 +838,12 @@ class Function(np.ndarray):
         empty: (see above) False to use ``value``, or shape tuple to construct an array.
 
     """
-    def __new__(cls, mesh, pos, value=np.NaN, dtype='float', empty=False):
+    def __new__(cls, mesh, pos, value=np.nan, dtype='float', empty=False):
         if pos=='node': z=mesh.zn
         if pos=='mid' : z=mesh.zm
 
         # If the user just wants an empty array, the shape of an element is specified by empty
-        if empty:
+        if empty is not False:
             vshape=list(empty)
             obj = np.empty(vshape + list(z.shape), dtype=dtype).view(cls)
             obj.mesh=mesh
@@ -903,7 +903,7 @@ class Function(np.ndarray):
             self.z =    getattr(obj, 'z'   , "View casting from ndarray not supported.")
             self.pos =  getattr(obj, 'pos' , "View casting from ndarray not supported.")
 
-    def differentiate(self,fill_value=np.NaN):
+    def differentiate(self,fill_value=np.nan):
         r""" Central-difference derivative
 
         Differentiate, accounting for the appropriate potentially non-uniform mesh spacing.
@@ -1034,7 +1034,7 @@ class Function(np.ndarray):
                            fill_value='extrapolate')(self.mesh.zm)
         return Function(self.mesh,pos='mid',value=arr,dtype=self.dtype)
 
-def NodFunction(mesh,value=np.NaN,dtype='float',empty=False):
+def NodFunction(mesh,value=np.nan,dtype='float',empty=False):
     r""" Returns a function defined on the node mesh
 
     This is a convenience equivalent to calling :py:func:`~pynitride.poissolve.mesh.Function` with ``pos='node'``.
@@ -1043,7 +1043,7 @@ def NodFunction(mesh,value=np.NaN,dtype='float',empty=False):
     return Function(mesh,pos='node',value=value,dtype=dtype,empty=empty)
 NodFunction=NodFunction
 
-def MidFunction(mesh,value=np.NaN,dtype='float',empty=False):
+def MidFunction(mesh,value=np.nan,dtype='float',empty=False):
     r""" Returns a function defined on the mid mesh
 
     This is a convenience equivalent to calling :py:class:`~pynitride.poissolve.mesh.Function` with ``pos='mid'``.
