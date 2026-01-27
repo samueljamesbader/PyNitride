@@ -564,6 +564,7 @@ class Mesh():
         else:
             if self._supermesh==None:
                 self[func]=Function(self,pos=pos,empty=dim,dtype=dtype, value=value)
+                self[func][:]=value
             else:
                 self._supermesh.ensure_function_exists(func,dim=dim,pos=pos,dtype=dtype,value=value)
 
@@ -659,7 +660,7 @@ class Mesh():
         """
         return self._interfacesm
 
-    def submesh(self, zbounds):
+    def submesh(self, zbounds, name="Temporary"):
         r""" Returns a :class:`SubMesh` viewing a range of this mesh.
 
         The range is specified by desired :math:`z` locations.  If you want to specify exact indices instead, use the
