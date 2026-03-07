@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup # type: ignore (not a runtime dependency)
 from Cython.Build import cythonize
 import numpy
 

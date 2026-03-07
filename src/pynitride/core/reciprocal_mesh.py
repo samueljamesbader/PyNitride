@@ -306,7 +306,7 @@ class RMesh2D_Polar(RMesh):
 
     @classmethod
     def regular_theta(cls,absk,numtheta,align_theta=False,d=1,name=''):
-        """ Generate a 2D grid with regular `theta` spacing.
+        r""" Generate a 2D grid with regular `theta` spacing.
 
         Regardless of whether `absk` includes a point at `0`,
         `0` and the max(`absk`) are treated as endpoints of integration.
@@ -336,7 +336,7 @@ class RMesh2D_Polar(RMesh):
 
 
     def conv2grid(self,arr):
-        """ Convert a 1D array to a 2D grid consistent with the mesh ordering.
+        r""" Convert a 1D array to a 2D grid consistent with the mesh ordering.
 
         Args:
             arr: doesn't need to be 1D per se, but the first dimension must
