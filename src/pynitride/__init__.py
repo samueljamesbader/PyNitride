@@ -3,7 +3,7 @@ from configparser import ConfigParser
 from multiprocessing import get_all_start_methods
 
 # Needed for reading configuration
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..'))
 
 def _make_default_config(path):
     cp = ConfigParser()
