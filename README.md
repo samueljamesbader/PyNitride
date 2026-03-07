@@ -20,12 +20,14 @@ in the config.ini file
 Since this project is still in pre-release and contains a few random chunks of my PhD work,
 this is the only way to install.  After some cleaning up, I may put it on Pypi for easier access!
 
+For building from source, Microsoft Visual C++ 14.0 (part of [Visual Studio Build Tools for C++](https://visualstudio.microsoft.com/visual-cpp-build-tools/)) is required.  The no-thinking option is during install to select the "Desktop development with C++" workload, though if you want to save space and figure out more specifically which packages are needed, be my guest.
+
 Download this project via GitHub
 
     cd DIRECTORY_WHERE_I_WANT_TO_INSTALL
     git clone https://github.com/samueljamesbader/PyNitride
     
-If you want to have an isolated virtual environment[^1], might as well make it here and activate it.
+If you want to have an isolated virtual environment[^1], might as well make it hereand activate it. (The folder `venv/` is already in `.gitignore`).
 
     cd PyNitride
     python -m venv venv
