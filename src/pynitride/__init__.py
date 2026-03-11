@@ -1,6 +1,8 @@
 import os.path
 from configparser import ConfigParser
 from multiprocessing import get_all_start_methods
+from types import MappingProxyType
+from typing import cast
 
 # Needed for reading configuration
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..'))
@@ -24,6 +26,9 @@ if not os.path.exists(_config_path):
 config = ConfigParser()
 config.read(_config_path)
 """ The directory of the PyNitride project"""
+
+# Utility for an immutable empty dict, to avoid the pitfalls of mutable default arguments
+_EMPTYD = cast(dict,MappingProxyType({}))
 
 # Logging is needed everywhere and doesn't require anything (eg numpy)
 # which would preempt the configuration of the parallelism
