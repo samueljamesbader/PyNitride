@@ -16,15 +16,15 @@ automatically employ the :func:`glob_store` functions behind the scenes for spec
 object can be safely pickled.
 """
 import os
+import sys
 from multiprocessing import cpu_count
 from multiprocessing import Pool as _ProcessPool
 from multiprocessing.dummy import Pool as _ThreadPool
-from operator import itemgetter
 from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial,wraps
-from pynitride import log
-from pynitride import config
+
+from pynitride import log, config, _EMPTYD
 
 
 ###
@@ -44,8 +44,9 @@ def process_pool(new=False):
         an object at least superficially resembling :class:`~multiprocessing.pool.Pool`
 
     """
+    global _procpool
     if _no_parallel: return FakePool()
-    elif new: _refresh_pool()
+    if _procpool is None or new: _refresh_pool()
     return _procpool
 
 def thread_pool():
@@ -58,7 +59,10 @@ def thread_pool():
         an object at least superficially resembling :class:`~multiprocessing.pool.Pool`
 
     """
+    global _thrdpool
     if _no_parallel: return FakePool()
+    if _thrdpool is None:
+        _thrdpool=_ThreadPool(processes=globalthreads)
     return _thrdpool
 
 # To close, join, and re-open a process pool
@@ -66,8 +70,9 @@ def _refresh_pool():
     global _procpool
     if _no_parallel: return
     if globalprocesses>1:
-        _procpool.close()
-        _procpool.join()
+        if _procpool is not None:
+            _procpool.close()
+            _procpool.join()
         _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
 
 @contextmanager
@@ -81,7 +86,7 @@ def no_parallel():
 
 def parallel_enabled():
     """ Returns whether parallelism is enabled in this context, see :func:`no_parallel`"""
-    return _no_parallel
+    return not _no_parallel
 
 # Classes to mimic Pool but perform serial tasks
 class _FakeAsynchronousResult():
@@ -94,11 +99,11 @@ class FakePool():
     def map(self,func,iterable,chunksize=1):
         assert chunksize==1, "Fake pool not implementend for non-unity chunksize"
         return [func(i) for i in iterable]
-    def apply(self,func,args=(),kwds={}):
+    def apply(self,func,args=(),kwds:dict=_EMPTYD):
         return func(*args,**kwds)
-    def apply_async(self,func,args=(),kwds={},callback=None,error_callback=None):
+    def apply_async(self,func,args=(),kwds:dict=_EMPTYD,callback=None,error_callback=None):
         ret=func(*args,**kwds)
-        callback(ret)
+        if callback is not None: callback(ret)
         return _FakeAsynchronousResult()
     def close(self):
         pass
@@ -170,8 +175,10 @@ def glob_update(key,obj):
     Returns:
         None
     """
-    assert key in _storage
-    _storage[key]=obj
+    with _storagelock:
+        if key not in _storage:
+            raise KeyError("Key {} not found in global storage".format(key))
+        _storage[key]=obj
 
 def glob_remove(key):
     """ Remove an object from the global storage.
@@ -201,7 +208,7 @@ def glob_store_attributes(*attrs):
 
     .. code-block:: python
 
-        @globstore_attributes(big_obj)
+        @glob_store_attributes(big_obj)
         class MyClass:
             def __init__(self):
                 self.big_obj = np.empty([1e6,1e6])
@@ -251,11 +258,13 @@ def glob_store_attributes(*attrs):
 
         # Make a __del__ that runs glob_remove for the given attributes
         # after calling the original __del__
+        # Note: an exception within __del__ is suppressed anyway, so there'd be no point in escalating
+        # but we can at least log it for debugging purposes
         def __del__(self):
             odel(self)
             for k,key in self._globkeys[cls].items():
                 try: glob_remove(key)
-                except: log("Trouble removing key",level='debug')
+                except Exception: log(f"Trouble removing key {k}",level='debug')
 
         # Add this new __del__ to the class
         cls.__del__=__del__
@@ -295,27 +304,27 @@ def raiser(e):
 
 # Read configuration
 try:globalthreads=config.getint("parallelism","globalthreads")
-except: globalthreads=cpu_count()
+except (ValueError, KeyError): globalthreads=cpu_count()
 try: globalprocesses=config.getint("parallelism","globalprocesses")
-except: globalprocesses=cpu_count()
+except (ValueError, KeyError): globalprocesses=cpu_count()
 try: cextthread=config.getint("parallelism","cextthread")
-except: cextthread=None
+except ValueError, KeyError: cextthread=None
 
 # Apply configuration
 if cextthread is not None:
+    _early_imports = [m for m in ('numpy', 'scipy') if m in sys.modules]
+    if _early_imports:
+        log(f"Thread count settings may have no effect: {_early_imports} already imported."\
+            "  To avoid this, import PyNitride before numpy/scipy", level='warning')
     os.environ["OMP_NUM_THREADS"] = str(cextthread)
     os.environ["OPENBLAS_NUM_THREADS"] = str(cextthread)
     os.environ["MKL_NUM_THREADS"] = str(cextthread)
     os.environ["VECLIB_MAXIMUM_THREADS"] = str(cextthread)
     os.environ["NUMEXPR_NUM_THREADS"] = str(cextthread)
 
-# Create initial pools
-if globalprocesses>1:
-    _procpool=_ProcessPool(processes=globalprocesses,maxtasksperchild=30)
-else: _procpool=FakePool()
-if globalthreads>1:
-    _thrdpool=_ThreadPool(processes=globalprocesses)
-else: _thrdpool=FakePool()
+# Pools are created lazily on first use
+_procpool=None
+_thrdpool=None
 
 # Start with parallelism on
 _no_parallel=False if globalprocesses>1 else True
