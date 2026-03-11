@@ -24,7 +24,7 @@ def test_fd12():
     assert f.dtype=='float', "fd12's returned ndarray should be of dtype float"
 
     # Check some values against the Fermi-Dirac integral calculator on Nanohub
-    # Xingshu Sun; Mark Lundstrom; raseong kim (2014), "FD integral calculator,"
+    # Xingshu Sun; Mark Lundstrom; Raseong Kim (2014), "FD integral calculator,"
     # https://nanohub.org/resources/fdical. (DOI: 10.4231/D3SQ8QJ5T).
     assert np.allclose(
         fd12(np.array([-100,-10,0,5,10,100])),
@@ -75,6 +75,8 @@ def test_fd_timing(capfd):
         .format(numvalues,int(numvalues/2)),number=Nrepeat,globals=globals())/Nrepeat
     assert fd12_timing  <6e-3, "Fermi-Dirac 1/2 integral is running slow..."
     assert fd12p_timing <6e-3, "Fermi-Dirac -1/2 integral is running slow..."
+    # Note: can be run with -s to see the printout of timings, which is useful for benchmarking and regression testing.
+    # Or can be run with capfd.disabled() to see the printout even when not running with -s.
     if 1:#with capfd.disabled():
         print("\n")
         print("fd12 computed {:d} values in {:.3e} s (average of {:d} runs)." \
