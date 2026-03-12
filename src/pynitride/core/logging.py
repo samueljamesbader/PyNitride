@@ -1,7 +1,7 @@
+import os
 from contextlib import contextmanager
 from datetime import datetime
 import traceback
-from pynitride import config
 
 # Name of the logfile for a run
 _logfile=None
@@ -54,7 +54,7 @@ def set_level(level=None):
             Or `None`, to use the default from `config.ini`
     """
     if level is None:
-        level=config.get("logging","level")
+        level=os.environ.get("PYNITRIDE_LOGLEVEL", "info")
     else:
         log("Log level: "+level, level="info")
     log._showlevel=log._levels.index(level)

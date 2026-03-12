@@ -24,7 +24,9 @@ from threading import Lock, RLock
 from contextlib import contextmanager
 from functools import partial,wraps
 
-from pynitride import log, config, _EMPTYD
+from multiprocessing import get_all_start_methods
+
+from pynitride import log, _EMPTYD
 
 
 ###
@@ -297,18 +299,34 @@ def raiser(e):
     """ Trivial functional form of the `raise` keyword"""
     raise e
 
+# Read configuration from environment variables
+_env_cextthread=os.environ.get('PYNITRIDE_CEXTTHREAD')
+_env_globalthreads=os.environ.get('PYNITRIDE_GLOBALTHREADS')
+_env_globalprocesses=os.environ.get('PYNITRIDE_GLOBALPROCESSES')
+_multiproc_friendly_os = 'fork' in get_all_start_methods()
 
-###
-# Implementing configuration of parallelism
-###
+# If there's some attempt to tune parallelism, then apply the settings with maximal defaults
+if (_env_cextthread is not None) or (_env_globalthreads is not None) or (_env_globalprocesses is not None):
 
-# Read configuration
-try:globalthreads=config.getint("parallelism","globalthreads")
-except (ValueError, KeyError): globalthreads=cpu_count()
-try: globalprocesses=config.getint("parallelism","globalprocesses")
-except (ValueError, KeyError): globalprocesses=cpu_count()
-try: cextthread=config.getint("parallelism","cextthread")
-except ValueError, KeyError: cextthread=None
+    if (_env_globalthreads is not None) and _env_globalthreads!='CPU_COUNT':
+        try: globalthreads = int(_env_globalthreads)
+        except ValueError: raise ValueError(f"PYNITRIDE_GLOBALTHREADS must be an integer or 'CPU_COUNT', got {_env_globalthreads}")
+    else: globalthreads = cpu_count()
+
+    if (_env_globalprocesses is not None) and _env_globalprocesses!='CPU_COUNT':
+        try: globalprocesses = int(_env_globalprocesses)
+        except ValueError: raise ValueError(f"PYNITRIDE_GLOBALPROCESSES must be an integer or 'CPU_COUNT', got {_env_globalprocesses}")
+        if globalprocesses>1 and not _multiproc_friendly_os:
+            raise ValueError(f"Multiprocessing by fork() is not supported on this OS, but PYNITRIDE_GLOBALPROCESSES={globalprocesses}>1")
+    else: globalprocesses = cpu_count() if _multiproc_friendly_os else 1
+
+    if (_env_cextthread is not None) and _env_cextthread!='DEFAULT':
+        try: cextthread = int(_env_cextthread)
+        except ValueError: raise ValueError(f"PYNITRIDE_CEXTTHREAD must be an integer or 'DEFAULT', got {_env_cextthread}")
+    else: cextthread = 1 if _multiproc_friendly_os else None
+
+# Otherwise leave parallelism entirely to the c-extension level
+else: globalthreads, globalprocesses, cextthread= 1, 1, None
 
 # Apply configuration
 if cextthread is not None:

@@ -4,8 +4,24 @@ import pint
 from pynitride.core.omniscient import Brain
 
 # Configures Pint to use "nanoelectronic units"
+# The base unit of length is  1 nm
+# The base unit of mass is 1 eV fs**2 / nm**2
+# The base unit of time is 1 fs
+# The base unit of current is 1 e/fs
+# In this system, e=1, eV=1, nm=1, fs=1
 Brain._ureg=pint.UnitRegistry(system='neu')
-Brain._ureg.load_definitions(os.path.join(ROOT_DIR,"parameters","_system.txt"))
+Brain._ureg.load_definitions(
+    """
+    e_per_fs  = e / fs
+    eV_fs2_per_nm2 = eV fs**2 / nm**2
+
+    @system neu using international
+        nanometer
+        eV_fs2_per_nm2
+        femtosecond
+        e_per_fs
+    @end
+    """.splitlines())
 
 def parse(val):
     """ Reads the value in as a string and returns a number in nanoelectronic units"""
