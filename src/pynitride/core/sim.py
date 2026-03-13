@@ -1,3 +1,5 @@
+from typing import TextIO
+
 from pynitride import  log, sublog, to_unit
 from pynitride import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
 from pynitride import Schrodinger, Semiclassical, MultibandKP
@@ -7,6 +9,8 @@ from time import time
 import os.path
 import pickle
 from pathlib import Path
+
+from pynitride.util import returner_context
 
 class Simulation():
 
@@ -277,3 +281,21 @@ class Simulation():
                 self._solve_flow(self,**self._solve_opts)
                 log("Done solve flow")
 
+    def save_bands_file(self,file:str|Path|TextIO):
+        """ Saves a simple text file with the band edges and Fermi level for each point in the main mesh.
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        m=self.dmeshes['main']
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("z[nm],Ec[eV],Ev[eV],EF[eV],n[1/cm^3],p[1/cm^3]\n")
+            for zn, Ec, Ev, EF, n, p in zip(m.zn, m.Ec.tnf(), m.Ev.tnf(), m.EF, m.n, m.p):
+                f.write(
+                    f"{to_unit(zn,'nm'):.3f},"
+                    f"{to_unit(Ec,'eV'):.3f},"
+                    f"{to_unit(Ev,'eV'):.3f},"
+                    f"{to_unit(EF,'eV'):.3f},"
+                    f"{to_unit(n,'1/cm^3'):.3e},"
+                    f"{to_unit(p,'1/cm^3'):.3e}\n"
+                )

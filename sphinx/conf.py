@@ -15,6 +15,7 @@
 
 import sys
 import os
+import datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -58,7 +59,7 @@ master_doc = 'manual/index'
 
 # General information about the project.
 project = 'PyNitride'
-copyright = '2017, Samuel James Bader'
+copyright = f'2017-{datetime.date.today().year}, Samuel James Bader'
 author = 'Samuel James Bader'
 
 # The version info for the project you're documenting, acts as replacement for

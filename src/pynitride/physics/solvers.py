@@ -128,8 +128,8 @@ class PoissonSolver():
             E=MaterialFunction(m,d+'E',default=0)
 
             eta=((m.EF.tmf()-m.Ec)+E)/kT
-            m['Ndp']+=(conc*idd(eta,g)).tpf()
-            m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tpf()
+            m['Ndp']+=(conc*idd(eta,g)).tnf()
+            m['Ndpderiv']+=(conc/kT*iddd(eta,g)).tnf()
 
         m['Nam']=0
         m['Namderiv']=0
@@ -139,8 +139,8 @@ class PoissonSolver():
             E=MaterialFunction(m,d+'E',default=0)
 
             eta=((m.Ev-m.EF.tmf())+E)/kT
-            m['Nam']+=(conc*idd(eta,g)).tpf()
-            m['Namderiv']-=(conc/kT*iddd(eta,g)).tpf()
+            m['Nam']+=(conc*idd(eta,g)).tnf()
+            m['Namderiv']-=(conc/kT*iddd(eta,g)).tnf()
 
 
     def solve(self):

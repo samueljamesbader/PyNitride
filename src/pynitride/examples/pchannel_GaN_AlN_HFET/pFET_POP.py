@@ -7,7 +7,7 @@ from pynitride import to_unit, nm, hbar
 from pynitride.physics.phonons import DielectricContinuum_SWH, DielectricContinuum_BulkWurtzite
 from pynitride import RMesh1D
 from pynitride import Simulation
-from pynitride.tests.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
+from pynitride.examples.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
 
 
 def define_mesh(sim,**kwargs):

@@ -46,6 +46,7 @@ Find out more about the :ref:`math_and_physics` or skip into the :doc:`API refer
         Math and Physics <math_and_physics>
         Software Structure <overall_flow>
         API Reference <../auto/modules>
+        Contributing <contributing>
 
 
 Authors

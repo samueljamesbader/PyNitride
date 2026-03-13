@@ -45,7 +45,7 @@ material=InN
 # polarization at the measured lattice constants using
 # all their parameters, and then calling that the
 # spontaneous polarization and referencing all strain
-# from there.  This method is not published but was
+# from there).  This method is not published but was
 # worked out with Cyrus Dreyer, author of the above paper.
 
 material=GaN
