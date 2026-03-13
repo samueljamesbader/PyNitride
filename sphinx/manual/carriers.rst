@@ -11,6 +11,8 @@ Semiclassical
 The Semiclassical model is the simplest carrier occupation scheme, employing only the three-dimensional semiconductor bulk bands and Fermi occupation statistics
 
 .. math::
+    :nowrap:
+
     \begin{align}
       n(z)=\sum_lN^l_{C}(z)\mathcal{F}_{1/2}\left(\frac{E_F(z)-E_C(z)-\Delta E^l_{C}(z)}{kT}\right)\\
       p(z)=\sum_lN^l_{V}(z)\mathcal{F}_{1/2}\left(\frac{E_V(z)-\Delta E^l_{V}(z)-E_F(z)}{kT}\right)
@@ -33,6 +35,8 @@ and :math:`\mathcal{F}_{j}(\eta)` is the Fermi-Dirac integral of order :math:`j`
 The derivatives with respect to the bands are given by
 
 .. math::
+    :nowrap:
+
     \begin{align}
       n'(z)=-\sum_l\frac{N^l_{C}(z)}{kT}\mathcal{F}_{-1/2}\left(\frac{E_F(z)-E_C(z)-\Delta E^l_{C}(z)}{kT}\right)\\
       p'(z)=+\sum_l\frac{N^l_{V}(z)}{kT}\mathcal{F}_{-1/2}\left(\frac{E_V(z)-\Delta E^l_{V}(z)-E_F(z)}{kT}\right)
@@ -50,6 +54,8 @@ solves the Schrodinger problem with the BenDaniel and Duke Hamiltonian at a rang
 For the conduction and valence bands respectively
 
 .. math::
+    :nowrap:
+
     \begin{align}
       \left[-\partial_z\frac{\hbar^2}{2m^l_z(z)}\partial_z +\frac{\hbar^2k_t^2}{2m^l_t(z)}+ E_C(z)+\Delta E_C^i(z) - E_{i, k_t}\right]\psi_{i, k_t}(z)=0\\
       \left[\partial_z\frac{\hbar^2}{2m^l_{z}(z)}\partial_z-\frac{\hbar^2k_t^2}{2m^l_t(z)} + E_V^l(z) -\Delta E_V^i(z) - E^l_{i, k_t}\right]\psi^l_{i, k_t}(z)=0
@@ -61,6 +67,8 @@ where for electrons :math:`b=-1,\ U_\sigma=E_C+\Delta E_{Ci}` and
 for holes :math:`b=+1,\ U_\sigma=E_V-\Delta E_{Vi}`.  These levels are occupied as
 
 .. math::
+    :nowrap:
+
     \begin{align}
       n(z)=g_sg_v\sum_{i, l}\int_{k_t}2\pi k_tdk_t \left|\psi^l_i\right|^2 /\left(1+\exp\left\{\frac{E_{i, k_t}-E_F}{kT}\right\}\right)\\
       p(z)=g_sg_v\sum_{i, l}\int_{k_t}2\pi k_tdk_t \left|\psi^l_i\right|^2 /\left(1+\exp\left\{\frac{E_F-E^l_{i, k_t}}{kT}\right\}\right)
@@ -80,6 +88,8 @@ dispersion of that level.
 The Schrodinger equation is the same as above (only solved at at :math:`k_t=0`), but the carrier density expressions are simplified:
 
 .. math::
+    :nowrap:
+
     \begin{align}
       \left\{n/p\right\}(z)=g_sg_v\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}kT}{2\pi\hbar^2}\ln\left[1+\exp\left\{\eta^l_{i, n/p}\right\}\right]\\
     \end{align}
@@ -87,6 +97,8 @@ The Schrodinger equation is the same as above (only solved at at :math:`k_t=0`),
 with
 
 .. math::
+    :nowrap:
+
     \begin{equation}
     \eta^l_{i, n}=\frac{E_F-E^l_i}{kT},\quad \eta^l_{i, p}=\frac{E^l_i-E_F}{kT}
     \end{equation}
@@ -94,6 +106,8 @@ with
 and
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       1/\overline{m}^l_{t,i}=\int dz \frac{\left|\psi_i^l(z)\right|^2}{m^l_{t}(z)}
     \end{equation}
@@ -101,6 +115,8 @@ and
 and the derivatives
 
 .. math::
+    :nowrap:
+
     \begin{align}
       \left\{n'/p'\right\}(z)=g_sg_vb\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}}{2\pi\hbar^2}\frac{\exp\left\{\eta^l_{i, n/p}\right\}}{1+\exp\left\{\eta^l_{i, n/p}\right\}}\\
     \end{align}
@@ -113,6 +129,8 @@ The Multiband k.p model solves for the energy eigenstates by generalizing the bu
 function of wavevector to a function of spatial derivatives.  In general, this will form a matrix differential equation
 
 .. math::
+    :nowrap:
+
     \begin{multline}
         \left[C^0(z,\vec k_\perp)-iC^L(z,\vec k_\perp)\partial_z
         -i\partial_zC^R(z,\vec k_\perp)-\partial_z C^2(z,\vec k_\perp) \partial_z \right] f(z,\vec k_\perp)\\

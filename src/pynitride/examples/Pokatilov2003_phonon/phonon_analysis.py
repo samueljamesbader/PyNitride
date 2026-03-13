@@ -11,7 +11,7 @@ def is_Y(v):
         bool, True if the largest component is Y
     """
     m=v.mesh
-    dominant_component=np.argmax((m.density.tpf()*np.abs(v)**2).integrate(definite=True))
+    dominant_component=np.argmax((m.density.tnf()*np.abs(v)**2).integrate(definite=True))
     return dominant_component==1
 
 def is_AS(v):
@@ -29,7 +29,7 @@ def is_AS(v):
     m=v.mesh
 
     # Decide whether to look at the X or Z component by whichever is larger
-    dominant_component=np.argmax((m.density.tpf()*np.abs(v)**2).integrate(definite=True))
+    dominant_component=np.argmax((m.density.tnf()*np.abs(v)**2).integrate(definite=True))
 
     # Find the index of the biggest value of that component
     maxpoint=np.argmax(np.abs(v[dominant_component]))

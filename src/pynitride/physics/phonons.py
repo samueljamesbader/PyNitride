@@ -309,7 +309,7 @@ class AcousticPhonon(PhononModel):
         if self.deformation:
             exx,exy,exz,eyy,eyz,ezz=self.strain(iq,thetaq,l)
             D=self._keepmesh._matblocks[0].matsys.kp_strain_mat(self._keepmesh,
-                exx=exx,exy=exy,exz=exz,eyy=eyy,eyz=eyz,ezz=ezz,carrier=carrier).tpf()
+                exx=exx,exy=exy,exz=exz,eyy=eyy,eyz=eyz,ezz=ezz,carrier=carrier).tnf()
             psij_D_psii=complex(
                 (np.sum(psij.conj().T*np.sum(np.rollaxis(D,-1,-2)*psii.T,axis=-1).T,axis=-1))\
                     .integrate(definite=True))

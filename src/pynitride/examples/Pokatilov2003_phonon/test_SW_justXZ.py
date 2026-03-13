@@ -10,7 +10,7 @@ from pynitride import Mesh, MaterialBlock, UniformLayer
 from pynitride import to_unit, nm
 from pynitride.physics.phonons import ElasticContinuum
 from pynitride import RMesh1D
-from pynitride.tests.Pokatilov2003_phonon.phonon_analysis import sort_modes, is_AS
+from pynitride.examples.Pokatilov2003_phonon.phonon_analysis import sort_modes, is_AS
 
 if __name__=="__main__":
     m=Mesh([

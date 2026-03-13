@@ -121,12 +121,12 @@ class Semiclassical(CarrierModel):
         # Compute the carrier density and its derivative
         if 'electron' in self._carriers:
             eta=((m.EF.tmf() - Ec_eff) - m.cDE) / (kb * m.T)
-            assign(m['n'],     np.sum(m.Nc * fd12(eta), axis=0).tpf())
-            assign(m['nderiv'], np.sum(-(m.Nc / (kb * m.T)) * fd12p(eta), axis=0).tpf())
+            assign(m['n'],     np.sum(m.Nc * fd12(eta), axis=0).tnf())
+            assign(m['nderiv'], np.sum(-(m.Nc / (kb * m.T)) * fd12p(eta), axis=0).tnf())
         if 'hole' in self._carriers:
             eta=((Ev_eff - m.EF.tmf()) - m.vDE) / (kb * m.T)
-            assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tpf())
-            assign(m['pderiv'], np.sum((m.Nv / (kb * m.T)) * fd12p(eta), axis=0).tpf())
+            assign(m['p'],     np.sum(m.Nv * fd12(eta), axis=0).tnf())
+            assign(m['pderiv'], np.sum((m.Nv / (kb * m.T)) * fd12p(eta), axis=0).tnf())
 
 
 class Schrodinger(CarrierModel):
@@ -243,8 +243,8 @@ class Schrodinger(CarrierModel):
             psisq=abs(psi.tmf())**2
             mmean=np.atleast_2d((mxy*psisq).integrate(definite=True)).T
             #import pdb; pdb.set_trace()
-            dens+= np.sum((g * mmean * kb * m.T) / (2 * pi * hbar ** 2) * psisq * np.log(1 + np.exp(eta)), axis=0).tpf()
-            deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tpf()
+            dens+= np.sum((g * mmean * kb * m.T) / (2 * pi * hbar ** 2) * psisq * np.log(1 + np.exp(eta)), axis=0).tnf()
+            deriv+=np.sum(b*(g*mmean)      /(2*pi*hbar**2)*psisq*np.exp(eta)/(1+np.exp(eta)),axis=0).tnf()
 
         if self._blend:
             if 'electron' in self._carriers:
@@ -401,12 +401,12 @@ class MultibandKP(CarrierModel):
         kT= kb * m.T
 
         c,cderiv,sign=['n','nderiv',-1] if self._carrier=='electron' else ['p','pderiv',+1]
-        eta=sign*(m.EF-np.expand_dims(self.rmesh['kpen'],2))/kT.tpf()
+        eta=sign*(m.EF-np.expand_dims(self.rmesh['kpen'],2))/kT.tnf()
         with np.errstate(over='ignore'):
             m[c]=(1/(4*pi**2))*self.rmesh.integrate(
                 np.sum(self.rmesh['normsqs']/(1+np.exp(eta)),axis=1))
             m[cderiv]=(1/(4*pi**2))*self.rmesh.integrate(
-                sign*np.sum(self.rmesh['normsqs']/(2+2*np.cosh(eta))/kT.tpf(),axis=1))
+                sign*np.sum(self.rmesh['normsqs']/(2+2*np.cosh(eta))/kT.tnf(),axis=1))
 
         log("not blending",level="TODO")
 
