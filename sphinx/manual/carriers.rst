@@ -124,7 +124,7 @@ and the derivatives
 with :math:`b` as above.
 
 Multiband k.p
-.................
+------------------
 The Multiband k.p model solves for the energy eigenstates by generalizing the bulk bandstructure Hamiltonian from a
 function of wavevector to a function of spatial derivatives.  In general, this will form a matrix differential equation
 
