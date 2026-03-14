@@ -1,4 +1,7 @@
 # PyNitride
+[![Tests](https://github.com/samueljamesbader/PyNitride/actions/workflows/tests.yml/badge.svg)](https://github.com/samueljamesbader/PyNitride/actions/workflows/tests.yml)
+[![Docs](https://github.com/samueljamesbader/PyNitride/actions/workflows/docs.yml/badge.svg?event=workflow_run)](https://github.com/samueljamesbader/PyNitride/actions/workflows/docs.yml)
+
 
 ## System requirements
 For typical usage, PyNitride just requires any system with Python >=3.14,

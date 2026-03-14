@@ -44,6 +44,9 @@ parameters/1dp.txt
 scratch/
 venv/
 
+# pyenv
+.python-version
+
 # TeX
 *.aux
 *.log

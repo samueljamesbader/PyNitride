@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "Cython", "numpy"]
+requires = ["setuptools>=61", "Cython>=3.2.4,<4", "numpy>=2.4.3,<3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,16 +9,26 @@ description = "Python utilities for 1D band diagrams and simulation"
 authors = [{name = "Samuel James Bader", email = "samuel.james.bader@gmail.com"}]
 requires-python = ">=3.14"
 dependencies = [
-    "numpy",
-    "cython",
-    "matplotlib",
-    "scipy",
-    "pint",
-    "python-dotenv",
+    "numpy>=2.4.3,<3",
+    "cython>=3.2.4,<4",
+    "matplotlib>=3.10.8,<4",
+    "scipy>=1.17.1,<2",
+    "pint>=0.25.2,<1",
+    "python-dotenv>=1.2.2,<2",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "sphinx"]
+dev = [
+    "pytest>=9.0.2,<10",
+    "sphinx>=9.1.0,<10",
+    "pip-tools>=7.5.3,<8",
+
+    # Not needed, but unless specified explicitly, other dependencies
+    # may install this package on Windows but not Linux, which means
+    # the requirements.txt file will be different for Windows/Linux
+    # which breaks the simple CI
+    "colorama>=0.4.6,<1"
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "pynitride.__version__"}

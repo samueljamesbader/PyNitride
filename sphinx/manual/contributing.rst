@@ -2,13 +2,69 @@
 Contributing to PyNitride
 =========================
 
+Getting started
+=================
+To get started, clone the repository and install the development dependencies:
+
+.. code-block:: bash
+
+   git clone https://github.com/samueljamesbader/PyNitride.git
+
+Set up your Python environment.  (This may differ on your system.)
+e.g. Linux/Mac with a venv:
+
+.. code-block:: bash
+
+   cd PyNitride
+   python -m venv venv
+   source venv/bin/activate
+
+or  Windows with a venv in PowerShell:
+
+.. code-block:: powershell
+
+   cd PyNitride
+   python -m venv venv
+   .\venv\Scripts\activate
+
+Then install the locked development dependencies:
+
+.. code-block:: bash
+
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   pip install -e ".[dev]" --no-deps
+   pip check
+
+Dependency management
+=======================
+The dependencies are defined by ``pyproject.toml`` and locked in ``requirements.txt``.
+
+To regenerate the locked dependencies after changing ``pyproject.toml``, run:
+
+.. code-block:: bash
+
+   pip-compile --no-annotate --no-allow-unsafe --no-header --extra dev -o requirements.txt pyproject.toml
+
+(To update the dependencies to their latest versions, add an ``--upgrade`` flag, or e.g. ``--upgrade-package numpy`` to only upgrade a specific package.)
+
+Then install the new dependencies with
+
+.. code-block:: bash
+
+   pip install -r requirements.txt
+
+Note that the CI flow test job checks that regenerating the locked dependencies from ``pyproject.toml`` matches the existing ``requirements.txt``,
+so if you change ``pyproject.toml`` you must also regenerate ``requirements.txt``.  (This regeneration references
+the existing ``requirements.txt`` so it should not fail just because a newer version of a dependency was released.)
+
 Tests
 ========
 Tests include unit tests, literature value tests, and a set of example simulations that are run and compared to "golden" output files.
 
 CI
 ************
-The CI flow (`.github/workflows/ci.yml`) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
+The Tests workflow (`.github/workflows/tests.yml`) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
 
 Golden files
 ************
@@ -30,4 +86,4 @@ which will generate the API reference and build the HTML files in the ``docs/htm
 
 Deploying documentation
 ***********************
-The CI flow (`.github/workflows/ci.yml`) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch.
+The Docs workflow (`.github/workflows/docs.yml`) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
