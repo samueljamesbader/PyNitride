@@ -1,7 +1,0 @@
-pynitride.examples.AlGaN\_GaN\_HEMT.hemt\_visualization module
-==============================================================
-
-.. automodule:: pynitride.examples.AlGaN_GaN_HEMT.hemt_visualization
-   :members:
-   :undoc-members:
-   :show-inheritance:

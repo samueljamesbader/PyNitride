@@ -1,7 +1,0 @@
-pynitride.core.maths module
-===========================
-
-.. automodule:: pynitride.core.maths
-   :members:
-   :undoc-members:
-   :show-inheritance:
