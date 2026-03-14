@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyNitride"
-version = "0.1.3"
+dynamic = ["version"]
 description = "Python utilities for 1D band diagrams and simulation"
 authors = [{name = "Samuel James Bader", email = "samuel.james.bader@gmail.com"}]
 requires-python = ">=3.8"
@@ -19,6 +19,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "sphinx"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pynitride.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
