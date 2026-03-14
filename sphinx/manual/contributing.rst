@@ -64,7 +64,7 @@ Tests include unit tests, literature value tests, and a set of example simulatio
 
 CI
 ************
-The CI flow (`.github/workflows/ci.yml`) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
+The Tests workflow (`.github/workflows/tests.yml`) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
 
 Golden files
 ************
@@ -86,4 +86,4 @@ which will generate the API reference and build the HTML files in the ``docs/htm
 
 Deploying documentation
 ***********************
-The CI flow (`.github/workflows/ci.yml`) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch.
+The Docs workflow (`.github/workflows/docs.yml`) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
