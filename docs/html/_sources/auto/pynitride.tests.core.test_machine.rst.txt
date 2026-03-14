@@ -1,7 +1,0 @@
-pynitride.tests.core.test\_machine module
-=========================================
-
-.. automodule:: pynitride.tests.core.test_machine
-   :members:
-   :undoc-members:
-   :show-inheritance:
