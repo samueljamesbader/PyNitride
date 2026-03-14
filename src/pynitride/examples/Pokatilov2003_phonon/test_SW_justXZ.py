@@ -1,0 +1,43 @@
+""" Solves the thin sandwich of `Pokatilov 2003 <https://doi.org/10.1016/S0749-6036(03)00069-7>`_ for comparison
+using the just XZ modes option."""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import MultipleLocator
+
+from pynitride.physics.material import AlGaN
+from pynitride import Mesh, MaterialBlock, UniformLayer
+from pynitride import to_unit, nm
+from pynitride.physics.phonons import ElasticContinuum
+from pynitride import RMesh1D
+from pynitride.examples.Pokatilov2003_phonon.phonon_analysis import sort_modes, is_AS
+
+if __name__=="__main__":
+    m=Mesh([
+        MaterialBlock("slab",AlGaN(),[
+            UniformLayer("top", 2.5*nm, x=1),
+            UniformLayer("middle", 1*nm, x=0),
+            UniformLayer("bottom", 2.5*nm, x=1),
+        ])],
+        max_dz=.025*nm,
+        refinements=[],uniform=True)
+    print("Mesh points: ", m.Nn)
+
+    ec=ElasticContinuum(m,num_eigenvalues=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm),justXZ=True)
+    ec.solve()
+
+    (as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en,ec.vecs, [is_AS])
+
+    plt.figure()
+    plt.plot(ec.q,to_unit(sa_en[:,:6],"meV"),'k')
+    plt.plot(ec.q,to_unit(as_en[:,:6],"meV"),'--k')
+    plt.xlim(0,6.31)
+    plt.ylim(0,34.83)
+    plt.gca().yaxis.set_major_locator(MultipleLocator(4))
+    plt.xticks(np.linspace(.31,6.26,num=6))
+    plt.grid(True)
+    plt.title("XZ-modes (Pokatilov 4b)")
+    plt.xlabel("Wavevector [nm$^{-1}$]")
+    plt.title("XZ-modes (Pokatilov 4b)")
+    plt.show()
+

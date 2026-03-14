@@ -1,0 +1,231 @@
+Omniscient v1
+
+######
+######
+##
+## This parameter file represents Sam Bader's preferred parameter
+## set for simulating the III-Nitrides, drawn from a wide variety
+## of referenced works and occasionally involving some additional
+## computation.
+##
+## It is meant to supplement the values in VM2003.txt
+##
+######
+######
+
+######
+## Polarization
+#####
+
+# Dreyer 2016: Implementation of Polarization Constants
+#  in Wurtzite Materials and Impact on III-Nitrides
+# https://doi.org/10.1103/PhysRevX.6.021038
+
+material=GaN
+    conditions=
+        polarization
+            e33:    1.020    C/m^2
+            e31:   -1.863    C/m^2
+
+material=AlN
+    conditions=
+        polarization
+            e33:    1.569    C/m^2
+            e31:   -2.027    C/m^2
+
+material=InN
+    conditions=
+        polarization
+            e33:    1.238    C/m^2
+            e31:   -1.630    C/m^2
+
+# Same paper but shifting the spontaneous polarization
+# to correct for the fact that their DFT lattice constants
+# are far from experiment (that is, just computing the
+# polarization at the measured lattice constants using
+# all their parameters, and then calling that the
+# spontaneous polarization and referencing all strain
+# from there).  This method is not published but was
+# worked out with Cyrus Dreyer, author of the above paper.
+
+material=GaN
+    conditions=
+        polarization
+            Psp:    1.327    C/m^2
+
+material=AlN
+    conditions=
+        polarization
+            Psp:    1.341    C/m^2
+
+material=InN
+    conditions=
+        polarization
+            Psp:    1.026    C/m^2
+
+# Adding in the e15, calculated by e15=d15*C44,
+# based on d15 and C44 from Vurgaftman & Meyer 2003
+# http://dx.doi.org/10.1063/1.1600519
+
+material=GaN
+    conditions=
+        polarization
+            e51:    0.3255   C/m^2
+
+material=AlN
+    conditions=
+        polarization
+            e51:    0.4176   C/m^2
+
+
+
+######
+## Dielectric constants
+#####
+
+
+# Kane 2001: http://dx.doi.org/10.1088/0268-1242/26/8/085006
+material=GaN
+    dielectric
+        eps_z:    10.6 epsilon_0
+        eps_perp:  9.5 epsilon_0
+
+# Kazan 2009: https://doi.org/10.1063/1.3177323
+material=AlN
+    dielectric
+        eps_z:     8.6 epsilon_0
+        eps_perp:  7.4 epsilon_0
+
+######
+## Optical phonons
+######
+
+# Conveniently compiled in Komirenko 1999
+# http://dx.doi.org/10.1103/PhysRevB.59.5013
+
+# Note all wLO etc as parsed into PyNitride
+# are in units of angular frequency
+
+material=GaN
+    raman
+        wLO_para:   735     2*pi*c/cm
+        wLO_perp:   743     2*pi*c/cm
+        wTO_para:   533     2*pi*c/cm
+        wTO_perp:   561     2*pi*c/cm
+    dielectric
+        eps_inf:    5.29    epsilon_0
+
+material=AlN
+    raman
+        wLO_para:   893     2*pi*c/cm
+        wLO_perp:   916     2*pi*c/cm
+        wTO_para:   660     2*pi*c/cm
+        wTO_perp:   673     2*pi*c/cm
+    dielectric
+        eps_inf:    4.68    epsilon_0
+
+######
+## Acoustic phonons
+######
+
+# Morkoc Vol I, pg 16
+material=GaN
+    density: 6.15 g/cm^3
+
+# Morkoc Vol I, pg 23
+material=AlN
+    density: 3.23 g/cm^3
+
+######
+## VBO
+######
+
+# These settings, along with the VM2003 kp parameters,
+# result in a VBO of .85 for GaN/AlN
+#       and a VBO of .18 for AlN/GaN
+# in rough agreement with pg 425 of
+# Morkoc, "Handbook of Nitride Semiconductors and Devices,
+#   Vol II: Electronic and Optical Processes in Nitrides"
+material=GaN
+    DE: 0    eV
+material=AlN
+    DE:  .55 eV
+
+######
+## Dopants
+######
+
+# GaN:
+# For Si, using the E_A and alpha from Morkoc Vol II, pg 141
+# For Mg, using the E_A from Morkoc Vol II, pg 145
+# Morkoc also gives 2 and 4 as the g-factors
+# It would be better to use the values from Kozodoy with alpha
+# but I haven't included alpha into actual calculation yet
+material=GaN
+    dopant=Si
+        type: 'Donor'
+        E: 29.7         meV
+        g: 2
+        # Note: alpha not incorporated into calculation yet
+        alpha: 2.59e-5  meV cm
+    dopant=Mg
+        type: 'Acceptor'
+        E: 170 meV
+        g: 4
+# AlN
+# For Si, using E_A from Nakarmi 2004
+#  (https://doi.org/10.1063/1.1809272)
+# For Mg, using E_A from Nakarmi 2003,
+#  (https://doi.org/10.1063/1.1594833)
+material=AlN
+    dopant=Si
+        type: 'Donor'
+        E: 180          meV
+        g: 2
+    dopant=Mg
+        type: 'Acceptor'
+        E: 510 meV
+        g: 4
+
+######
+## Valence band effective masses
+######
+# Calculated from VM2003 Luttinger parameters
+# using Table I of Chuang96: https://doi.org/10.1103/PhysRevB.54.2491
+# for the large-k values, mass trends in qualitative agreement with
+# https://doi.org/10.1103/PhysRevB.52.8132 (parenthesized values)
+# <scratch/VB_masses.ipynb>
+material=GaN
+    carrier=hole
+        band=HH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  2.00 m_e
+            DE: 0 eV
+        band=LH
+            g: 2
+            mzs:   1.89 m_e
+            mxys:  0.14 m_e
+            DE: 5 meV
+        band=CH
+            g: 2
+            mzs:   0.14 m_e
+            mxys:  2.27 m_e
+            DE: 21 meV
+material=AlN
+    carrier=hole
+        band=HH
+            g: 2
+            mzs:   3.57 m_e
+            mxys: 10.00 m_e
+            DE: 163 eV
+        band=LH
+            g: 2
+            mzs:  3.57 m_e
+            mxys: 0.33 m_e
+            DE: 176 meV
+        band=CH
+            g: 2
+            mzs:  0.26 m_e
+            mxys: 4.00 m_e
+            DE: 0 meV
