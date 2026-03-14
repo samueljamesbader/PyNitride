@@ -10,7 +10,9 @@ by following the [Installation instructions](#Installation).
 
 
 *The following note is for developers building demanding numerical codes on top of PyNitride,
-not really relevant to typical band-diagram generating users*: On *nix systems, PyNitride can be used with the `multiprocessing` fork-based parallelization.
+not really relevant to typical band-diagram generating users*:
+
+On *nix systems, PyNitride can be used with the `multiprocessing` fork-based parallelization.
 Many classes will, behind the scenes, store their large data in a global structure
 to avoid pickling it for each new forked process the class is passed to.
 `multiprocessing` does not support forking on Windows, so on Windows this parallelization is turned off
