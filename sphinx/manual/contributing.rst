@@ -44,7 +44,7 @@ To regenerate the locked dependencies after changing ``pyproject.toml``, run:
 
 .. code-block:: bash
 
-   pip-compile --extra dev -o requirements.txt pyproject.toml
+   pip-compile --no-allow-unsafe --no-header --extra dev -o requirements.txt pyproject.toml
 
 (To update the dependencies to their latest versions, add an ``--upgrade`` flag, or e.g. ``--upgrade-package numpy`` to only upgrade a specific package.)
 
