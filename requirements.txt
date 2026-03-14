@@ -12,6 +12,7 @@ click==8.3.1
     # via pip-tools
 colorama==0.4.6
     # via
+    #   PyNitride (pyproject.toml)
     #   build
     #   click
     #   pytest
