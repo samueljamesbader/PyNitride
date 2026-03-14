@@ -1,7 +1,7 @@
 # PyNitride
 
 ## System requirements
-For typical usage, PyNitride just requires any system with Python >=3.8,
+For typical usage, PyNitride just requires any system with Python >=3.14,
 and a few standard packages which are installed implicitly
 by following the [Installation instructions](#Installation).
 
