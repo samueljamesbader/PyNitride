@@ -2,6 +2,58 @@
 Contributing to PyNitride
 =========================
 
+Getting started
+=================
+To get started, clone the repository and install the development dependencies:
+
+.. code-block:: bash
+
+   git clone https://github.com/samueljamesbader/PyNitride.git
+
+Set up your Python environment.  (This may differ on your system.)
+e.g. Linux/Mac with a venv:
+
+.. code-block:: bash
+
+   cd PyNitride
+   python -m venv venv
+   source venv/bin/activate
+
+or  Windows with a venv in PowerShell:
+
+.. code-block:: powershell
+
+   cd PyNitride
+   python -m venv venv
+   .\venv\Scripts\activate
+
+Then install the locked development dependencies:
+
+.. code-block:: bash
+
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   pip install -e ".[dev]" --no-deps
+
+Dependency management
+=======================
+The dependencies are defined by ``pyproject.toml`` and locked in ``requirements.txt``.
+
+To regenerate the locked dependencies after changing ``pyproject.toml``, run:
+
+.. code-block:: bash
+
+   pip-compile --extra dev -o requirements.txt pyproject.toml
+
+(To update the dependencies to their latest versions, add an ``--upgrade`` flag, or e.g. ``--upgrade-package numpy`` to only upgrade a specific package.)
+
+
+Then install the new dependencies with
+
+.. code-block:: bash
+
+   pip install -r requirements.txt
+
 Tests
 ========
 Tests include unit tests, literature value tests, and a set of example simulations that are run and compared to "golden" output files.
