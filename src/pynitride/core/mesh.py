@@ -699,7 +699,7 @@ class Mesh():
 
         If `submesh` is a direct child of this mesh, returns True.
         If `submesh` is a child of this mesh somewhere down the line,
-            returns the direct child submesh of this mesh under which `submesh` can be found.
+        returns the direct child submesh of this mesh under which `submesh` can be found.
         Otherwise returns False.
         """
         if not len(self._submeshes): return False

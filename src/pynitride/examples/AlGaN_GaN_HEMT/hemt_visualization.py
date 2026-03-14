@@ -54,7 +54,7 @@ def conduction_band_panels(m,mbkp):
     #plt.yticks([25, 0, -25, -50, -75])
     plt.ylabel("Energy [meV]")
     plt.xticks(plt.xticks()[0][:-1])
-    plt.xlabel("DOS [eV$^{-1}$nm$^{-2}$]      $\ $", )
+    plt.xlabel(r"DOS [eV$^{-1}$nm$^{-2}$]      $\ $", )
     plt.axhline(0, color='k', linestyle='--')
     #plt.annotate("Filled", (1.2, -30), xytext=(1.4, -50),
     #             arrowprops=dict(connectionstyle='arc3,rad=.1', color='b'), color='b')
