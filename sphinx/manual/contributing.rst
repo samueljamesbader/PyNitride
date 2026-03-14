@@ -34,6 +34,7 @@ Then install the locked development dependencies:
    pip install --upgrade pip
    pip install -r requirements.txt
    pip install -e ".[dev]" --no-deps
+   pip check
 
 Dependency management
 =======================
@@ -47,12 +48,15 @@ To regenerate the locked dependencies after changing ``pyproject.toml``, run:
 
 (To update the dependencies to their latest versions, add an ``--upgrade`` flag, or e.g. ``--upgrade-package numpy`` to only upgrade a specific package.)
 
-
 Then install the new dependencies with
 
 .. code-block:: bash
 
    pip install -r requirements.txt
+
+Note that the CI flow test job checks that regenerating the locked dependencies from ``pyproject.toml`` matches the existing ``requirements.txt``,
+so if you change ``pyproject.toml`` you must also regenerate ``requirements.txt``.  (This regeneration references
+the existing ``requirements.txt`` so it should not fail just because a newer version of a dependency was released.)
 
 Tests
 ========

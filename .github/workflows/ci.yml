@@ -22,6 +22,12 @@ jobs:
         run: pip install -r requirements.txt
       - name: Install package
         run: pip install -e ".[dev]" --no-deps
+      - name: Check dependencies are satisfiable
+        run: pip check
+      - name: Check requirements.txt is up to date
+        run: |
+          pip-compile --extra dev -o requirements.txt pyproject.toml
+          git diff --exit-code requirements.txt
       - name: Run pytest
         run: pytest tests/
       - name: Ensure docs build
