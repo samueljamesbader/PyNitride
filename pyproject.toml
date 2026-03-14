@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61", "Cython", "numpy"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyNitride"
+dynamic = ["version"]
+description = "Python utilities for 1D band diagrams and simulation"
+authors = [{name = "Samuel James Bader", email = "samuel.james.bader@gmail.com"}]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "cython",
+    "matplotlib",
+    "scipy",
+    "pint",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "sphinx"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pynitride.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"*" = ["*.*"]
