@@ -3,8 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from types import MappingProxyType
-
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '../..'))
 from typing import cast
 
 # Utility for an immutable empty dict, to avoid the pitfalls of mutable default arguments

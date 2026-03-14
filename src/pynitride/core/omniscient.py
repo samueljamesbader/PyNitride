@@ -3,6 +3,7 @@
 # It's basically just the plumbing for pynitride's parameter database
 
 from collections import OrderedDict
+from pathlib import Path
 import numpy as np
 import os.path
 from pint import UnitRegistry
@@ -233,7 +234,8 @@ class Brain():
 
 
     def read(self, filename, regenerate_index=True):
-        filename=os.path.join(self._folder,filename)
+        if not(Path(filename).is_absolute()):
+            filename=os.path.join(self._folder,filename)
         with open(filename) as f:
             firstline=next(f)
             if firstline.strip()==("Omniscient v1"):
