@@ -35,7 +35,7 @@ class CarrierModel():
         raise NotImplementedError
 
     def repopulate(self):
-        """ Populates the mesh with carriers.
+        r""" Populates the mesh with carriers.
 
         This method should be quick because :func:`solve` has already done the heavy lifting.
         So this can be called inside tighter loops where the Fermi level changes but bands do not.
