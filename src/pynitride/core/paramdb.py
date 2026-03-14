@@ -1,7 +1,7 @@
-from pynitride import ROOT_DIR
 import os.path
 import pint
 from pynitride.core.omniscient import Brain
+from importlib import resources
 
 # Configures Pint to use "nanoelectronic units"
 # The base unit of length is  1 nm
@@ -61,7 +61,8 @@ kb, hbar, pi, m_e, cm, nm, eV, meV, K, q =[parse(x) for x in\
         "k,hbar,pi,m_e,cm,nm,eV,meV,K,e".split(',')]
 
 # Read in some parameter files
-pmdb=ParamDB(os.path.join(ROOT_DIR,"parameters"))
-pmdb.read("VM2003.txt")
-pmdb.read("fake.txt")
-pmdb.read("bader_recommended.txt")
+pmdb=ParamDB(None)
+with resources.as_file(resources.files('pynitride.parameters')) as param_path:
+    pmdb.read(param_path/"VM2003.txt")
+    pmdb.read(param_path/"fake.txt")
+    pmdb.read(param_path/"bader_recommended.txt")
