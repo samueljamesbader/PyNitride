@@ -22,5 +22,20 @@ material=GaN
             A5:  -2.510  hbar**2/(2*m_e)
             A6:  -3.202  hbar**2/(2*m_e)
             A7:   0.046  meV angstrom
-            Epc:  17.292 eV
-            Ept:  16.265 eV
+            Ep1:  17.292 eV
+            Ep2:  16.265 eV
+            DeltaCR:  34 meV
+material=AlN
+    material type: 'binary'
+    conditions=
+        kp
+            A1:  -3.991  hbar**2/(2*m_e)
+            A2:  -0.311  hbar**2/(2*m_e)
+            A3:   3.671  hbar**2/(2*m_e)
+            A4:  -1.147  hbar**2/(2*m_e)
+            A5:  -1.329  hbar**2/(2*m_e)
+            A6:  -1.952  hbar**2/(2*m_e)
+            A7:   0.026  meV angstrom
+            Ep1:  16.972 eV
+            Ep2:  18.165 eV
+            DeltaCR:  -295 meV
