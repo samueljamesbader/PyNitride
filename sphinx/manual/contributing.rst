@@ -4,6 +4,17 @@ Contributing to PyNitride
 
 Getting started
 =================
+
+Prerequisites
+**************
+
+- You'll need `Python 3.14 <https://www.python.org/>`_.
+- For building from source, Microsoft Visual C++ 14.0 (part of `Visual Studio Build Tools for C++ <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_) is required.
+  The no-thinking option is to select the "Desktop development with C++" workload, though if you want to save space and figure out more specifically which packages are needed, be my guest.
+
+Installation
+************
+
 To get started, clone the repository and install the development dependencies:
 
 .. code-block:: bash
@@ -11,6 +22,7 @@ To get started, clone the repository and install the development dependencies:
    git clone https://github.com/samueljamesbader/PyNitride.git
 
 Set up your Python environment.  (This may differ on your system.)
+
 e.g. Linux/Mac with a venv:
 
 .. code-block:: bash
@@ -64,7 +76,7 @@ Tests include unit tests, literature value tests, and a set of example simulatio
 
 CI
 ************
-The Tests workflow (`.github/workflows/tests.yml`) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
+The Tests workflow (``.github/workflows/tests.yml``) runs the unit tests and example tests on every push and pull request, and will fail if any of the tests fail.
 
 Golden files
 ************
@@ -86,4 +98,4 @@ which will generate the API reference and build the HTML files in the ``docs/htm
 
 Deploying documentation
 ***********************
-The Docs workflow (`.github/workflows/docs.yml`) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
+The Docs workflow (``.github/workflows/docs.yml``) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
