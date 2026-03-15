@@ -14,7 +14,12 @@ Equations of Motion
 If the system is described by a driven oscillator equation
 
 .. math::
+
     \newcommand{\abs}[1]{\left|#1\right|}
+
+.. math::
+    :nowrap:
+
     \begin{equation}
       \mu\partial_t^2u_i =-\mu\omega_{0i}^2u_i+e^* E_i
     \end{equation}
@@ -23,6 +28,7 @@ If the system is described by a driven oscillator equation
 where :math:`\mu` and :math:`i` runs over :math:`\perp, \parallel`. Then :math:`P_i=\frac{e^*}{V_u}u_i`, giving
 
 .. math::
+    :nowrap:
 
     \begin{align}
       P_i =\varepsilon_0\chi_iE_i, \quad \chi_i=\frac{e^{*2}}{\varepsilon_0\mu V_u}\frac{1}{\omega_{0i}^2-\omega^2}
@@ -32,6 +38,8 @@ where :math:`\mu` and :math:`i` runs over :math:`\perp, \parallel`. Then :math:`
 Defining an :math:`\varepsilon_i` so that :math:`D_i=\varepsilon_i E_i=\varepsilon^\infty E_i +P=(\varepsilon^\infty +\varepsilon_0\chi_i) E_i` leads to
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       \varepsilon_\perp=\varepsilon^\infty\frac{\omega_{LO\perp}^2-\omega^2}{\omega_{TO\perp}^2-\omega^2},
       \quad\quad
@@ -42,6 +50,7 @@ where :math:`\omega_{TO,i}^2=\omega_{0i}^2` and :math:`\omega_{LO, i}^2=\omega_{
 The phonons are found by solving
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       -\nabla\cdot\overset\leftrightarrow{\epsilon}\nabla\phi=0
@@ -51,6 +60,8 @@ The phonons are found by solving
 which can be framed as an eigenvalue problem in :math:`q` at fixed :math:`\omega`
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       \partial_z\epsilon_\parallel\partial_z\phi=q^2\epsilon_\perp\phi
     \end{equation}
@@ -61,6 +72,8 @@ Normalization
 The :math:`\phi` must then be normalized by the prescription :math:`\int dz\frac{\mu}{V_u}\abs{\vec u}^2=\frac{\hbar}{2\omega}`.  To do this, we'll need to extract :math:`\vec u` from the :math:`\phi`:
 
 .. math::
+    :nowrap:
+
     \begin{align}
       \vec u = \frac{V_u}{e^*}\vec P=\frac{V_u}{e^*}\varepsilon_0\chi\vec E=-\frac{V_u}{e^*}\chi\nabla\phi
     \end{align}
@@ -68,24 +81,28 @@ The :math:`\phi` must then be normalized by the prescription :math:`\int dz\frac
 So
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \vec u = -\frac{\varepsilon_0V_u}{e^*}\left( \chi_\parallel \partial_z\phi \hat{z} +iq\chi_\perp\phi\hat{q} \right)
     \end{align}
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{\varepsilon_0\mu V_u}{e^{*2}}\left( (\chi_\parallel \partial_z\phi)^2 +q^2(\chi_\perp\phi)^2 \right)
     \end{align}
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \frac{\mu}{V_u}\abs{\vec u}^2 = \frac{e^{*2}}{\mu V_u}\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
     \end{align}
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \frac{\mu}{V_u}\abs{\vec u}^2 = \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
@@ -95,6 +112,7 @@ where, since :math:`\omega_{LO\perp}` et al are taken from experiment, we'll ave
 Thus the normalization condition is written in terms of the potential as
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \frac{\hbar}{2\omega} = \int dz \varepsilon_\infty(\omega^2_{LO}-\omega^2_{TO})\left( \left(\frac{\partial_z\phi}{\omega_{TO\parallel}^2-\omega^2}\right)^2 +\left(\frac{q\phi}{\omega^2_{TO\perp}-\omega^2}\right)^2 \right)
@@ -142,6 +160,7 @@ Then the vertical wavevector of a mode in a given region is :math:`k_i=q\alpha_i
 If the solution is written in Region 1 with a normalization constant :math:`A` and Region 2 with a normalization constant :math:`B`, then the first matching condition gives us :math:`A/B`, and the normalization condition will be written
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       A^2=\frac{\hbar}{2\omega}\big/\left[ \beta^2_{\parallel 1}\gamma_{\parallel 1}^2+\beta^2_{\perp 1}\gamma_{\perp 1}^2 + \left(\frac{B}{A}\right)^2\left(\beta^2_{\parallel 2}\gamma_{\parallel 2}^2+\beta^2_{\perp 2}\gamma_{\perp 2}^2 \right) \right]
@@ -150,12 +169,14 @@ If the solution is written in Region 1 with a normalization constant :math:`A` a
 with
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \beta_{\parallel i}^2=\varepsilon^\infty_i\left( \omega_{LOi}^2-\omega_{TOi}^2 \right)\left( \frac{k_i}{\omega_{TO\parallel i}^2-\omega^2} \right)^2
     \end{equation}
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \beta_{\perp     i}^2=\varepsilon^\infty_i\left( \omega_{LOi}^2-\omega_{TOi}^2 \right)\left( \frac{  q}{\omega_{TO\perp i}^2-\omega^2} \right)^2
@@ -164,6 +185,7 @@ with
 and
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel i}^2=\int_{i} dz \left(\frac{\partial_z \phi}{A k_i}\right)^2, \quad
@@ -176,6 +198,7 @@ Confined to Region 1
 If the solution is oscillating in Region 1 and decaying in Region 2, we can write
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \phi_1=A\sin(k_1 z), \quad \phi_2=Be^{-k_2z}
@@ -184,6 +207,7 @@ If the solution is oscillating in Region 1 and decaying in Region 2, we can writ
 Matching interface conditions gives
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       q=\frac{1}{\alpha_1 t_1}\left[ \tan^{-1}\left( \xi_1/\xi_2 \right) +\pi n \right]
@@ -192,6 +216,7 @@ Matching interface conditions gives
 with :math:`B/A=\sin(k_1 t_1)e^{k_2t_1}` and
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 1}=\frac{1}{2}(t_1+\frac{1}{2k_1}\sin(2k_1t_1)), \quad
@@ -199,6 +224,7 @@ with :math:`B/A=\sin(k_1 t_1)e^{k_2t_1}` and
     \end{equation}
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 2}=\frac{1}{2k_2}e^{-2k_2t_1}, \quad
@@ -214,6 +240,7 @@ Confined to Interface
 If the solution is decaying in both regions, we can write
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \phi_1=A\sinh(k_1 z), \quad \phi_2=Be^{-k_2z}
@@ -222,6 +249,7 @@ If the solution is decaying in both regions, we can write
 Matching interface conditions gives
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       q=\frac{1}{2\alpha t_1}\log\left[ \frac{\xi_2+\xi_1}{\xi_2-\xi_1} \right]
@@ -230,6 +258,7 @@ Matching interface conditions gives
 with :math:`B/A=\sinh(k_1t_1)e^{k_2t_1}` and
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 1}=\frac{1}{2}\left(\frac{1}{2k_1}\sinh(2k_1t_1)+t_1\right), \quad
@@ -237,6 +266,7 @@ with :math:`B/A=\sinh(k_1t_1)e^{k_2t_1}` and
     \end{equation}
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 2}=\frac{1}{2k_2}e^{-2k_2t_1}, \quad
@@ -251,6 +281,7 @@ Confined to Region 2
 If the solution is decaying in Region 1 and oscillating in Region 2, we can write
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \phi_1=A\sinh(k_1 z), \quad \phi_2=B\sin(k_2 z+\theta)
@@ -260,6 +291,7 @@ If the solution is decaying in Region 1 and oscillating in Region 2, we can writ
 Matching interface conditions gives
 
 .. math::
+    :nowrap:
 
     \begin{align}
       \theta=\tan^{-1}\left( \frac{\xi_2}{\xi_1}\tanh(k_1t_1) \right)-k_2t_1
@@ -268,6 +300,7 @@ Matching interface conditions gives
 with :math:`B/A=\sinh(k_1t_1)/\sin(k_2t_1+\theta)`.  The :math:`t_2` thickness normalization gives :math:`k_2=\pi (n+1)/t_2`, so
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       q=\frac{\pi(n+1)}{\alpha_2t_2}
@@ -276,6 +309,7 @@ with :math:`B/A=\sinh(k_1t_1)/\sin(k_2t_1+\theta)`.  The :math:`t_2` thickness n
 Normalization is accounted for via
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 1}=\frac{1}{2}\left(\frac{1}{2k_1}\sinh(2k_1t_1)+t_1\right), \quad
@@ -283,6 +317,7 @@ Normalization is accounted for via
     \end{equation}
 
 .. math::
+    :nowrap:
 
     \begin{equation}
       \gamma_{\parallel 2}=\frac{t_2}{2}, \quad

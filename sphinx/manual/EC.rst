@@ -6,6 +6,8 @@ Elastic Continuum Model
 The elastic continuum model [#]_ joins the continuum Newton's law with the material stress-strain relation:
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       \rho \frac{\partial^2 u_i}{\partial t^2}=\frac{\partial T_{ij}}{\partial r_j}, \quad T_{ij}=c_{ijkl}\epsilon_{kl}
     \end{equation}
@@ -18,6 +20,8 @@ and :math:`\epsilon_{ijkl}` is the strain tensor
 In Voigt notation
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       T_{\alpha}=c_{\alpha \beta}\epsilon_\beta
     \end{equation}
@@ -25,6 +29,8 @@ In Voigt notation
 where :math:`\alpha, \beta` run 1-6 and the Voigt tuples are related to the actual tensors by
 
 .. math::
+    :nowrap:
+
     \begin{align}
       T_{1}=T_{xx}&,\quad
       \epsilon_{1}=\epsilon_{xx}\\
@@ -46,6 +52,8 @@ Wurtzite
 For a wurtzite crystal, the :math:`c_{\alpha \beta}` can be written
 
 .. math::
+    :nowrap:
+    
     \begin{equation}
       c=\begin{pmatrix}
         C_{11} & C_{12} & C_{13} &      0 &      0 & 0 \\
@@ -59,6 +67,8 @@ For a wurtzite crystal, the :math:`c_{\alpha \beta}` can be written
 with in-plane wavevector :math:`q`, the strains are given by
 
 .. math::
+    :nowrap:
+
     \begin{align}
       \epsilon_1&=iq u_x ,& \quad \epsilon_4&=\partial_z u_y \\
       \epsilon_2&=0 ,& \quad \epsilon_5&=iqu_z+\partial_z u_x \\
@@ -68,6 +78,8 @@ with in-plane wavevector :math:`q`, the strains are given by
 Then the combined relation becomes
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       -\rho\omega^2\begin{pmatrix}
         u_x\\
@@ -84,6 +96,8 @@ Then the combined relation becomes
 Or
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       \rho\omega^2u=
       Cu, \quad C= q^2C^0 -iq C^L\partial_z -iq \partial_z C^R  - \partial_z C^2 \partial_z
@@ -93,6 +107,8 @@ Or
 where
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       C^0= \begin{pmatrix}
         C_{11} &  & \\
@@ -107,6 +123,8 @@ where
     \end{equation}
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       C^L= \begin{pmatrix}
         &  & C_{13}\\
@@ -126,6 +144,8 @@ Wurtzite piezoelectric potential
 Once the acoustic phonon modes are solved for, each mode can be considered a source of piezoelectric charge
 
 .. math::
+    :nowrap:
+
     \begin{align}
     \rho=-\nabla \cdot \vec P&= -\nabla \cdot \left[
     \begin{pmatrix}
@@ -146,6 +166,8 @@ Once the acoustic phonon modes are solved for, each mode can be considered a sou
 where :math:`e_{\alpha\beta}` are the piezoelastic moduli
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       q^2\varepsilon_\perp\phi -\partial_z\varepsilon_\parallel \partial_z \phi
         =q^2e_{15}u_z-iqe_{15}\partial_zu_L
@@ -155,6 +177,8 @@ where :math:`e_{\alpha\beta}` are the piezoelastic moduli
 which can be written
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       C^0\phi -\partial_z C^2\partial_z\phi = C^{0'}u_z-iC^{L'}u_x-iC^{R'}u_x-\partial_zC^{2'}\partial_zu_z
     \end{equation}
@@ -162,11 +186,15 @@ which can be written
 where
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       C_0=q^2\varepsilon_\perp, \quad C_2=\varepsilon_\parallel
     \end{equation}
 
 .. math::
+    :nowrap:
+
     \begin{equation}
       C^{0'}=q^2e_{15},
       C^{L'}=qe_{15},

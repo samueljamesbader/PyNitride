@@ -6,9 +6,8 @@ Finite Element Method
 The most general form of differential equation faced by PyNitride is
 
 .. math::
-    \begin{equation}
-        \left[C^0(z)-iC^L(z)\partial_z-i\partial_zC^R(z)-\partial_z C^2(z) \partial_z \right] f(z) = w(z)b(z)
-    \end{equation}
+
+    \left[C^0(z)-iC^L(z)\partial_z-i\partial_zC^R(z)-\partial_z C^2(z) \partial_z \right] f(z) = w(z)b(z)
 
 where the :math:`C` are potentially matrices, :math:`C^L` and :math:`C^R` are transposes of one another.
 The :math:`C` and :math:`w` are material properties (ie they are well-defined on the mid mesh)
@@ -29,6 +28,8 @@ This equation can then be written :math:`Af=Mb` or, for an eigenvalue problem, :
 where :math:`A` is the "stiffness matrix" and :math:`M` is the "load matrix."  The stiffness matrix is given by
 
 .. math::
+    :nowrap:
+
     \begin{align}
       A_{i,i-1}=
         &\frac{C^0_{i-.5}dz_{i-.5}}{6}+\frac{i}{2}\left( C^L_{i-.5}+C^R_{i-.5} \right)-\frac{C^2_{i-.5}}{dz_{i-.5}}\\
@@ -43,6 +44,8 @@ where :math:`A` is the "stiffness matrix" and :math:`M` is the "load matrix."  T
 And the load matrix can be written
 
 .. math::
+    :nowrap:
+
     \begin{align}
       M_{i,i-1}&= \frac{w_{i-.5}dz_{i-.5}}{6}\\
       M_{i,i+1}&= \frac{w_{i+.5}dz_{i+.5}}{6}\\
