@@ -344,6 +344,8 @@ class Wurtzite(MaterialSystem):
             C_{0}=C_{0L}+C_{0D}+C_{0S}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_{l}= I_2 \otimes \begin{pmatrix}
                                \cdot     &             \cdot    &       k_x^lN_2^+    \\
@@ -353,6 +355,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_{r}= I_2 \otimes \begin{pmatrix}
                                    \cdot     &             \cdot    &       N_2^-k_x^r \\
@@ -362,6 +366,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_{2}= I_2 \otimes \begin{pmatrix}
                                    M_2^u   &             \cdot    &        \cdot     \\
@@ -373,6 +379,8 @@ class Wurtzite(MaterialSystem):
         where :math:`C_{0S}` is the strain matrix from :func:`Wurtzite.kp_strain_mat` and
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_{0L}= I_2 \otimes \begin{pmatrix}
                 k_x^lL_1^uk_x^r+k_y^lM_1^uk_y^r & k_x^lN_1^+k_y^r+k_y^lN_1^-k_x^r&         \cdot\\
@@ -382,6 +390,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_{0D}=\begin{pmatrix}
                 \Delta_1 &   - i\Delta_2 &          \cdot &          \cdot &         \cdot &     \Delta_3 \\
@@ -397,6 +407,8 @@ class Wurtzite(MaterialSystem):
         an additional matrix
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             SS=\begin{pmatrix}
             ss/2 & \cdot & \cdot & \cdot & \cdot  & \cdot \\
@@ -515,6 +527,8 @@ class Wurtzite(MaterialSystem):
         For conduction band
 
         .. math::
+            :nowrap:
+            
 
             \begin{pmatrix}
                 a_{c2} e_{xx} + a_{c2} e_{yy} + a_{c1} e_{zz} & 0 \\
@@ -523,6 +537,8 @@ class Wurtzite(MaterialSystem):
 
 
         .. math::
+            :nowrap:
+            
 
             \begin{gather}
                 a_{c1}=a_1+D_1,\quad a_{c2}=a_2+D_2
@@ -532,6 +548,8 @@ class Wurtzite(MaterialSystem):
         For valence band, the 6x6 strain matrix is a block diagonal of two 3x3 blocks
 
         .. math::
+            :nowrap:
+            
 
             \begin{pmatrix}
                 l_1 e_{xx} +m_1 e_{yy} +m_2 e_{zz} & n_1 e_{xy} & n_2 e_{xz}\\
@@ -540,6 +558,8 @@ class Wurtzite(MaterialSystem):
             \end{pmatrix}
 
         .. math::
+            :nowrap:
+            
 
             \begin{gather}
                 l_1=D_2+D_4+D_5, \quad l_2=D_1\\
@@ -580,6 +600,8 @@ class Wurtzite(MaterialSystem):
         r""" Elastic continuum matrices.
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_0=\begin{pmatrix}
                 C_{11}  &  \cdot & \cdot \\
@@ -589,6 +611,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_l=\begin{pmatrix}
                 \cdot  &  \cdot & C_{13} \\
@@ -598,6 +622,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_r=\begin{pmatrix}
                 \cdot  &  \cdot & C_{44} \\
@@ -607,6 +633,8 @@ class Wurtzite(MaterialSystem):
             \end{equation}
 
         .. math::
+            :nowrap:
+            
             \begin{equation}
             C_2=\begin{pmatrix}
                 C_{44}  &  \cdot & \cdot \\
