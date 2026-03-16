@@ -86,19 +86,25 @@ def test_fd_timing(capfd):
 
 
 
+
 def generate_tridiagonal_problem(N):
-    r"""Generates a random tridiagonal matrix problem (``a,b,c,d``) for :py:func:`~pynitride.core.cython_maths.tdma`.
+    r"""Generates a tridiagonal matrix problem (``a,b,c,d``) for :py:func:`~pynitride.core.cython_maths.tdma`.
 
     The off-diagonals are limited to half of the diagonal in the same row, which guarantees diagonal dominance as
     required by `CFD-Online <https://www.cfd-online.com/Wiki/Tridiagonal_matrix_algorithm_-_TDMA_(Thomas_algorithm)>`_.
 
+    Uses a seeded :py:class:`numpy.random.RandomState` so the sequence is "random-like" but actually reproducible,
+    according to the Compatibility Guarantee of :py:class:`numpy.random.RandomState` (https://numpy.org/doc/stable/reference/random/legacy.html#numpy.random.RandomState).
+
     :return: a tuple of ``a,b,c,d``.
     """
 
-    b=-np.random.rand(N)
-    a=-np.random.rand(N)*.5*b
-    c=-np.random.rand(N)*.5*b
-    d=np.random.rand(N)
+    _rng = np.random.RandomState(seed=N)
+    b=-_rng.rand(N)
+    a=-_rng.rand(N)*.5*b
+    c=-_rng.rand(N)*.5*b
+    d=_rng.rand(N)
+    print(a,b,c,d)
     a[0]=0
     c[N-1]=0
 
