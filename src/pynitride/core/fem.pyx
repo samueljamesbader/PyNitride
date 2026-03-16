@@ -30,7 +30,7 @@ cpdef assemble_stiffness_matrix(
     Cythonized assembly method, call as `assemble_stiffness_matrix(C0, Cl, Cr, C2, dzn, dirichelet1, dirichelet2)`.
     
     For the mathematics/definitions of the :math:`C` terms, see :ref:`FEM`.
-    All arguments should be defined on the mid mesh except :math:`U`,
+    All non-scalar arguments should be defined on the mid mesh,
     and all the :math:`C` matrices should be three-dimensional, even if they are just scalars.
     
     If `Cl` and `Cr` are supplied as None, they will be ignored and the matrix will be of dtype double.
