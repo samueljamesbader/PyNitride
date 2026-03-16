@@ -9,17 +9,18 @@ Dual mesh
 -----------------------------
 A spatial mesh in PyNitride actually denotes two lists of points: the *node* points and the *mid* points.
 Node points are the "main" mesh defined by the structure, and every layer interface is aligned on a node point.
-Many direct solution variables, such as the electric potential, are defined as functions over the node points.
+The direct solution variables, such as the electric potential, are defined as functions over the node points.
 Mid points, conversely, are defined as the points halfway between each node point.
 Because interfaces/ discontinuities align to node points, every mid point is within a well-defined layer.
 So variables that depend on material properties, or are intrinsically discontinuous at interfaces,
-are defined as functions over the mid points.
+are defined as functions over the mid points.  In the literature, this sort of scheme is sometimes called a "staggered grid" arrangement,
+with the node points being the "primal" or "node-centered" grid and the mid points being the "dual" or "cell-centered" grid.
 
 A mesh is represented by :py:class:`~pynitride.core.mesh.Mesh`, and the functions are
 instances of :py:class:`~pynitride.core.mesh.Function` whose `pos` variable indicates whether
 it is a node function or mid function.  Functions defined on a mesh can be retrieved like instance variables
 (eg `mesh.Ec` to get the conduction band edge).
-`Function` subclasses Numpy arrays, so that array operations work as they normally would.
+:py:class:`~pynitride.core.mesh.Function` subclasses Numpy arrays, so that array operations work as they normally would.
 
 If there are `n` node points, node functions act like a Numpy array whose last dimension is of length `n`.
 Mid functions act as Numpy arrays whose last dimension is length `n-1`.

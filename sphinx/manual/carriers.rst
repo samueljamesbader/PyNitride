@@ -62,9 +62,7 @@ For the conduction and valence bands respectively
     \end{align}
 
 where the :math:`l` is a subband index, :math:`m_z` and :math:`m_t` are the longitudinal and transverse effective masses,
-and the :math:`\Delta E_{C/V}` are subband-specific offsets.
-where for electrons :math:`b=-1,\ U_\sigma=E_C+\Delta E_{Ci}` and
-for holes :math:`b=+1,\ U_\sigma=E_V-\Delta E_{Vi}`.  These levels are occupied as
+and the :math:`\Delta E_{C/V}` are subband-specific offsets.  These levels are occupied as
 
 .. math::
     :nowrap:
