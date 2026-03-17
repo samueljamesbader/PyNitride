@@ -27,7 +27,8 @@ dev = [
     # may install this package on Windows but not Linux, which means
     # the requirements.txt file will be different for Windows/Linux
     # which breaks the simple CI
-    "colorama>=0.4.6,<1"
+    "colorama>=0.4.6,<1",
+    "furo>=2025.12.19,<2026",
 ]
 
 [tool.setuptools.dynamic]
