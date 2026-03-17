@@ -3,7 +3,9 @@
 Finite Element Method
 =====================================
 
-The most general form of differential equation faced by PyNitride is
+PyNitride uses the finite element method with linear elements.
+
+The most general form of any differential equation faced by PyNitride is
 
 .. math::
 
@@ -13,6 +15,10 @@ where the :math:`C` are potentially matrices, :math:`C^L` and :math:`C^R` are tr
 The :math:`C` and :math:`w` are material properties (ie they are well-defined on the mid mesh)
 whereas :math:`f(z)` and :math:`b(z)` are solution variables (well-defined on the node mesh).
 This can include :math:`b(z)=\lambda f(z)` as an eigenvalue problem.
+
+As an example, for the Poisson equation,
+:math:`C^0=C^L=C^R=0` and :math:`C^2=\varepsilon` is the dielectric constant,
+and :math:`w=1` and :math:`b=\rho` is the charge density.
 
 Let :math:`\Delta_i(z)` be the linear interpolation of :math:`\delta_{z_i, z_j}` on dependent variable :math:`z_j`.
 Choose the basis functions :math:`\Delta_i` where :math:`i`, where :math:`i` ranges over all the nodes except Dirichelet
