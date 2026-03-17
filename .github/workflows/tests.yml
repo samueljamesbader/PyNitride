@@ -26,7 +26,7 @@ jobs:
         run: pip check
       - name: Check requirements.txt is up to date
         run: |
-          pip-compile --no-annotate --no-allow-unsafe --no-header --extra dev -o requirements.txt pyproject.toml
+          pip-compile --no-strip-extras --no-annotate --no-allow-unsafe --no-header --extra dev -o requirements.txt pyproject.toml
           git diff --exit-code requirements.txt
       - name: Run pytest
         run: pytest tests/
