@@ -126,7 +126,10 @@ html_theme = 'furo'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+    "light_logo": "Logo.svg",
+    "dark_logo": "Logo_dark.svg",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -137,10 +140,6 @@ html_theme = 'furo'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
-
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-html_logo = 'manual/Logo.svg'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
