@@ -101,7 +101,7 @@ if __name__=='__main__':
         enLO,phiLO=dc.get_mode_by_name('LO'+reg,num,iq=iq)
         enTO,phiTO=dc.get_mode_by_name('TO'+reg,num,iq=iq)
 
-        from pynitride.tests.Analytical_POP import check_POP_interface, check_POP_normalization
+        from pynitride.examples.Analytical_POP.SWH_checks import check_POP_interface, check_POP_normalization
         check_POP_interface(phiLO,dc.q[iq],enLO/hbar)
         check_POP_normalization(phiLO,dc.q[iq],enLO/hbar)
         check_POP_interface(phiTO,dc.q[iq],enTO/hbar)

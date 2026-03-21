@@ -854,7 +854,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
         self._firstlevels=OrderedDict()
         neig_sofar=0
         neig_included_sofar=0
-        num_eigs_max=num_eigs if num_eigs is not None else np.infty
+        num_eigs_max=num_eigs if num_eigs is not None else np.inf
         for m in self.mode_order:
 
             # Number of eigenvalues we're allowed to pull from this type of mode
