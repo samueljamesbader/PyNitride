@@ -11,7 +11,7 @@ SimFunc=Callable[[],Simulation]
 
 def create_golden_file(get_sim_func:SimFunc,example_name:str):
     sim=get_sim_func()
-    sim.save_bands_file(Path(__file__).parent/f"goldens/{example_name}_bands.txt")
+    sim.save_direct_file(Path(__file__).parent/f"goldens/{example_name}_bands.txt")
 
 def read_output(file:str|Path|TextIO):
     with (open(file,'r') if isinstance(file, (str, Path)) else returner_context(file)) as f:
@@ -31,7 +31,7 @@ def _test_example(get_sim_func:SimFunc, example_name:str, create:bool=False, max
     elapsed_time = time.time() - start_time
     assert elapsed_time < max_time, f"Simulation took {elapsed_time:.2f} seconds, which exceeds the maximum allowed time of {max_time} seconds for {example_name}"
     sio = StringIO()
-    sim.save_bands_file(sio)
+    sim.save_direct_file(sio)
     sio.seek(0)
     test_data = read_output(sio)
 
