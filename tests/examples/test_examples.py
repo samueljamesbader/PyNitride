@@ -142,6 +142,10 @@ def test_hemt_fullspace_example(create:bool=False):
     from pynitride.examples.AlGaN_GaN_HEMT.hemt_fullspace_example import do_simulation
     _test_example(do_simulation,"hemt_fullspace_example",create=create, max_time=60)
 
+def test_pfet_example(create:bool=False):
+    from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example import do_simulation
+    _test_example(do_simulation,"pfet_example",create=create, max_time=120)
+
 if __name__=="__main__":
     import sys
     if len(sys.argv)>1:
