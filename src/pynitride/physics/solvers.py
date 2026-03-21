@@ -280,7 +280,7 @@ class Equilibrium():
 
 class Linear_Fermi():
 
-    def __init__(self,mesh,contacts={'gate':0,'subs':-1}):
+    def __init__(self,mesh,contacts_ind={'gate':0,'subs':-1},contacts_zn={}):
         """ Allows for a specified piecewise linear Fermi potential.
 
         An arbitrary number of "contacts" can be designated, and at each of these locations,
@@ -288,17 +288,18 @@ class Linear_Fermi():
 
         Args:
             mesh: the :class:`~pynitride.mesh.Mesh` on which to perform the solve
-            contacts: a dictionary mapping names of contacts to locations in the mesh.
-                Keys are arbitrary names, values are either (1) integers,
-                in which case they will be interpreted as designating a layer interface
-                (0 is the top surface, -1 is the bottom point), or (2) floats, in which
-                case they will be interpreted as designating a nearest point to a `z`-value
+            contacts_ind: a dictionary mapping contact names to interface indices.
+                0 is the top surface, -1 is the bottom, and positive integers index
+                interior layer interfaces in order from top to bottom.
+            contacts_zn: a dictionary mapping contact names to z-coordinates,
+                each of which will be snapped to the nearest node.
 
         """
         self._mesh=mesh
         interfaces=[(0,None)]+mesh.interfaces_node+[((len(mesh.zn)-1),None)]
-        self._contacts=OrderedDict(sorted([(k,interfaces[v][0] if isinstance(v,int) else mesh.indexn(v))
-                                   for k,v in contacts.items()],key=lambda x:x[1] if hasattr(x,'__getitem__') else x))
+        resolved={k: interfaces[v][0] for k,v in contacts_ind.items()}
+        resolved.update({k: mesh.indexn(v) for k,v in contacts_zn.items()})
+        self._contacts=OrderedDict(sorted(resolved.items(),key=lambda x:x[1]))
         mesh['EF']=NodFunction(mesh)
 
     def solve(self,**voltages):

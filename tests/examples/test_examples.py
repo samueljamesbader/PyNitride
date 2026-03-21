@@ -15,6 +15,9 @@ def create_golden_file(get_sim_func:SimFunc,example_name:str):
     if 'schro' in sim.extras:
         sim.save_schrodinger_file(Path(__file__).parent/f"goldens/{example_name}_schrodinger.txt")
         sim.save_schrodinger_psi_file(Path(__file__).parent/f"goldens/{example_name}_schrodinger_psi.txt")
+    if 'mbkp' in sim.extras:
+        sim.save_mbkp_file(Path(__file__).parent/f"goldens/{example_name}_mbkp.txt")
+        sim.save_mbkp_normsqs_file(Path(__file__).parent/f"goldens/{example_name}_mbkp_normsqs.txt")
 
 def read_output(file:str|Path|TextIO):
     with (open(file,'r') if isinstance(file, (str, Path)) else returner_context(file)) as f:
@@ -30,6 +33,12 @@ def read_golden_schrodinger_file(example_name:str):
 
 def read_golden_schrodinger_psi_file(example_name:str):
     return read_output(Path(__file__).parent/f"goldens/{example_name}_schrodinger_psi.txt")
+
+def read_golden_mbkp_file(example_name:str):
+    return read_output(Path(__file__).parent/f"goldens/{example_name}_mbkp.txt")
+
+def read_golden_mbkp_normsqs_file(example_name:str):
+    return read_output(Path(__file__).parent/f"goldens/{example_name}_mbkp_normsqs.txt")
 
 def _test_example(get_sim_func:SimFunc, example_name:str, create:bool=False, max_time:float=300):
     if create: create_golden_file(get_sim_func,example_name)
@@ -89,9 +98,49 @@ def _test_example(get_sim_func:SimFunc, example_name:str, create:bool=False, max
         assert np.allclose(golden_psi['psi'], test_psi['psi'], atol=1e-6, rtol=1e-3), \
             f"Schrodinger psi wavefunction mismatch for {example_name}"
 
+    golden_mbkp_path = Path(__file__).parent/f"goldens/{example_name}_mbkp.txt"
+    if golden_mbkp_path.exists():
+        assert 'mbkp' in sim.extras, f"MBKP results missing from simulation extras for {example_name}"
+        golden_mbkp = read_golden_mbkp_file(example_name)
+        sio_mbkp = StringIO()
+        sim.save_mbkp_file(sio_mbkp)
+        sio_mbkp.seek(0)
+        test_mbkp = read_output(sio_mbkp)
+        assert np.array_equal(golden_mbkp['k_index'], test_mbkp['k_index']), \
+            f"MBKP k_index mismatch for {example_name}"
+        assert np.array_equal(golden_mbkp['eigenvalue_index'], test_mbkp['eigenvalue_index']), \
+            f"MBKP eigenvalue_index mismatch for {example_name}"
+        assert np.allclose(golden_mbkp['kx[1/nm]'], test_mbkp['kx[1/nm]'], atol=band_precision), \
+            f"MBKP kx mismatch for {example_name}"
+        assert np.allclose(golden_mbkp['ky[1/nm]'], test_mbkp['ky[1/nm]'], atol=band_precision), \
+            f"MBKP ky mismatch for {example_name}"
+        assert np.allclose(golden_mbkp['energy[eV]'], test_mbkp['energy[eV]'], atol=band_precision), \
+            f"MBKP energy mismatch for {example_name}"
+
+    golden_mbkp_normsqs_path = Path(__file__).parent/f"goldens/{example_name}_mbkp_normsqs.txt"
+    if golden_mbkp_normsqs_path.exists():
+        assert 'mbkp' in sim.extras, f"MBKP results missing from simulation extras for {example_name}"
+        golden_ns = read_golden_mbkp_normsqs_file(example_name)
+        sio_ns = StringIO()
+        sim.save_mbkp_normsqs_file(sio_ns)
+        sio_ns.seek(0)
+        test_ns = read_output(sio_ns)
+        assert np.array_equal(golden_ns['k_index'], test_ns['k_index']), \
+            f"MBKP normsqs k_index mismatch for {example_name}"
+        assert np.array_equal(golden_ns['eigenvalue_index'], test_ns['eigenvalue_index']), \
+            f"MBKP normsqs eigenvalue_index mismatch for {example_name}"
+        assert np.allclose(golden_ns['z[nm]'], test_ns['z[nm]'], atol=band_precision), \
+            f"MBKP normsqs z mismatch for {example_name}"
+        assert np.allclose(golden_ns['normsq'], test_ns['normsq'], atol=1e-6, rtol=1e-3), \
+            f"MBKP normsqs mismatch for {example_name}"
+
 def test_hemt_example(create:bool=False):
     from pynitride.examples.AlGaN_GaN_HEMT.hemt_example import do_simulation
     _test_example(do_simulation,"hemt_example",create=create, max_time=1)
+
+def test_hemt_fullspace_example(create:bool=False):
+    from pynitride.examples.AlGaN_GaN_HEMT.hemt_fullspace_example import do_simulation
+    _test_example(do_simulation,"hemt_fullspace_example",create=create, max_time=60)
 
 if __name__=="__main__":
     import sys
