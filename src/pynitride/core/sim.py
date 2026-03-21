@@ -1,6 +1,7 @@
 from typing import TextIO
 
 from pynitride import  log, sublog, to_unit
+from pynitride.core.maths import dephase
 from pynitride import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
 from pynitride import Schrodinger, Semiclassical, MultibandKP
 from pynitride import ConstantT, Pseudomorphic
@@ -280,6 +281,47 @@ class Simulation():
             with sublog("Starting solve:"):
                 self._solve_flow(self,**self._solve_opts)
                 log("Done solve flow")
+
+    def save_schrodinger_file(self,file:str|Path|TextIO):
+        """ Saves a simple text file with the Schrodinger eigenvalues from sim.extras['schro'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        schro=self.extras['schro']
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("carrier_index,band_index,eigenvalue_index,energy[eV]\n")
+            if 'electron' in schro._carriers:
+                for band in range(schro._nebands):
+                    for eig in range(schro._neig):
+                        f.write(f"0,{band},{eig},{to_unit(schro._een[band,eig],'eV'):.6f}\n")
+            if 'hole' in schro._carriers:
+                for band in range(schro._nhbands):
+                    for eig in range(schro._neig):
+                        f.write(f"1,{band},{eig},{to_unit(schro._hen[band,eig],'eV'):.6f}\n")
+
+    def save_schrodinger_psi_file(self,file:str|Path|TextIO):
+        """ Saves a text file with the dephased Schrodinger wavefunctions from sim.extras['schro'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        schro=self.extras['schro']
+        m=schro.mesh
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("carrier_index,band_index,eigenvalue_index,z[nm],psi\n")
+            if 'electron' in schro._carriers:
+                for band in range(schro._nebands):
+                    for eig in range(schro._neig):
+                        psi=dephase(schro._epsi[band,eig,:])
+                        for zn,ps in zip(m.zn,psi):
+                            f.write(f"0,{band},{eig},{to_unit(zn,'nm'):.3f},{float(ps):.3e}\n")
+            if 'hole' in schro._carriers:
+                for band in range(schro._nhbands):
+                    for eig in range(schro._neig):
+                        psi=dephase(schro._hpsi[band,eig,:])
+                        for zn,ps in zip(m.zn,psi):
+                            f.write(f"1,{band},{eig},{to_unit(zn,'nm'):.3f},{float(ps):.3e}\n")
 
     def save_direct_file(self,file:str|Path|TextIO):
         """ Saves a simple text file with the band edges and Fermi level for each point in the main mesh.
