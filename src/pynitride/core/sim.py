@@ -281,7 +281,7 @@ class Simulation():
                 self._solve_flow(self,**self._solve_opts)
                 log("Done solve flow")
 
-    def save_bands_file(self,file:str|Path|TextIO):
+    def save_direct_file(self,file:str|Path|TextIO):
         """ Saves a simple text file with the band edges and Fermi level for each point in the main mesh.
 
         Args:
