@@ -2,6 +2,7 @@ from collections import OrderedDict
 from functools import partial
 from itertools import product
 from operator import itemgetter
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 from pynitride.core.fem import assemble_stiffness_matrix, assemble_load_matrix, fem_eigsh, fem_solve
@@ -15,12 +16,16 @@ from scipy.optimize import brentq
 from pynitride.core.machine import glob_store_attributes, FakePool, Counter, raiser, process_pool, parallel_enabled
 from pynitride.physics.material import AlGaN
 
+if TYPE_CHECKING:
+    from pynitride import Mesh, RMesh1D
+
 pi=np.pi
 
 @glob_store_attributes('_solvmesh','_keepmesh','rmesh','_splines')
 class PhononModel():
 
-    def __init__(self, solvmesh, rmesh, num_eigs, keepmesh=None, first_level=0):
+    def __init__(self, solvmesh: Mesh, rmesh: RMesh1D, num_eigs: int,
+                 keepmesh: Optional[Mesh] = None, first_level: int = 0):
         """ Superclass for all phonon models.
         
         Args:
@@ -854,7 +859,7 @@ class DielectricContinuum_SWH(OpticalPhonon):
         self._firstlevels=OrderedDict()
         neig_sofar=0
         neig_included_sofar=0
-        num_eigs_max=num_eigs if num_eigs is not None else np.infty
+        num_eigs_max=num_eigs if num_eigs is not None else np.inf
         for m in self.mode_order:
 
             # Number of eigenvalues we're allowed to pull from this type of mode

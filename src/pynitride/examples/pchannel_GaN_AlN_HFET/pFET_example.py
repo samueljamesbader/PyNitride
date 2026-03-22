@@ -47,7 +47,17 @@ def define_mesh(sim,
         sim.rmeshes['mbkp_out'  ]=RMesh1D.regular(kmax=4.8/nm,numabsk=48)
 
     sim.extras['well_t']=well_t
-    sim.extras['sourcepoint']=float(well_t+cap_t-2.5)
+    sim.extras['sourcepoint']=float(well_t+cap_t-2.5*nm)
+
+def do_simulation():
+    def _define_mesh(sim, **kwargs):
+        define_mesh(sim, buff_t=50*nm, max_dz=10*nm, **kwargs)
+        sim.rmeshes['mbkp_solve'] = RMesh1D.regular(kmax=2.5/nm, numabsk=8)
+        del sim.rmeshes['mbkp_out']
+    sim = Simulation('pFET_test', _define_mesh, Simulation.flow_semiclassicalramp_mbkp,
+                     solve_opts={'mbkp_opts': {'num_eigenvalues': 4}})
+    sim.load(force=True)
+    return sim
 
 if __name__=="__main__":
 

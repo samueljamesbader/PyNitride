@@ -23,10 +23,10 @@ if __name__=="__main__":
         refinements=[],uniform=True)
     print("Mesh points: ", m.Nn)
 
-    ec=ElasticContinuum(m,num_eigenvalues=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm),justXZ=True)
+    ec=ElasticContinuum(m,num_eigs=40,rmesh=RMesh1D.regular(2*np.pi,100,.005/nm),vecform="XZ")
     ec.solve()
 
-    (as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en,ec.vecs, [is_AS])
+    (as_en,as_vec),(sa_en,sa_vec)=sort_modes(ec.en(),ec.vecs(), [is_AS])
 
     plt.figure()
     plt.plot(ec.q,to_unit(sa_en[:,:6],"meV"),'k')
