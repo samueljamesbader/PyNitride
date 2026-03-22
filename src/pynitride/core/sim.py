@@ -1,6 +1,7 @@
 from typing import TextIO
 
 from pynitride import  log, sublog, to_unit
+from pynitride.core.maths import dephase
 from pynitride import PoissonSolver, Equilibrium, SelfConsistentLoop, Linear_Fermi
 from pynitride import Schrodinger, Semiclassical, MultibandKP
 from pynitride import ConstantT, Pseudomorphic
@@ -167,7 +168,7 @@ class Simulation():
         semis=[v for k,v in sim.dmeshes.items() if k.startswith('semi')]
 
         # General solvers
-        lf=Linear_Fermi(m,dict(gate=0,hg=sim.extras['sourcepoint'],subs=-1))
+        lf=Linear_Fermi(m,contacts_ind=dict(gate=0,subs=-1),contacts_zn=dict(hg=sim.extras['sourcepoint']))
         lf.solve(gate=Va)
         ts=ConstantT(m,T)
         ts.solve()
@@ -218,6 +219,7 @@ class Simulation():
 
         # Save output
         def do_save(at=""):
+            if not sim._outdir: return
             log("Saving to: " + sim._outdir)
             m.save(os.path.join(sim._outdir, sim.name + f"{at}_direct"), )
             sim.extras['mbkp'].rmesh.save(os.path.join(sim._outdir, sim.name + f"{at}_reciprocal"), ['kpen'])
@@ -281,7 +283,79 @@ class Simulation():
                 self._solve_flow(self,**self._solve_opts)
                 log("Done solve flow")
 
-    def save_bands_file(self,file:str|Path|TextIO):
+    def save_schrodinger_file(self,file:str|Path|TextIO):
+        """ Saves a simple text file with the Schrodinger eigenvalues from sim.extras['schro'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        schro=self.extras['schro']
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("carrier_index,band_index,eigenvalue_index,energy[eV]\n")
+            if 'electron' in schro._carriers:
+                for band in range(schro._nebands):
+                    for eig in range(schro._neig):
+                        f.write(f"0,{band},{eig},{to_unit(schro._een[band,eig],'eV'):.6f}\n")
+            if 'hole' in schro._carriers:
+                for band in range(schro._nhbands):
+                    for eig in range(schro._neig):
+                        f.write(f"1,{band},{eig},{to_unit(schro._hen[band,eig],'eV'):.6f}\n")
+
+    def save_schrodinger_psi_file(self,file:str|Path|TextIO):
+        """ Saves a text file with the dephased Schrodinger wavefunctions from sim.extras['schro'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        schro=self.extras['schro']
+        m=schro.mesh
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("carrier_index,band_index,eigenvalue_index,z[nm],psi\n")
+            if 'electron' in schro._carriers:
+                for band in range(schro._nebands):
+                    for eig in range(schro._neig):
+                        psi=dephase(schro._epsi[band,eig,:])
+                        for zn,ps in zip(m.zn,psi):
+                            f.write(f"0,{band},{eig},{to_unit(zn,'nm'):.3f},{float(ps):.3e}\n")
+            if 'hole' in schro._carriers:
+                for band in range(schro._nhbands):
+                    for eig in range(schro._neig):
+                        psi=dephase(schro._hpsi[band,eig,:])
+                        for zn,ps in zip(m.zn,psi):
+                            f.write(f"1,{band},{eig},{to_unit(zn,'nm'):.3f},{float(ps):.3e}\n")
+
+    def save_mbkp_file(self,file:str|Path|TextIO):
+        """ Saves a text file with the MBKP band energies from sim.extras['mbkp'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        mbkp=self.extras['mbkp']
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("k_index,eigenvalue_index,kx[1/nm],ky[1/nm],energy[eV]\n")
+            for ik in range(mbkp.rmesh.N):
+                for eig in range(mbkp._neig):
+                    f.write(f"{ik},{eig},"
+                            f"{to_unit(mbkp.rmesh.kx[ik],'1/nm'):.6f},"
+                            f"{to_unit(mbkp.rmesh.ky[ik],'1/nm'):.6f},"
+                            f"{to_unit(mbkp.kpen[ik,eig],'eV'):.6f}\n")
+
+    def save_mbkp_normsqs_file(self,file:str|Path|TextIO):
+        """ Saves a text file with the MBKP wavefunction norm-squareds from sim.extras['mbkp'].
+
+        Args:
+            file: filename or file-like object to write to
+        """
+        mbkp=self.extras['mbkp']
+        m=mbkp.mesh
+        with (open(file,'w') if isinstance(file, (str, Path)) else returner_context(file)) as f:
+            f.write("k_index,eigenvalue_index,z[nm],normsq\n")
+            for ik in range(mbkp.rmesh.N):
+                for eig in range(mbkp._neig):
+                    for zn,ns in zip(m.zn,mbkp.normsqs[ik,eig]):
+                        f.write(f"{ik},{eig},{to_unit(zn,'nm'):.3f},{float(ns):.3e}\n")
+
+    def save_direct_file(self,file:str|Path|TextIO):
         """ Saves a simple text file with the band edges and Fermi level for each point in the main mesh.
 
         Args:

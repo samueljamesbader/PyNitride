@@ -1,6 +1,4 @@
 # Basic AlGaN/GaN HEMT
-from functools import wraps
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,17 +11,22 @@ from pynitride import RMesh1D, RMesh2D_Polar
 from pynitride import Simulation
 
 
-@wraps(define_basic_mesh)
-def define_mesh(sim,*args,**kwargs):
-    define_basic_mesh(sim,*args,**kwargs)
+def define_mesh(sim, barr_t=20*nm, **kwargs):
+    define_basic_mesh(sim, barr_t=barr_t, **kwargs)
     sim.rmeshes['mbkp']=RMesh1D.regular(2/nm,20)
     sim.dmeshes['mbkp']=sim.dmeshes['schro']
     del sim.dmeshes['schro']
+    sim.extras['sourcepoint']=barr_t
+    sim.extras['well_t']=barr_t
 
-if __name__=="__main__":
-    sim=Simulation("HEMT",define_mesh,Simulation.flow_semiclassicalramp_mbkp,
+def do_simulation():
+    sim=Simulation("HEMT_fullspace",define_mesh,Simulation.flow_semiclassicalramp_mbkp,
         solve_opts={'mbkp_opts':{'carriers':['electron']}})
     sim.load(force=True)
+    return sim
+
+if __name__=="__main__":
+    sim=do_simulation()
 
     m,schro,mbkp_2DEG=sim.dmeshes['main'],sim.dmeshes['mbkp'],sim.extras['mbkp']
     m.plot_mesh()
@@ -34,7 +37,7 @@ if __name__=="__main__":
     wf0=mbkp_2DEG.kppsi[0,0]
     wf1=mbkp_2DEG.kppsi[0,1]
     wf2=mbkp_2DEG.kppsi[0,2]
-    from pynitride.mesh import inner_product
+    from pynitride.core.mesh import inner_product
     assert np.isclose(inner_product(wf0,wf0),1,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf1),0,atol=1e-8)
     assert np.isclose(inner_product(wf0,wf2),0,atol=1e-8)

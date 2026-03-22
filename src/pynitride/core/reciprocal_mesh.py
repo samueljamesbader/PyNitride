@@ -166,7 +166,7 @@ class RMesh1D(RMesh):
         """ Forms an Rmesh1D which is subset of this one, keeping only the specified indices
 
         Args:
-            indices: list of indices into the RMesh which should be keep
+            indices: list of indices into the RMesh which should be kept
         """
         assert not isinstance(indices,slice), "indices should be a list/array"
         absk=self.absk1[indices]
