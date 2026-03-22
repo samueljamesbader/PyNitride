@@ -89,14 +89,14 @@ Then to generate the golden file for a new example, you can simply run ``test_ex
 
 Documentation
 =============
-The source files are in the ``sphinx/manual/`` directory.
+The source files are in the ``docs/manual/`` directory.
 The main file is ``index.rst``, which contains the root toctree for the manual.
 You can add new pages to the manual by creating new .rst files and adding them to the toctree in ``index.rst``.
 
 Building
 ************
-The documentation is built using Sphinx, just run ``python sphinx\document.py``,
-which will generate the API reference and build the HTML files in the ``docs/html/`` directory.
+The documentation is built using Sphinx, just run ``python docs/document.py``,
+which will generate the API reference and build the HTML files in the ``docs/build/html/`` directory.
 
 Deploying documentation
 ***********************

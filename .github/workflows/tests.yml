@@ -31,4 +31,4 @@ jobs:
       - name: Run pytest
         run: pytest tests/
       - name: Ensure docs build
-        run: python sphinx/document.py
+        run: python docs/document.py
