@@ -1,0 +1,29 @@
+name: TestPyPI
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build_wheels:
+    uses: ./.github/workflows/build_wheels.yml
+
+  publish:
+    name: Publish to TestPyPI
+    needs: build_wheels
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
