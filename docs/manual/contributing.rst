@@ -144,9 +144,9 @@ the form ``vX.X.X`` is pushed to ``main``.
 
 To cut a release:
 
-1. Bump ``__version__`` in ``src/pynitride/__init__.py`` to match the intended version.
+1. Bump ``__version__`` in ``src/pynitride/__init__.py`` to the intended version, e.g. ``"0.2.0"``.
 2. Commit and push to ``main``.
-3. Tag the commit and push the tag::
+3. Tag the commit with the **matching** version and push the tag — the workflow enforces that the tag and ``__version__`` agree::
 
       git tag vX.Y.Z
       git push origin vX.Y.Z

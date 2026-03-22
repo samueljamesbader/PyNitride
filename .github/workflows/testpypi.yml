@@ -24,6 +24,17 @@ jobs:
           merge-multiple: true
           path: dist/
 
+      - name: Check tag matches wheel version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if ! ls dist/*-"${tag}"-*.whl > /dev/null 2>&1; then
+            echo "Error: tag '${GITHUB_REF_NAME}' does not match any wheel in dist/"
+            echo "Expected version: ${tag}"
+            echo "Wheels found:"; ls dist/
+            exit 1
+          fi
+
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
