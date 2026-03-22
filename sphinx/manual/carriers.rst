@@ -119,7 +119,7 @@ and the derivatives
       \left\{n'/p'\right\}(z)=g_sg_vb\sum_{i,l}\left|\psi^l_i\right|^2 \frac{\overline{m}^l_{t,i}}{2\pi\hbar^2}\frac{\exp\left\{\eta^l_{i, n/p}\right\}}{1+\exp\left\{\eta^l_{i, n/p}\right\}}\\
     \end{align}
 
-with :math:`b` as above.
+with :math:`b=\{-1,+1\}` for :math:`\{n,p\}` respectively.
 
 Multiband k.p
 ------------------
