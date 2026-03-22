@@ -8,3 +8,4 @@ PyNitride is a 1D solver for band diagram analysis of epitaxial heterostructures
 
 [More info and full documentation is here!](https://samueljamesbader.github.io/PyNitride/html/manual/index.html)
 
+As it becomes more stable, PyNitride will be added to PyPi, but for the moment, the main way to use it is building from source, as described on the [Contributing page](https://samueljamesbader.github.io/PyNitride/html/manual/contributing.html#getting-started).
