@@ -102,6 +102,60 @@ Deploying documentation
 ***********************
 The Docs workflow (``.github/workflows/docs.yml``) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
 
+Distribution
+=============
+
+Wheels
+******
+PyNitride contains Cython extensions and must be distributed as pre-built binary wheels.
+Wheels are built using `cibuildwheel <https://cibuildwheel.pypa.io>`_ for the following platforms:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Runner
+     - Wheel
+   * - ``ubuntu-latest``
+     - ``manylinux_x86_64``
+   * - ``ubuntu-24.04-arm``
+     - ``manylinux_aarch64``
+   * - ``windows-latest``
+     - ``win_amd64``
+   * - ``windows-11-arm``
+     - ``win_arm64``
+   * - ``macos-latest``
+     - ``macosx_arm64``
+
+The cibuildwheel configuration lives in ``pyproject.toml`` under ``[tool.cibuildwheel]``.
+After building each wheel, cibuildwheel installs it into a fresh virtual environment and
+runs the full test suite to verify the wheel is functional.
+
+CI
+************
+The Build Tests workflow (``.github/workflows/build_tests.yml``) runs on every push to
+``dev``, ``main``, or any ``release/**`` branch.  It builds wheels for all five platforms
+and runs the tests inside each installed wheel.
+
+Releasing to TestPyPI
+**********************
+The TestPyPI workflow (``.github/workflows/testpypi.yml``) publishes to the
+`PyNitride TestPyPI project <https://test.pypi.org/project/pynitride/>`_ when a tag of
+the form ``vX.X.X`` is pushed to ``main``.
+
+To cut a release:
+
+1. Bump ``__version__`` in ``src/pynitride/__init__.py`` to match the intended version.
+2. Commit and push to ``main``.
+3. Tag the commit and push the tag::
+
+      git tag vX.Y.Z
+      git push origin vX.Y.Z
+
+The workflow will build wheels for all five platforms and, once all builds pass, publish
+them to TestPyPI.  To install from TestPyPI for verification::
+
+   pip install --index-url https://test.pypi.org/simple/ PyNitride
+
 Pull requests
 =================
 When contributing to the project, please `open a pull request from your fork <https://medium.com/swlh/forks-and-pull-requests-how-to-contribute-to-github-repos-8843fac34ce8>`_ with a clear description of the changes and why they are needed.
