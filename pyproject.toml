@@ -44,5 +44,5 @@ namespaces = false
 [tool.cibuildwheel]
 build = "cp314-*"
 skip = ["*-win32", "*-manylinux_i686", "*-musllinux_*"]
-test-requires = ["pytest>=9.0.2,<10", "colorama>=0.4.6,<1"]
+test-requires = ["pytest>=9.0.2,<10"]
 test-command = "pytest {project}/tests/"
