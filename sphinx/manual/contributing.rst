@@ -9,19 +9,21 @@ Prerequisites
 **************
 
 - You'll need `Python 3.14 <https://www.python.org/>`_.
-- For building from source, Microsoft Visual C++ 14.0 (part of `Visual Studio Build Tools for C++ <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_) is required.
-  The no-thinking option is to select the "Desktop development with C++" workload, though if you want to save space and figure out more specifically which packages are needed, be my guest.
+- For building from source on Windows, Microsoft Visual C++ 14.0 (part of `Visual Studio Build Tools for C++ <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_) is required.
+  The simple option is to select the "Desktop development with C++" workload, though if you want to save space and figure out specifically which packages are needed, be my guest.
 
 Installation
 ************
 
-To get started, clone the repository and install the development dependencies:
+To get started, either clone the repository (if you just want to use PyNitride):
 
 .. code-block:: bash
 
    git clone https://github.com/samueljamesbader/PyNitride.git
 
-Set up your Python environment.  (This may differ on your system.)
+or `fork the repository <https://github.com/samueljamesbader/PyNitride/fork>`_ and then clone your fork (if you want to contribute back changes).
+
+Next set up your Python environment.  (This may differ on your system.)
 
 e.g. Linux/Mac with a venv:
 
@@ -66,7 +68,7 @@ Then install the new dependencies with
 
    pip install -r requirements.txt
 
-Note that the CI flow test job checks that regenerating the locked dependencies from ``pyproject.toml`` matches the existing ``requirements.txt``,
+Note that the CI `Tests` job checks that regenerating the locked dependencies from ``pyproject.toml`` matches the existing ``requirements.txt``,
 so if you change ``pyproject.toml`` you must also regenerate ``requirements.txt``.  (This regeneration references
 the existing ``requirements.txt`` so it should not fail just because a newer version of a dependency was released.)
 
@@ -99,3 +101,8 @@ which will generate the API reference and build the HTML files in the ``docs/htm
 Deploying documentation
 ***********************
 The Docs workflow (``.github/workflows/docs.yml``) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
+
+Pull requests
+=================
+When contributing to the project, please `open a pull request from your fork <https://medium.com/swlh/forks-and-pull-requests-how-to-contribute-to-github-repos-8843fac34ce8>`_ with a clear description of the changes and why they are needed.
+Pull requests from forks should apply to the ``dev`` branch, not ``main``!  Once tested on ``dev``, the changes can be merged into ``main`` by the maintainers.
