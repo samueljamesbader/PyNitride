@@ -1,0 +1,16 @@
+name: Build Tests
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+      - "release/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_wheels:
+    uses: ./.github/workflows/build_wheels.yml
