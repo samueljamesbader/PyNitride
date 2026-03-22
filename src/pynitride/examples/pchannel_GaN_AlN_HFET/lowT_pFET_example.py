@@ -8,7 +8,7 @@ import numpy as np
 from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_visualization import valence_band_panels
 from pynitride.physics.material import AlGaN
 from pynitride import Mesh, MaterialBlock, UniformLayer
-from pynitride import to_unit, nm, eV, cm, meV
+from pynitride import to_unit, nm, eV, cm, meV, K
 from pynitride import RMesh2D_Polar, RMesh1D
 from pynitride import Simulation
 from pynitride import log
@@ -18,11 +18,12 @@ from pynitride.examples.pchannel_GaN_AlN_HFET.pFET_example import define_mesh
 if __name__=="__main__":
 
     sim=Simulation('pFET',define_mesh=define_mesh,
-       #mesh_opts={'kmesh':'1D'},
        solve_flow=Simulation.flow_semiclassicalramp_mbkp,
-       solve_opts ={'T':300.0,'ramp_T':10,'mbkp_opts':{'num_eigenvalues':6},'Va':4,
+       # Note: the dlTstart is aggressive so that the first log-temperature step is too large;
+       # we should see the solve fail and backtrack to a smaller log-temperature step.
+       solve_opts ={'T':300.0*K,'ramp_T':10*K,'mbkp_opts':{'num_eigenvalues':6},'Va':4,
                     'mbkp_loop_opts':{'init_activation':.1, 'inc_activation':1.3},
-                    'Tramp_loop_opts':{'init_activation':.5,'inc_activation':1.3,'min_activation':.005}})
+                    'Tramp_loop_opts':{'dlTstart':.25,'dlTinc':1.3,'dlTmin':.005,'dlTmax':2}})
     sim.load(force=True)
     m,quantum=sim.dmeshes['main'],sim.dmeshes['mbkp']
     rmesh=sim.rmeshes['mbkp_out']

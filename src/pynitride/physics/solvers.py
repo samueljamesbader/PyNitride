@@ -459,7 +459,7 @@ class SelfConsistentLoop():
             log("Loop finished in {:2d} iterations with err={:g}".format(i,err))
 
     def ramp_epsfactor(self, start=1e4, stop=1, dlefstart=.1, dlefmax=.5,
-                       dlefmin=.005,**loop_opts):
+                       dlefmin=.005, dlefinc=2, **loop_opts):
         """ Ramp the dielectric constant for an easy initial condition.
 
         Performs self-consistent loops at successive values of the `epsfactor`
@@ -476,6 +476,7 @@ class SelfConsistentLoop():
             dlefstart: initial logarithmic delta for epsfactor stepping
             dlefmax: maximum allowed logarithmic delta for epsfactor stepping
             dlefmin: minimum allowed logarithmic delta for epsfactor stepping
+            dlefinc: factor by which to increase the `dlef` if a step succeeds
             loop_opts: passed to each `pynitride.solvers.SelfConsistentLoop.loop`
 
         """
@@ -520,7 +521,8 @@ class SelfConsistentLoop():
                         prevlef=lef
 
                         # Scale dlef since solve was successful
-                        dlef=np.sign(dlef)*min(np.abs(2*dlef),np.abs(dlefmax))
+                        if lef!=lefstart:
+                            dlef=np.sign(dlef)*min(np.abs(dlefinc*dlef),np.abs(dlefmax))
                         lef=lef+dlef
 
                         # if we set dlef past the endpoint, go back
@@ -557,7 +559,7 @@ class SelfConsistentLoop():
             log("Done eps factor ramp")
 
     def ramp_temperature(self, temp_solver, start=None, stop=300, dlTstart=.025, dlTmax=.1,
-                       dlTmin=.005,**loop_opts):
+                       dlTmin=.005,dlTinc=1.3,**loop_opts):
         """ Ramp the temperature for an easy initial condition.
 
         Performs self-consistent loops at successive values of the `temperature`
@@ -574,6 +576,7 @@ class SelfConsistentLoop():
             dlTstart: initial logarithmic delta for temperature stepping
             dlTmax: maximum allowed logarithmic delta for temperature stepping
             dlTmin: minimum allowed logarithmic delta for temperature stepping
+            dlTinc: factor by which to increase the `dlT` if a step succeeds
             loop_opts: passed to each `pynitride.solvers.SelfConsistentLoop.loop`
 
         """
@@ -602,10 +605,10 @@ class SelfConsistentLoop():
                 for fs in self._fs:
                     fs.store_state()
 
-                # Try solving at the new epsfactor
+                # Try solving at the new temperature
                 try:
 
-                    # Newton step the fields for the new epsfactor
+                    # Newton step the fields for the new temperature
                     temp_solver.update_temp(T)
                     for fs in self._fs: fs.update_bands_to_potential(fs._mesh)
 
@@ -623,7 +626,8 @@ class SelfConsistentLoop():
                         prevlT=lT
 
                         # Scale dlT since solve was successful
-                        dlT=np.sign(dlT)*min(np.abs(1.3*dlT),np.abs(dlTmax))
+                        if lT!=lTstart:
+                            dlT=np.sign(dlT)*min(np.abs(dlTinc*dlT),np.abs(dlTmax))
                         lT=lT+dlT
 
                         # if we set dlT past the endpoint, go back
@@ -653,7 +657,7 @@ class SelfConsistentLoop():
                     if np.abs(dlT)<np.abs(dlTmin):
                         raise Exception("Temp step size too small")
 
-                    # set the new epsfactor
+                    # set the new temperature
                     lT=prevlT+dlT
 
                     # if we passed the end, go back
