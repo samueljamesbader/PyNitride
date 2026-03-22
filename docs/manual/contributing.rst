@@ -132,8 +132,8 @@ runs the full test suite to verify the wheel is functional.
 
 CI
 ************
-The Build Tests workflow (``.github/workflows/build_tests.yml``) runs on every push to
-``dev``, ``main``, or any ``release/**`` branch.  It builds wheels for all five platforms
+The Build Tests workflow (``.github/workflows/build_tests.yml``) runs on every push to,
+or pull request targeting, ``dev``, ``main``, or any ``release/**`` branch.  It builds wheels for all five platforms
 and runs the tests inside each installed wheel.
 
 Releasing to TestPyPI
