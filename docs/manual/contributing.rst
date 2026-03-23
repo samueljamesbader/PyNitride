@@ -5,50 +5,9 @@ Contributing to PyNitride
 Getting started
 =================
 
-Prerequisites
-**************
-
-- You'll need `Python 3.14 <https://www.python.org/>`_.
-- For building from source on Windows, Microsoft Visual C++ 14.0 (part of `Visual Studio Build Tools for C++ <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_) is required.
-  The simple option is to select the "Desktop development with C++" workload, though if you want to save space and figure out specifically which packages are needed, be my guest.
-
-Installation
-************
-
-To get started, either clone the repository (if you just want to use PyNitride):
-
-.. code-block:: bash
-
-   git clone https://github.com/samueljamesbader/PyNitride.git
-
-or `fork the repository <https://github.com/samueljamesbader/PyNitride/fork>`_ and then clone your fork (if you want to contribute back changes).
-
-Next set up your Python environment.  (This may differ on your system.)
-
-e.g. Linux/Mac with a venv:
-
-.. code-block:: bash
-
-   cd PyNitride
-   python -m venv venv
-   source venv/bin/activate
-
-or  Windows with a venv in PowerShell:
-
-.. code-block:: powershell
-
-   cd PyNitride
-   python -m venv venv
-   .\venv\Scripts\activate
-
-Then install the locked development dependencies:
-
-.. code-block:: bash
-
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   pip install -e ".[dev]" --no-deps
-   pip check
+To become a contributor, first `fork the repository <https://github.com/samueljamesbader/PyNitride/fork>`_
+then follow the :ref:`build-from-source instructions <building-from-source>`,
+except use your forked repository URL when cloning instead of the main repository URL.
 
 Dependency management
 =======================
