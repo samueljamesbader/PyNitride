@@ -95,10 +95,10 @@ The Build Tests workflow (``.github/workflows/build_tests.yml``) runs on every p
 or pull request targeting, ``dev``, ``main``, or any ``release/**`` branch.  It builds wheels for all five platforms
 and runs the tests inside each installed wheel.
 
-Releasing to TestPyPI
+Publishing to PyPI
 **********************
-The TestPyPI workflow (``.github/workflows/testpypi.yml``) publishes to the
-`PyNitride TestPyPI project <https://test.pypi.org/project/pynitride/>`_ when a tag of
+The PyPI workflow (``.github/workflows/pypi.yml``) publishes to the
+`PyNitride PyPI project <https://pypi.org/project/pynitride/>`_ when a tag of
 the form ``vX.X.X`` is pushed to ``main``.
 
 To cut a release:
@@ -111,9 +111,9 @@ To cut a release:
       git push origin vX.Y.Z
 
 The workflow will build wheels for all five platforms and, once all builds pass, publish
-them to TestPyPI.  To install from TestPyPI for verification::
+them to PyPI.  To install from PyPI for verification::
 
-   pip install --index-url https://test.pypi.org/simple/ PyNitride
+   pip install pynitride
 
 Pull requests
 =================
