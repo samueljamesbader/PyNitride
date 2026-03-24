@@ -22,10 +22,6 @@ subprocess.run(["sphinx-apidoc", "-o", str(sphinx_dir/"auto"),
 subprocess.run(["sphinx-build", "-b", "html", str(sphinx_dir),
                 str(sphinx_dir / "build" / "html")],check=True)
 
-# Set up a redirect from general index.html to the manual index page
-shutil.copy(sphinx_dir / "index_redirect.html",
-            sphinx_dir / "build" / "html" / "index.html")
-
 # Copy the .nojekyll file (because we serve from build/ not build/html/)
 shutil.copy(sphinx_dir / "build" / "html" / ".nojekyll",
             sphinx_dir / "build" / ".nojekyll")
