@@ -1,7 +1,8 @@
 # PyNitride
 [![Source Tests](https://github.com/samueljamesbader/PyNitride/actions/workflows/tests.yml/badge.svg)](https://github.com/samueljamesbader/PyNitride/actions/workflows/tests.yml)
 [![Build Tests](https://github.com/samueljamesbader/PyNitride/actions/workflows/build_tests.yml/badge.svg)](https://github.com/samueljamesbader/PyNitride/actions/workflows/build_tests.yml)
-![Read the Docs (version)](https://img.shields.io/readthedocs/pynitride/latest)
+[![Read the Docs (version)](https://img.shields.io/readthedocs/pynitride/latest?logo=readthedocs&label=ReadTheDocs)](https://pynitride.readthedocs.io/en/latest/)
+[![PyPI - Version](https://img.shields.io/pypi/v/pynitride)](https://pypi.org/project/pynitride/)
 
 <img src="docs/manual/FrontImage.png" alt="Quantum Well HEMT" width="25%" align="right">
 
