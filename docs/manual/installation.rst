@@ -16,25 +16,29 @@ Set up and activate your Python 3.14 virtual environment, then run:
 
    pip install pynitride
 
-If all goes well, you should be able to run an example such to verify the installation:
+If all goes well, you should be able to run an example (such as this HEMT) to verify the installation:
 
 .. code-block:: bash
 
    python -m pynitride.examples.AlGaN_GaN_HEMT.hemt_example
 
-Note to Windows users, if you get a message like
-`ImportError: DLL load failed while importing fem: An Application Control policy has blocked this file.`,
-then your computer is trying to protect you from running the compiled code since it was downloaded from the internet.
-The easiest fix is to use `cmd` instead of PowerShell to run the above command.
-After running it once, Windows will recognize the wheel as safe and you should
-be able to run it from PowerShell in the future if that's your preference.
-(Alternative approaches include "Set-ExecutionPolicy" or "Unblock-File" in PowerShell.)
+which runs `hemt_example.py <https://github.com/samueljamesbader/PyNitride/blob/main/src/pynitride/examples/AlGaN_GaN_HEMT/hemt_example.py>`_.
+
+.. note:: Note to Windows users,
+   If you get a message like
+   ``ImportError: DLL load failed while importing fem: An Application Control policy has blocked this file.``,
+   then your computer is trying to protect you from running the compiled code since it was downloaded from the internet.
+   The easiest fix is to use cmd instead of PowerShell to run the above command.
+   After running it once, Windows will recognize the wheel as safe and you should
+   be able to run it from PowerShell in the future if that's your preference.
+   (Alternative approaches include "Set-ExecutionPolicy" or "Unblock-File" in PowerShell.)
 
 
 .. _building-from-source:
 
 Building from source
 =====================
+The above method should work for most users, but if you want to modify the code, test the latest unreleased changes, or just explore the internals, you can build from source.
 
 Prerequisites
 *************
@@ -78,3 +82,11 @@ Then install the locked development dependencies:
    pip install -r requirements.txt
    pip install -e ".[dev]" --no-deps
    pip check
+
+If all goes well, you should be able to run an example (such as this HEMT) to verify the installation:
+
+.. code-block:: bash
+
+   python -m pynitride.examples.AlGaN_GaN_HEMT.hemt_example
+
+which runs `hemt_example.py <https://github.com/samueljamesbader/PyNitride/blob/main/src/pynitride/examples/AlGaN_GaN_HEMT/hemt_example.py>`_.
