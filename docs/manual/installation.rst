@@ -8,14 +8,13 @@ Installing from PyPI
 =====================
 
 If you just want to use PyNitride from your own Python code,
-the easiest way to install is via pip from `TestPyPI <https://test.pypi.org/project/pynitride/>`_
-(it will move to PyPI proper in the future).
+the easiest way to install is via pip
 
 Set up and activate your Python 3.14 virtual environment, then run:
 
 .. code-block:: bash
 
-   pip install --index-url https://test.pypi.org/simple/ pynitride --extra-index-url https://pypi.org/simple --pre
+   pip install pynitride
 
 If all goes well, you should be able to run an example such to verify the installation:
 
