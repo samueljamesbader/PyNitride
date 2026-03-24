@@ -12,7 +12,7 @@ Everything the Python-friendly III-Nitride engineer needs!
 What is PyNitride?
 ==================
 
-.. figure:: FrontImage.png
+.. figure:: manual/FrontImage.png
     :alt: Quantum Well HEMT
     :scale: 65%
     :align: right
@@ -34,22 +34,22 @@ as I've written up a good deal of the physics that goes into these problems.
 Contents
 =========
 
-Find out more about the :ref:`math_and_physics` or skip into the :doc:`API reference <../auto/modules>`.
+Find out more about the :ref:`math_and_physics` or skip into the :doc:`API reference <auto/modules>`.
 
 
 .. toctree::
     :maxdepth: 1
 
-        Getting Started <getting_started>
-        Math and Physics <math_and_physics>
-        Software Structure <overall_flow>
-        API Reference <../auto/modules>
-        Contributing <contributing>
+        Getting Started <manual/getting_started>
+        Math and Physics <manual/math_and_physics>
+
+        API Reference <auto/modules>
+        Contributing <manual/contributing>
 
 
 Authors
 =========
-.. image:: SamBader.jpg
+.. image:: manual/SamBader.jpg
     :alt: Sam Bader
     :scale: 30%
     :align: right
@@ -85,4 +85,3 @@ for research support and ever-helpful discussions.
     * :ref:`genindex`
     * :ref:`modindex`
     * :ref:`search`
-
