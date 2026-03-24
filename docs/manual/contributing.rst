@@ -48,9 +48,9 @@ Then to generate the golden file for a new example, you can simply run ``test_ex
 
 Documentation
 =============
-The source files are in the ``docs/manual/`` directory.
-The main file is ``index.rst``, which contains the root toctree for the manual.
-You can add new pages to the manual by creating new .rst files and adding them to the toctree in ``index.rst``.
+The source files are in the ``docs/`` and ``docs/manual/`` directories.
+The root toctree is in ``docs/index.rst``.
+You can add new pages to the manual by creating new ``.rst`` files in ``docs/manual/`` and adding them to the toctree in ``docs/index.rst``.
 
 Building
 ************
@@ -59,7 +59,7 @@ which will generate the API reference and build the HTML files in the ``docs/bui
 
 Deploying documentation
 ***********************
-The Docs workflow (``.github/workflows/docs.yml``) deploys to GitHub Pages (settings `here <https://github.com/samueljamesbader/PyNitride/settings/pages>`_) when changes are pushed to the main branch (after the Tests workflow passes).
+Documentation (such as `latest <https://pynitride.readthedocs.io/en/latest/>`_) is hosted on `Read the Docs <https://readthedocs.org/projects/pynitride/>`_ and rebuilds automatically on every push to ``main``.
 
 Distribution
 =============
