@@ -7,6 +7,8 @@ name = "pynitride"
 dynamic = ["version"]
 description = "Python utilities for 1D band diagrams and simulation"
 authors = [{name = "Samuel James Bader", email = "samuel.james.bader@gmail.com"}]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.4.3,<3",
