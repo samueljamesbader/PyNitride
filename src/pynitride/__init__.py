@@ -12,7 +12,7 @@ _EMPTYD = cast(dict,MappingProxyType({}))
 
 # Logging is needed everywhere and doesn't require anything (eg numpy)
 # which would preempt the configuration of the parallelism
-from pynitride.core.logging import log, sublog
+from pynitride.core.logging_ import log, sublog
 
 # With that in-place we can set up parallelism
 # before any other scripts which would preempt its configuration
