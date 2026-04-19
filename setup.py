@@ -7,7 +7,9 @@ ext_modules = cythonize(
         "src/pynitride/core/fem.pyx",
         "src/pynitride/core/cython_maths.pyx",
     ],
-    compiler_directives={"profile": True, "language_level": 3},
+    compiler_directives={
+        #"profile": True, # Causes issues with debugpy
+        "language_level": 3},
     annotate=True,
 )
 
