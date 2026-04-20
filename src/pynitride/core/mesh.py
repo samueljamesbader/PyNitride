@@ -202,6 +202,14 @@ class GradedLayer(Layer):
                 mesh[k]=MidFunction(mesh,value=v,dtype=dtype)
 
 
+class MeshKeyError(KeyError):
+    def __init__(self, key, mesh, msg=None):
+        msg = f"No key '{key}' in Mesh '{mesh.name}'" if msg is None else msg
+        super().__init__(msg)
+        self.key = key
+        self.mesh = mesh
+
+
 class Mesh():
 
     def __init__(self, stack, max_dz, refinements=[], uniform=False, boundary=["GenericMetal","thick"]):
@@ -489,9 +497,10 @@ class Mesh():
         # Check each material block
         for mb in self._matblocks:
             try:
+                # Let the material block fill in the function on its region
                 func=mb.get(key,destmesh=self,destfunc=func)
-            except Exception as e:
-                print(e)
+            except MeshKeyError as e:
+                if e.key!=key: raise e
                 if default is None:
                     raise Exception("No default specified and {} not in {}".format(key,mb.matsys.name))
         self[key]=func
@@ -591,13 +600,12 @@ class Mesh():
         you can call py:func:`pynitride.mesh.globalize` to bring it onto the global mesh.
 
         """
-        #print("in get",key)
         if key in self._functions:
             return self._functions[key]
         elif sum(key in mb for mb in self._matblocks):
             return self._fill_from_matblocks(key)
         else:
-            raise Exception("Trouble finding: "+key)
+            raise MeshKeyError(key,self)
 
     def __setitem__(self, key, value):
         r""" Update (or create) a function on this mesh.  Propagates to any submeshes."""
