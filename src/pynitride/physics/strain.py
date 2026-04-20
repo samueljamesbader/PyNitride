@@ -24,4 +24,5 @@ class Pseudomorphic():
             straincond=self._mesh._matblocks[pos].matsys.bulk_lattice_condition(self._mesh._matblocks[pos].mesh)
         for matblock in self._mesh._matblocks:
             matblock.matsys.strain_to(matblock.mesh,straincond=straincond)
+            matblock.update(self._mesh,'strain')
 
