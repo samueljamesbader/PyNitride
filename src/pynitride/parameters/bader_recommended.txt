@@ -156,12 +156,12 @@ material=AlN
 ######
 
 # GaN:
-# For Si, using the E_A and alpha from Morkoc Vol II, pg 141
-# For Mg, using the E_A from Morkoc Vol II, pg 145
-# Morkoc also gives 2 and 4 as the g-factors
-# It would be better to use the values from Kozodoy with alpha
-# but I haven't included alpha into actual calculation yet
 material=GaN
+    # For Si, using the E_A and alpha from Morkoc Vol II, pg 141
+    # For Mg, using the E_A from Morkoc Vol II, pg 145
+    # Morkoc also gives 2 and 4 as the g-factors
+    # It would be better to use the values from Kozodoy with alpha
+    # but I haven't included alpha into actual calculation yet
     dopant=Si
         type: 'Donor'
         E: 29.7         meV
@@ -172,12 +172,35 @@ material=GaN
         type: 'Acceptor'
         E: 170 meV
         g: 4
+    
+    # Wide range of reported values, but since typically this appears as unintentional
+    # background, the exact value does not have a huge effect on simulations.
+    # https://doi.org/10.1557/S1092578300004427
+    dopant=OxygenDonor
+        type: 'Donor'
+        E:  20 meV
+        g: 2
+
+    # Oxygen is not a DX in GaN, it's a simple donor,
+    # but we need a value as a GaN endpoint for AlGaN Vergard approximation
+    # https://doi.org/10.1557/S1092578300004427
+    dopant=OxygenDX
+        type: 'DX'
+        E:  150 meV
+        g: 1
+
+    # https://doi.org/10.1063/5.0041506 
+    dopant=CarbonAcceptor
+        type: 'Acceptor'
+        E:  1.5 eV
+        g: 4
+
 # AlN
-# For Si, using E_A from Nakarmi 2004
-#  (https://doi.org/10.1063/1.1809272)
-# For Mg, using E_A from Nakarmi 2003,
-#  (https://doi.org/10.1063/1.1594833)
 material=AlN
+    # For Si, using E_A from Nakarmi 2004
+    #  (https://doi.org/10.1063/1.1809272)
+    # For Mg, using E_A from Nakarmi 2003,
+    #  (https://doi.org/10.1063/1.1594833)
     dopant=Si
         type: 'Donor'
         E: 180          meV
@@ -185,6 +208,26 @@ material=AlN
     dopant=Mg
         type: 'Acceptor'
         E: 510 meV
+        g: 4
+
+    # Oxygen is not a donor in AlN, it's a DX-center
+    # https://doi.org/10.1557/S1092578300004427
+    # but we need a value as an AlN endpoint for AlGaN Vergard approximation
+    dopant=OxygenDonor
+        type: 'Donor'
+        E:  150 meV
+        g: 2
+
+    # https://doi.org/10.1557/S1092578300004427
+    dopant=OxygenDX
+        type: 'DX'
+        E:  150 meV
+        g: 1
+
+    # https://doi.org/10.1063/5.0041506 Fig 4
+    dopant=CarbonAcceptor
+        type: 'Acceptor'
+        E:  2.4 eV
         g: 4
 
 ######

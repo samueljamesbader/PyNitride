@@ -47,8 +47,10 @@ class PoissonSolver():
 
         m.ensure_function_exists('Ndp',0)
         m.ensure_function_exists('Nam',0)
+        m.ensure_function_exists('Ndxq',0)
         m.ensure_function_exists('Ndpderiv',0)
         m.ensure_function_exists('Namderiv',0)
+        m.ensure_function_exists('Ndxqderiv',0)
 
         m.ensure_function_exists('DP',0)
         m.ensure_function_exists('phi',0)
@@ -58,6 +60,7 @@ class PoissonSolver():
         alldopants=sum((mb.matsys._dopants for mb in m._matblocks),[])
         self._donors    =[d for d in alldopants if d.endswith("Donor")]
         self._acceptors =[d for d in alldopants if d.endswith("Acceptor")]
+        self._dxcenters =[d for d in alldopants if d.endswith("DX")]
 
         # Get surface barrier
         self._sbh=PoissonSolver.get_sbh(m)
@@ -142,6 +145,19 @@ class PoissonSolver():
             m['Nam']+=(conc*idd(eta,g)).tnf()
             m['Namderiv']-=(conc/kT*iddd(eta,g)).tnf()
 
+        m['Ndxq']=0
+        m['Ndxqderiv']=0
+        for d in self._dxcenters:
+            g=MaterialFunction(m,d+'g',default=0)
+            if not np.allclose(g,1):
+                raise NotImplementedError("DX Center degeneracy other than 1 not implemented.")
+            conc=MaterialFunction(m,d+'Conc',default=0)
+            E=MaterialFunction(m,d+'E',default=0)
+        
+            eta=((m.EF.tmf()-m.Ec)+E)/kT
+            m['Ndxq']+=(-conc*np.tanh(eta)).tnf()
+            m['Ndxqderiv']+=(conc/kT*(np.tanh(eta)**2-1)).tnf()
+
 
     def solve(self):
         r""" Solves the Poisson equation directly (not good for self-consistent looping)
@@ -166,7 +182,7 @@ class PoissonSolver():
         n=m.n if ('n' in m) else 0
 
         # Total charge
-        m.rho=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
+        m.rho=p-n+m.Ndp-m.Nam+m.Ndxq+m.DP+m.fixedcharge
 
         # Solve and update
         fem_solve(self._stiffness_matrix,self._load_matrix,load_vec=m.rho,
@@ -199,8 +215,8 @@ class PoissonSolver():
         n,nderiv=(m.n,m.nderiv) if ('n' in m) else (0,0)
 
         # Total charge
-        m.rho=p-n+m.Ndp-m.Nam+m.DP+m.fixedcharge
-        m.rhoderiv=pderiv-nderiv+m.Ndpderiv-m.Namderiv
+        m.rho=p-n+m.Ndp-m.Nam+m.Ndxq+m.DP+m.fixedcharge
+        m.rhoderiv=pderiv-nderiv+m.Ndpderiv-m.Namderiv+m.Ndxqderiv
 
         # Note that the derivatives are with respect to the Fermi level at fixed band position, which
         # means it takes another negative sign to get the derivative with respect to potential

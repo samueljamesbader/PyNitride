@@ -764,7 +764,7 @@ class AlInGaN(Wurtzite):
             'x': 0,
             'y': 0,
         })
-        self.append_dopants(['Si','Mg','DeepDonor','DeepAcceptor'])
+        self.append_dopants(['Si','Mg'])
 
 
 class AlGaN(Wurtzite):
@@ -780,7 +780,7 @@ class AlGaN(Wurtzite):
         self._defaults.update({
             'x': 0
         })
-        self.append_dopants(['Si','Mg','DeepDonor','DeepAcceptor'])
+        self.append_dopants(['Si','Mg','OxygenDonor','OxygenDX','CarbonAcceptor'])
 
 class Insulator(MaterialSystem):
     def __init__(self, name):

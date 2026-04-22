@@ -22,9 +22,9 @@ def define_mesh(sim,
     # Set up the main mesh
     m=sim.dmeshes['main']=Mesh([
         MaterialBlock("epi",AlGaN(spin_splitting=ss),[
-            UniformLayer("cap"  ,   cap_t, y=cap_y, DeepDonorDonorConc=Ndd,MgAcceptorConc=cap_Na),
-            UniformLayer("well"  ,  well_t,  x=0,   DeepDonorDonorConc=Ndd),
-            UniformLayer("buffer",  buff_t,  x=1,   DeepDonorDonorConc=Ndd),
+            UniformLayer("cap"  ,   cap_t, y=cap_y, MgAcceptorConc=cap_Na),
+            UniformLayer("well"  ,  well_t,  x=0,   ),
+            UniformLayer("buffer",  buff_t,  x=1,   OxygenDXDXConc=Ndd),
         ])],
         max_dz=max_dz,
         refinements=[[0,.03*nm,2],*([['cap/well',.01*nm,1.5]] if cap_t>0 else []),['well/buffer',.01*nm,1.5]],

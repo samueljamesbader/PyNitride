@@ -3,26 +3,10 @@ Omniscient v1
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
 material=GaN
-    dopant=DeepDonor
-        type: 'Donor'
-        E: 2 eV     #fake
-        g: 2
-    dopant=DeepAcceptor
-        type: 'Acceptor'
-        E: 2 eV     #fake
-        g: 4
     surface=GenericMetal
         electronbarrier: 1 eV
 
 material=AlN
-    dopant=DeepDonor
-        type: 'Donor'
-        E: 4 eV     #fake
-        g: 2
-    dopant=DeepAcceptor
-        type: 'Acceptor'
-        E: 4 eV     #fake
-        g: 4
     surface=GenericMetal
         electronbarrier: 2 eV
 
@@ -51,14 +35,6 @@ material=InN
     dopant=Mg
         type: 'Acceptor'
         E: -1200 meV
-        g: 4
-    dopant=DeepDonor
-        type: 'Donor'
-        E: .5 eV     #fake
-        g: 2
-    dopant=DeepAcceptor
-        type: 'Acceptor'
-        E: .5 eV     #fake
         g: 4
 
     ### JUST COPIED FROM GAN
