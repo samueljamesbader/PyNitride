@@ -2,7 +2,7 @@
 
 Carrier Models
 =====================================
-This page describes the physics of the carrier models implemented in :py:mod:`~pynitride.carriers`.
+This page describes the physics of the carrier models implemented in :py:mod:`~pynitride.physics.carriers`.
 
 .. _carriers_semiclassical:
 
