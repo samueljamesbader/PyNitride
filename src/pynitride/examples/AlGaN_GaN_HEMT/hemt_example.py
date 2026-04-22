@@ -8,13 +8,13 @@ from pynitride import log
 from pynitride import Simulation
 import numpy as np
 
-def define_mesh(sim,barr_t=20*nm,barr_x=.4,buff_t=100*nm,Ndd=5e16/cm**3,max_dz=1*nm):
+def define_mesh(sim,barr_t=20*nm,barr_x=.4,buff_t=100*nm,Na=5e16/cm**3,max_dz=1*nm):
 
     # Set up the mesh
     sim.dmeshes['main']=m=Mesh([
         MaterialBlock("epi",AlGaN(),[
-            UniformLayer("barrier",  barr_t, x=barr_x, DeepDonorDonorConc=5e16/cm**3),
-            UniformLayer("buffer" ,  buff_t, x=     0, DeepDonorDonorConc=5e16/cm**3),
+            UniformLayer("barrier",  barr_t, x=barr_x, CarbonAcceptorAcceptorConc=Na),
+            UniformLayer("buffer" ,  buff_t, x=     0, CarbonAcceptorAcceptorConc=Na),
         ])],
         max_dz=max_dz,
         refinements=[['barrier/buffer',.01*nm,1.4]],uniform=False,boundary=[.7*eV,"thick"])

@@ -7,6 +7,7 @@ Physics in PyNitride
     :maxdepth: 2
 
                 Carrier Models <carriers>
+                Dopant Models <dopants>
                 Dielectric Continuum Model <DC>
                 Elastic Continuum Model <EC>
                 Finite Element Method <FEM>
