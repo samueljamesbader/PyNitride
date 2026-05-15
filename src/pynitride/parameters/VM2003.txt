@@ -20,12 +20,12 @@ material=GaN
             C33: 398 GPa
             C44: 105 GPa
         kp
-            A1:  -7.21  hbar**2/(2*m_e)
-            A2:  -0.44  hbar**2/(2*m_e)
-            A3:   6.68  hbar**2/(2*m_e)
-            A4:  -3.46  hbar**2/(2*m_e)
-            A5:  -3.40  hbar**2/(2*m_e)
-            A6:  -4.90  hbar**2/(2*m_e)
+            A1:  -7.21
+            A2:  -0.44
+            A3:   6.68
+            A4:  -3.46
+            A5:  -3.40
+            A6:  -4.90
             A7:   93.7  meV angstrom
 
             # Note: these hydrostatic deformation potentials describe roughly the change in CB - CH,
@@ -69,12 +69,12 @@ material=AlN
             C33: 373 GPa
             C44: 116 GPa
         kp
-            A1:  -3.86  hbar**2/(2*m_e)
-            A2:  -0.25  hbar**2/(2*m_e)
-            A3:   3.58  hbar**2/(2*m_e)
-            A4:  -1.32  hbar**2/(2*m_e)
-            A5:  -1.47  hbar**2/(2*m_e)
-            A6:  -1.64  hbar**2/(2*m_e)
+            A1:  -3.86
+            A2:  -0.25
+            A3:   3.58
+            A4:  -1.32
+            A5:  -1.47
+            A6:  -1.64
             A7:      0  meV angstrom
 
             a1:  -3.40  eV
@@ -116,12 +116,12 @@ material=InN
             C33:  224   GPa
             C44:   48   GPa
         kp
-            A1:  -8.21  hbar**2/(2*m_e)
-            A2:  -0.68  hbar**2/(2*m_e)
-            A3:   7.57  hbar**2/(2*m_e)
-            A4:  -5.23  hbar**2/(2*m_e)
-            A5:  -5.11  hbar**2/(2*m_e)
-            A6:  -5.96  hbar**2/(2*m_e)
+            A1:  -8.21
+            A2:  -0.68
+            A3:   7.57
+            A4:  -5.23
+            A5:  -5.11
+            A6:  -5.96
             A7:   0     meV angstrom
 
             a1:  -3.5   eV

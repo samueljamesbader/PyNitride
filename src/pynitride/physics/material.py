@@ -452,14 +452,15 @@ class Wurtzite(MaterialSystem):
             return Cmats
 
         if carrier=='hole':
-            U=MidFunction(m,hbar**2/(2*m_e))
+            h2o2m=hbar**2/(2*m_e)
             O=MidFunction(m,0)
-            Atwid=m.A2+m.A4-U; Ahat=m.A1+m.A3-U
-            L1=m.A5+Atwid; L2=m.A1-U
-            M1=-m.A5+Atwid; M2=Ahat; M3=m.A2-U
-            N1p=3*m.A5-Atwid; N1m=-m.A5+Atwid
-            N2p=np.sqrt(2)*m.A6-Ahat
-            N2m=Ahat
+            Atwid=m.A2+m.A4-1; Ahat=m.A1+m.A3-1
+            L1=h2o2m*(m.A5+Atwid); L2=h2o2m*(m.A1-1)
+            M1=h2o2m*(-m.A5+Atwid); M2=h2o2m*Ahat; M3=h2o2m*(m.A2-1)
+            N1p=h2o2m*(3*m.A5-Atwid); N1m=h2o2m*(-m.A5+Atwid)
+            N2p=h2o2m*(np.sqrt(2)*m.A6-Ahat)
+            N2m=h2o2m*Ahat
+            U=MidFunction(m,h2o2m)
             L1u=L1+U; L2u=L2+U
             M1u=M1+U; M2u=M2+U; M3u=M3+U
             Delta1=m.Delta1;Delta2=m.Delta2;Delta3=m.Delta3
