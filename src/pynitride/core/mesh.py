@@ -212,7 +212,7 @@ class MeshKeyError(KeyError):
 
 class Mesh():
 
-    def __init__(self, stack, max_dz, refinements=[], uniform=False, boundary=["GenericMetal","thick"]):
+    def __init__(self, stack, max_dz, refinements=[], uniform=False, boundary=[1.0,"thick"]):
         r""" Generates and manages a dual, potentially non-uniform mesh and functions defined on it.
 
         See :ref:`Meshing Scheme <mesh>` for a discussion of the defintion and properties of the mesh.

@@ -77,6 +77,10 @@ material=AlN
         polarization
             e51:    0.4176   C/m^2
 
+material=InN
+    conditions=
+        polarization
+            e51:    0.2640  C/m^2
 
 
 ######
@@ -272,3 +276,33 @@ material=AlN
             mzs:  0.26 m_e
             mxys: 4.00 m_e
             DE: 0 meV
+
+
+#####
+# Schottky barrier heights
+# These can vary dramatically depending on condition, so are often tuned in simulation
+# But I'll reference Qiao 2000 (http://dx.doi.org/10.1063/1.371944)
+# and take a GaN value of .94 and extrapolate an AlN value from the x=.11
+# just to have reasonable starting numbers here.
+#####
+material=GaN
+    surface=GenericMetal
+        electronbarrier: .94 eV
+
+material=AlN
+    surface=GenericMetal
+        electronbarrier: 1.95 eV
+
+# Common uncited literature values, customize as needed
+material=SiO2
+    DE: .4   eV
+    dielectric
+        eps_z: 3.9 epsilon_0
+        eps_perp: 3.9 epsilon_0
+    surface=Nickel
+        electronbarrier: 4 eV 
+    conditions=relaxed
+        varshni
+            Eg0: 8.9 eV
+            alpha: 0 meV/K
+            beta: 0 K

@@ -2,14 +2,6 @@ Omniscient v1
 
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
-material=GaN
-    surface=GenericMetal
-        electronbarrier: 1 eV
-
-material=AlN
-    surface=GenericMetal
-        electronbarrier: 2 eV
-
 material=InN
     dielectric
         eps_z:    15.3 epsilon_0
@@ -17,17 +9,6 @@ material=InN
     DE: -1 eV
 
     # PLACEHOLDER VALUES
-    conditions=
-        polarization
-            e51:    0   C/m^2
-    raman
-        wLO_para:   0     2*pi*c/cm
-        wLO_perp:   0     2*pi*c/cm
-        wTO_para:   0     2*pi*c/cm
-        wTO_perp:   0     2*pi*c/cm
-    dielectric
-        eps_inf:    0    epsilon_0
-    density: 0 g/cm^3
     dopant=Si
         type: 'Donor'
         E: 0 meV
@@ -54,18 +35,3 @@ material=InN
             mzs:   0.14 m_e
             mxys:  2.27 m_e
             DE: 21 meV
-
-# MOST VALUES COPIED FROM GAN DO NOT TRUST
-material=SiO2
-    material type: 'binary'
-    DE: .4   eV
-    dielectric
-        eps_z: 3.9 epsilon_0
-        eps_perp: 3.9 epsilon_0
-    surface=GenericMetal
-        electronbarrier: 2 eV
-    conditions=relaxed
-        varshni
-            Eg0: 8.9 eV
-            alpha: 0 meV/K
-            beta: 0 K
