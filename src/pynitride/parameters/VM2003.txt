@@ -12,7 +12,6 @@ Omniscient v1
 ######
 
 material=GaN
-    material type: 'binary'
     conditions=
         stiffness
             C11: 390 GPa
@@ -62,7 +61,6 @@ material=GaN
 
 
 material=AlN
-    material type: 'binary'
     conditions=
         stiffness
             C11: 396 GPa
@@ -110,7 +108,6 @@ material=AlN
 
 
 material=InN
-    material type: 'binary'
     conditions=
         stiffness
             C11:  223   GPa

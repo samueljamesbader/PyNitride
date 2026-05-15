@@ -41,13 +41,12 @@ Here's an sample chunk of a parameter file::
     PyNitride v2
 
     ...
-
+    # This is a comment, and will be ignored
     material=GaN
-        material type=binary
         conditions=strained to AlN
             Eg: 3.605 eV
-            surface=GenericMetal
-                electronbarrier: 1 eV
+            surface=Nickel
+                electronbarrier: .94 eV
             carrier=electron
                 DEc: 0 eV
                 band=
@@ -59,7 +58,7 @@ Here's an sample chunk of a parameter file::
                     g: 2
                     mdos: 1.5 m_e
             polarization
-                Ptot: 2e-6 e/cm**2    # don't trust this value
+                Ptot: 2e-6 e/cm**2    # don't trust this value (inline comment)
         conditions=
             dielectric
                 eps: 10.4 epsilon_0

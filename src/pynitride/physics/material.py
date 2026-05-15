@@ -46,8 +46,8 @@ class MaterialSystem():
         Args:
             lookup: the string with which to query the parameter database for each material basis
         """
-        interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self.vergardbasis.items()}
         def prop(mesh,key):
+            interpdict={k:pmdb["material="+v+"."+lookup] for k,v in self.vergardbasis.items()}
             if len(interpdict.keys())==1:
                 val=MidFunction(mesh,value=interpdict[None])
             else:

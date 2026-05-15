@@ -12,7 +12,6 @@ Omniscient v1
 ######
 
 material=GaN
-    material type: 'binary'
     conditions=
         kp
             A1:  -5.947  hbar**2/(2*m_e)
@@ -26,7 +25,6 @@ material=GaN
             Ep2:  16.265 eV
             DeltaCR:  34 meV
 material=AlN
-    material type: 'binary'
     conditions=
         kp
             A1:  -3.991  hbar**2/(2*m_e)
