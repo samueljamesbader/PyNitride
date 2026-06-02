@@ -134,8 +134,8 @@ material=InN
             D5:  -4.0   eV
             D6:  -5.5   eV
 
-            DeltaCR:  .04  meV
-            DeltaSO:  .005 meV
+            DeltaCR:  40  meV
+            DeltaSO:   5 meV
     carrier=electron
         band=
             g: 2

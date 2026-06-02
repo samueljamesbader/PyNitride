@@ -281,12 +281,12 @@ class Wurtzite(MaterialSystem):
         m['hg']=MidFunction(m,2)
         m['mez']=np.atleast_2d(
             self.vergard('carrier=electron.band=.mzs')(m,None))
+        m['mexy']=np.atleast_2d(
+            self.vergard('carrier=electron.band=.mxys')(m,None))
         m['mhz']=MidFunction(m,np.vstack([
             self.vergard('carrier=hole.band=HH.mzs')(m,None),
             self.vergard('carrier=hole.band=LH.mzs')(m,None),
             self.vergard('carrier=hole.band=CH.mzs')(m,None)]))
-        m['mexy']=np.atleast_2d(
-            self.vergard('carrier=electron.band=.mxys')(m,None))
         m['mhxy']=MidFunction(m,np.vstack([
             self.vergard('carrier=hole.band=HH.mxys')(m,None),
             self.vergard('carrier=hole.band=LH.mxys')(m,None),

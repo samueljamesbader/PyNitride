@@ -60,7 +60,7 @@ def _test_example(get_sim_func:SimFunc, example_name:str, create:bool=False, max
             else carrier_precision if key in ['n[1/cm^3]','p[1/cm^3]']\
             else None
         assert atol is not None, f"Unknown key {key} in golden file for {example_name}"
-        assert np.allclose(golden[key], test_data[key], atol=atol), f"Mismatch in {key} for {example_name}"
+        assert np.allclose(golden[key], test_data[key], atol=atol), f"Mismatch in {key} for {example_name} by {np.max(np.abs(golden[key]-test_data[key])):.2e} with atol={atol}"
 
     golden_schro_path = Path(__file__).parent/f"goldens/{example_name}_schrodinger.txt"
     if golden_schro_path.exists():
@@ -77,8 +77,8 @@ def _test_example(get_sim_func:SimFunc, example_name:str, create:bool=False, max
         assert np.array_equal(golden_schro['eigenvalue_index'], test_schro['eigenvalue_index']), \
             f"Schrodinger eigenvalue_index mismatch for {example_name}"
         assert np.allclose(golden_schro['energy[eV]'], test_schro['energy[eV]'], atol=band_precision), \
-            f"Schrodinger energy mismatch for {example_name}"
-
+            f"Schrodinger energy mismatch for {example_name} by {np.max(np.abs(golden_schro['energy[eV]']-test_schro['energy[eV]'])):.2e} eV"
+        
     golden_psi_path = Path(__file__).parent/f"goldens/{example_name}_schrodinger_psi.txt"
     if golden_psi_path.exists():
         assert 'schro' in sim.extras, f"Schrodinger results missing from simulation extras for {example_name}"
