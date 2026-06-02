@@ -100,6 +100,12 @@ material=AlN
         eps_z:     8.6 epsilon_0
         eps_perp:  7.4 epsilon_0
 
+# https://www.ioffe.ru/SVA/NSM/Semicond/InN/basic.html
+material=InN
+    dielectric
+        eps_z:    14.4 epsilon_0
+        eps_perp: 13.1 epsilon_0
+
 ######
 ## Optical phonons
 ######
@@ -232,6 +238,22 @@ material=AlN
     dopant=CarbonAcceptor
         type: 'Acceptor'
         E:  2.4 eV
+        g: 4
+
+material=InN
+    # I have not seen a value for this but I expect it
+    # to be small enough that the exact value is unimportant
+    dopant=Si
+        type: 'Donor'
+        E: 0 meV
+        g: 2
+    # This E provides the right endpoint such that InGaN donor energy
+    # should interpolate from 170meV in pure GaN to 0meV for ~ 35% InGaN
+    # as per Fig 5 of http://dx.doi.org/10.1143/JJAP.46.2840
+    # (It's not based on actual InN.)
+    dopant=Mg
+        type: 'Acceptor'
+        E: -316 meV
         g: 4
 
 ######

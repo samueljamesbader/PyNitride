@@ -3,17 +3,4 @@ Omniscient v1
 # Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
 
 material=InN
-    dielectric
-        eps_z:    15.3 epsilon_0
-        eps_perp: 15.3 epsilon_0
     DE: -1 eV
-
-    # PLACEHOLDER VALUES
-    dopant=Si
-        type: 'Donor'
-        E: 0 meV
-        g: 2
-    dopant=Mg
-        type: 'Acceptor'
-        E: -1200 meV
-        g: 4
