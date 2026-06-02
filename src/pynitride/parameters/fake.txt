@@ -17,21 +17,3 @@ material=InN
         type: 'Acceptor'
         E: -1200 meV
         g: 4
-
-    ### JUST COPIED FROM GAN
-    carrier=hole
-        band=HH
-            g: 2
-            mzs:   1.89 m_e
-            mxys:  2.00 m_e
-            DE: 0 eV
-        band=LH
-            g: 2
-            mzs:   1.89 m_e
-            mxys:  0.14 m_e
-            DE: 5 meV
-        band=CH
-            g: 2
-            mzs:   0.14 m_e
-            mxys:  2.27 m_e
-            DE: 21 meV
