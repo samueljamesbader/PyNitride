@@ -99,12 +99,12 @@ Publishing to PyPI
 **********************
 The PyPI workflow (``.github/workflows/pypi.yml``) publishes to the
 `PyNitride PyPI project <https://pypi.org/project/pynitride/>`_ when a tag of
-the form ``vX.X.X`` is pushed to ``main``.
+the form ``vX.X.X`` is pushed.
 
 To cut a release:
 
 1. Bump ``__version__`` in ``src/pynitride/__init__.py`` to the intended version, e.g. ``"0.2.0"``.
-2. Commit and push to ``main``.
+2. Commit and push.
 3. Tag the commit with the **matching** version and push the tag — the workflow enforces that the tag and ``__version__`` agree::
 
       git tag vX.Y.Z
