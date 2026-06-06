@@ -64,5 +64,4 @@ kb, hbar, pi, m_e, cm, nm, eV, meV, K, q =[parse(x) for x in\
 pmdb=ParamDB(None)
 with resources.as_file(resources.files('pynitride.parameters')) as param_path:
     pmdb.read(param_path/"VM2003.txt")
-    pmdb.read(param_path/"fake.txt")
     pmdb.read(param_path/"bader_recommended.txt")
