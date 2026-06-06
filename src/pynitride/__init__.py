@@ -1,4 +1,4 @@
-__version__ = "0.2.0rc6"
+__version__ = "0.2.0"
 
 import os.path
 from dotenv import load_dotenv
