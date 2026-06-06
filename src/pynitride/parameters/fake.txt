@@ -1,6 +1,0 @@
-Omniscient v1
-
-# Consider all these values untrustworthy.  This is a temporary file as I migrate parameter databases
-
-material=InN
-    DE: -1 eV

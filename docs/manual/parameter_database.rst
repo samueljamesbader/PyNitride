@@ -92,7 +92,6 @@ The structure outlined above essentially maps onto nested dictionaries, but some
         default parameter files:
             .:'VM2003.txt'
             .:'chemistry.txt'
-            .:'fake.txt'
     ...
 
 The ``:`` at the end of ``default parameter files`` indicates that the subsequent elements form an array, not a dictionary.  The subsequent value lines begin with a ``.`` rather than a proper key.  This is entirely equivalent to ::
