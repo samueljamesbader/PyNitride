@@ -9,6 +9,8 @@ The PyNitride Scientific Package
 
 Everything the Python-friendly III-Nitride engineer needs!
 
+|github-badge| |pypi-badge|
+
 What is PyNitride?
 ==================
 
@@ -45,6 +47,8 @@ Find out more about the :ref:`math_and_physics` or skip into the :doc:`API refer
 
         API Reference <auto/modules>
         Contributing <manual/contributing>
+        GitHub <https://github.com/samueljamesbader/PyNitride>
+        PyPI <https://pypi.org/project/pynitride/>
 
 
 Authors
@@ -78,6 +82,14 @@ solver from Greg Snider which inspired this toolset.
 And finally, Sam thanks his advisors
 `Debdeep Jena <https://djena.engineering.cornell.edu/>`_ and `Grace Xing <http://grace.engineering.cornell.edu/>`_
 for research support and ever-helpful discussions.
+
+.. |github-badge| image:: https://img.shields.io/badge/GitHub-PyNitride-181717?logo=github&logoColor=white
+   :target: https://github.com/samueljamesbader/PyNitride
+   :alt: GitHub
+
+.. |pypi-badge| image:: https://img.shields.io/pypi/v/pynitride?logo=pypi&logoColor=white&labelColor=555&color=brightgreen
+   :target: https://pypi.org/project/pynitride/
+   :alt: PyPI
 
 .. Indices and tables
     ==================
